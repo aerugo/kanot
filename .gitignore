@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Poetry
+/.venv
+/.venv/
+poetry.lock
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+/.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+
+# Project specific
+/_temp/
+*/_temp/
+/_archive/
+*/_archive/
+
+# Environment
+.env
+
+# Mac
+.DS_Store
