@@ -6,7 +6,7 @@ from sqlalchemy import exc as sa_exc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from kanot.db.schema import (
+from ..db.schema import (
     Annotation,
     Code,
     CodeType,
