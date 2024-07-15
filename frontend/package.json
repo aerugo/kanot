@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public --no-clear"
+    "start": "sirv public --single"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.0",
@@ -20,6 +20,9 @@
   },
   "dependencies": {
     "axios": "^1.7.2",
-    "sirv-cli": "^2.0.0"
+    "express": "^4.19.2",
+    "lodash-es": "^4.17.21",
+    "sirv-cli": "^2.0.0",
+    "svelte-routing": "^2.13.0"
   }
 }
