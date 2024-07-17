@@ -73,16 +73,18 @@
     <h2>Codes List</h2>
 
     <div class="filters">
-      <SearchBar on:search={handleSearch} />
+      <SearchBar on:search={handleSearch} placeholder="Search codes..." debounceDelay={300} />
       <FilterDropdown
-        bind:selectedTypes
+        label="Filter by Type"
+        options={$codeTypes.map(type => ({ id: type.type_id, name: type.type_name }))}
+        bind:selected={selectedTypes}
         bind:isOpen={isFilterOpen}
-        on:typesChanged={handleTypesChanged}
+        on:change={handleTypesChanged}
       />
     </div>
 
     <SelectedFilters
-      {selectedTypes}
+      selectedTypes={selectedTypes}
       onClearFilter={clearFilter}
       onClearAll={clearAllFilters}
     />

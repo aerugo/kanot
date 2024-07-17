@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import logging
 import traceback
 from logging.config import dictConfig
 from typing import List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -77,6 +79,7 @@ class CodeTypeBase(BaseModel):
     type_id: int
 
 class CodeTypeCreate(CodeTypeBase):
+    type_name: str
     pass
 
 class CodeTypeUpdate(BaseModel):
@@ -118,50 +121,87 @@ class CodeResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class EpisodeBase(BaseModel):
-    episode_id: str
-    episode_title: str
+class SeriesBase(BaseModel):
+    series_id: int
+    series_title: str
 
-class EpisodeCreate(EpisodeBase):
+class SeriesCreate(SeriesBase):
     pass
 
-class EpisodeUpdate(BaseModel):
-    episode_title: Optional[str] = None
+class SeriesUpdate(BaseModel):
+    series_title: Optional[str] = ""
 
-class EpisodeResponse(EpisodeBase):
-    class Config:
-        from_attributes = True
-
-class TranscriptBase(BaseModel):
-    transcript_text: str
-    episode_id: str
-
-class TranscriptCreate(TranscriptBase):
-    pass
-
-class TranscriptUpdate(BaseModel):
-    transcript_text: Optional[str] = None
-    episode_id: Optional[str] = None
-
-class TranscriptResponse(TranscriptBase):
-    transcript_id: int
+class SeriesResponse(BaseModel):
+    series_id: int
+    series_title: str
 
     class Config:
         from_attributes = True
+        orm_mode = True
+
+class SegmentBase(BaseModel):
+    segment_id: int
+    segment_title: str
+    series_id: int
+
+class SegmentCreate(SegmentBase):
+    pass
+
+class SegmentUpdate(BaseModel):
+    segment_title: Optional[str] = None
+
+class SegmentResponse(BaseModel):
+    segment_id: int
+    segment_title: str
+    series: Optional[SeriesResponse] = None
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+class ElementBase(BaseModel):
+    element_text: str
+    segment_id: int
+
+class ElementCreate(ElementBase):
+    pass
+
+class ElementUpdate(BaseModel):
+    element_text: Optional[str] = None
+    segment_id: Optional[int] = None
+
+class ElementResponse(BaseModel):
+    element_id: int
+    element_text: Optional[str] = None
+    segment: Optional[SegmentResponse] = None
+    annotations: List[AnnotationResponseNoElement] = []
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+class AnnotationResponseNoElement(BaseModel):
+    annotation_id: int
+    code: Optional[CodeResponse] = None
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
 
 class AnnotationBase(BaseModel):
-    transcript_id: int
+    element_id: int
     code_id: int
 
 class AnnotationCreate(AnnotationBase):
     pass
 
 class AnnotationUpdate(BaseModel):
-    transcript_id: Optional[int] = None
+    element_id: Optional[int] = None
     code_id: Optional[int] = None
 
 class AnnotationResponse(AnnotationBase):
     annotation_id: int
+    code: Optional[CodeResponse]
 
     class Config:
         from_attributes = True
@@ -257,72 +297,107 @@ def delete_code(code_id: int, db: Session = Depends(get_db)):
     db_manager.delete_code(code_id)
     return {"message": "Code deleted successfully"}
 
-# Episode endpoints
-@app.post("/episodes/", response_model=EpisodeResponse)
-def create_episode(episode: EpisodeCreate, db: Session = Depends(get_db)):
-    new_episode = db_manager.create_episode(episode.episode_id, episode.episode_title)
-    return new_episode
+# Series endpoints
+@app.post("/series/", response_model=SeriesResponse)
+def create_series(series: SeriesCreate, db: Session = Depends(get_db)):
+    new_series = db_manager.create_series(series.series_title)
+    return new_series
 
-@app.get("/episodes/", response_model=List[EpisodeResponse])
-def read_episodes(db: Session = Depends(get_db)):
-    episodes = db_manager.read_all_episodes()
-    return episodes
+@app.get("/series/", response_model=List[SeriesResponse])
+def read_all_series(db: Session = Depends(get_db)):
+    series = db_manager.read_all_series()
+    return series
 
-@app.get("/episodes/{episode_id}", response_model=EpisodeResponse)
-def read_episode(episode_id: str, db: Session = Depends(get_db)):
-    episode = db_manager.read_episode(episode_id)
-    if episode is None:
-        raise HTTPException(status_code=404, detail="Episode not found")
-    return episode
+@app.get("/series/{series_id}", response_model=SeriesResponse)
+def read_series(series_id: int, db: Session = Depends(get_db)):
+    series = db_manager.read_series(series_id)
+    if series is None:
+        raise HTTPException(status_code=404, detail="Series not found")
+    return series
 
-@app.put("/episodes/{episode_id}", response_model=EpisodeResponse)
-def update_episode(episode_id: str, episode: EpisodeUpdate, db: Session = Depends(get_db)):
-    db_manager.update_episode(episode_id, episode.episode_title)
-    updated_episode = db_manager.read_episode(episode_id)
-    if updated_episode is None:
-        raise HTTPException(status_code=404, detail="Episode not found")
-    return updated_episode
+@app.put("/series/{series_id}", response_model=SeriesResponse)
+def update_series(series_id: int, series: SeriesUpdate, db: Session = Depends(get_db)):
+    db_manager.update_series(series_id, series.series_title)
+    updated_series = db_manager.read_series(series_id)
+    if updated_series is None:
+        raise HTTPException(status_code=404, detail="Series not found")
+    return updated_series
 
-@app.delete("/episodes/{episode_id}")
-def delete_episode(episode_id: str, db: Session = Depends(get_db)):
-    db_manager.delete_episode(episode_id)
-    return {"message": "Episode deleted successfully"}
+@app.delete("/series/{series_id}")
+def delete_series(series_id: int, db: Session = Depends(get_db)):
+    db_manager.delete_series(series_id)
+    return {"message": "Series deleted successfully"}
 
-# Transcript endpoints
-@app.post("/transcripts/", response_model=TranscriptResponse)
-def create_transcript(transcript: TranscriptCreate, db: Session = Depends(get_db)):
-    new_transcript = db_manager.create_transcript(transcript.transcript_text, transcript.episode_id)
-    return new_transcript
+# Segment endpoints
+@app.post("/segments/", response_model=SegmentResponse)
+def create_segment(segment: SegmentCreate, db: Session = Depends(get_db)):
+    new_segment = db_manager.create_segment(segment.segment_id, segment.segment_title)
+    return new_segment
 
-@app.get("/transcripts/", response_model=List[TranscriptResponse])
-def read_transcripts(db: Session = Depends(get_db)):
-    transcripts = db_manager.read_all_transcripts()
-    return transcripts
+@app.get("/segments/", response_model=List[SegmentResponse])
+def read_segments(db: Session = Depends(get_db)):
+    segments = db_manager.read_all_segments()
+    return segments
 
-@app.get("/transcripts/{transcript_id}", response_model=TranscriptResponse)
-def read_transcript(transcript_id: int, db: Session = Depends(get_db)):
-    transcript = db_manager.read_transcript(transcript_id)
-    if transcript is None:
-        raise HTTPException(status_code=404, detail="Transcript not found")
-    return transcript
+@app.get("/segments/{segment_id}", response_model=SegmentResponse)
+def read_segment(segment_id: int, db: Session = Depends(get_db)):
+    segment = db_manager.read_segment(segment_id)
+    if segment is None:
+        raise HTTPException(status_code=404, detail="Segment not found")
+    return segment
 
-@app.put("/transcripts/{transcript_id}", response_model=TranscriptResponse)
-def update_transcript(transcript_id: int, transcript: TranscriptUpdate, db: Session = Depends(get_db)):
-    db_manager.update_transcript(transcript_id, transcript.transcript_text, transcript.episode_id)
-    updated_transcript = db_manager.read_transcript(transcript_id)
-    if updated_transcript is None:
-        raise HTTPException(status_code=404, detail="Transcript not found")
-    return updated_transcript
+@app.put("/segments/{segment_id}", response_model=SegmentResponse)
+def update_segment(segment_id: int, segment: SegmentUpdate, db: Session = Depends(get_db)):
+    db_manager.update_segment(segment_id, segment.segment_title)
+    updated_segment = db_manager.read_segment(segment_id)
+    if updated_segment is None:
+        raise HTTPException(status_code=404, detail="Segment not found")
+    return updated_segment
 
-@app.delete("/transcripts/{transcript_id}")
-def delete_transcript(transcript_id: int, db: Session = Depends(get_db)):
-    db_manager.delete_transcript(transcript_id)
-    return {"message": "Transcript deleted successfully"}
+@app.delete("/segments/{segment_id}")
+def delete_segment(segment_id: int, db: Session = Depends(get_db)):
+    db_manager.delete_segment(segment_id)
+    return {"message": "Segment deleted successfully"}
+
+# Element endpoints
+@app.post("/elements/", response_model=ElementResponse)
+def create_element(element: ElementCreate, db: Session = Depends(get_db)):
+    new_element = db_manager.create_element(element.element_text, element.segment_id)
+    return new_element
+
+@app.get("/elements/", response_model=List[ElementResponse])
+def read_elements(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db)
+):
+    elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
+    return elements
+
+@app.get("/elements/{element_id}", response_model=ElementResponse)
+def read_element(element_id: int, db: Session = Depends(get_db)):
+    element = db_manager.read_element(element_id)
+    if element is None:
+        raise HTTPException(status_code=404, detail="Element not found")
+    return element
+
+@app.put("/elements/{element_id}", response_model=ElementResponse)
+def update_element(element_id: int, element: ElementUpdate, db: Session = Depends(get_db)):
+    db_manager.update_element(element_id, element.element_text, element.segment_id)
+    updated_element = db_manager.read_element(element_id)
+    if updated_element is None:
+        raise HTTPException(status_code=404, detail="Element not found")
+    return updated_element
+
+@app.delete("/elements/{element_id}")
+def delete_element(element_id: int, db: Session = Depends(get_db)):
+    db_manager.delete_element(element_id)
+    return {"message": "Element deleted successfully"}
 
 # Annotation endpoints
 @app.post("/annotations/", response_model=AnnotationResponse)
 def create_annotation(annotation: AnnotationCreate, db: Session = Depends(get_db)):
-    new_annotation = db_manager.create_annotation(annotation.transcript_id, annotation.code_id)
+    new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id)
     return new_annotation
 
 @app.get("/annotations/", response_model=List[AnnotationResponse])
@@ -339,7 +414,7 @@ def read_annotation(annotation_id: int, db: Session = Depends(get_db)):
 
 @app.put("/annotations/{annotation_id}", response_model=AnnotationResponse)
 def update_annotation(annotation_id: int, annotation: AnnotationUpdate, db: Session = Depends(get_db)):
-    db_manager.update_annotation(annotation_id, annotation.transcript_id, annotation.code_id)
+    db_manager.update_annotation(annotation_id, annotation.element_id, annotation.code_id)
     updated_annotation = db_manager.read_annotation(annotation_id)
     if updated_annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
@@ -360,6 +435,39 @@ def merge_codes(code_a_id: int, code_b_id: int, db: Session = Depends(get_db)):
 def get_annotations_for_code(code_id: int, db: Session = Depends(get_db)):
     annotations = db_manager.get_annotations_for_code(code_id)
     return annotations
+
+@app.get("/search_elements/", response_model=List[ElementResponse])
+def search_elements(
+    response: Response,
+    search_term: str = Query("", min_length=0),
+    series_ids: Optional[str] = Query(None),
+    segment_ids: Optional[str] = Query(None),
+    code_ids: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db)
+):
+    logger.info(f"Received search request - series_ids: {series_ids}, segment_ids: {segment_ids}, code_ids: {code_ids}")
+    series_id_list = [int(id) for id in series_ids.split(",")] if series_ids else []
+    segment_id_list = [int(id) for id in segment_ids.split(",")] if segment_ids else []
+    code_id_list = [int(id) for id in code_ids.split(",")] if code_ids else []
+
+    elements = db_manager.search_elements(
+        search_term, series_id_list, segment_id_list, code_id_list, skip, limit
+    )
+    if elements is None:
+        raise HTTPException(status_code=500, detail="Error searching elements")
+    
+    # Get total count for pagination
+    total_count = db_manager.count_elements(search_term, series_id_list, segment_id_list, code_id_list)
+    
+    # Add pagination headers
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Skip"] = str(skip)
+    
+    return elements
+
 
 if __name__ == "__main__":
     import uvicorn  # type: ignore

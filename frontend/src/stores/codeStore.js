@@ -19,7 +19,7 @@ function createCodeStore() {
         add: (newCode) => update(codes => [...codes, newCode]),
         remove: (id) => update(codes => codes.filter(code => code.code_id !== id)),
         edit: (updatedCode) => update(codes => 
-        codes.map(code => code.code_id === updatedCode.code_id ? updatedCode : code)
+            codes.map(code => code.code_id === updatedCode.code_id ? updatedCode : code)
         )
     };
 }

@@ -88,114 +88,114 @@ def test_delete_code(db_manager: DatabaseManager) -> None:
     code = db_manager.read_code(1)
     assert code is None
 
-# Episode tests
+# Segment tests
 
-def test_create_episode(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    episode = db_manager.read_episode("EP001")
-    assert episode is not None
-    assert episode.episode_title == "Test Episode"
+def test_create_segment(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    segment = db_manager.read_segment("EP001")
+    assert segment is not None
+    assert segment.segment_title == "Test Segment"
 
-def test_read_episode(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    episode = db_manager.read_episode("EP001")
-    assert episode is not None
-    assert episode.episode_title == "Test Episode"
+def test_read_segment(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    segment = db_manager.read_segment("EP001")
+    assert segment is not None
+    assert segment.segment_title == "Test Segment"
 
-def test_read_all_episodes(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode 1")
-    db_manager.create_episode("EP002", "Test Episode 2")
-    episodes = db_manager.read_all_episodes()
-    assert len(episodes) == 2
-    assert episodes[0].episode_title == "Test Episode 1"
-    assert episodes[1].episode_title == "Test Episode 2"
+def test_read_all_segments(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment 1")
+    db_manager.create_segment("EP002", "Test Segment 2")
+    segments = db_manager.read_all_segments()
+    assert len(segments) == 2
+    assert segments[0].segment_title == "Test Segment 1"
+    assert segments[1].segment_title == "Test Segment 2"
 
-def test_update_episode(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.update_episode("EP001", "Updated Episode")
-    episode = db_manager.read_episode("EP001")
-    assert episode is not None
-    assert episode.episode_title == "Updated Episode"
+def test_update_segment(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.update_segment("EP001", "Updated Segment")
+    segment = db_manager.read_segment("EP001")
+    assert segment is not None
+    assert segment.segment_title == "Updated Segment"
 
-def test_delete_episode(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.delete_episode("EP001")
-    episode = db_manager.read_episode("EP001")
-    assert episode is None
+def test_delete_segment(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.delete_segment("EP001")
+    segment = db_manager.read_segment("EP001")
+    assert segment is None
 
-# Transcript tests
+# Element tests
 
-def test_create_transcript(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
-    transcript = db_manager.read_transcript(1)
-    assert transcript is not None
-    assert transcript.transcript_text == "Test transcript"
+def test_create_element(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
+    element = db_manager.read_element(1)
+    assert element is not None
+    assert element.element_text == "Test element"
 
-def test_read_transcript(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
-    transcript = db_manager.read_transcript(1)
-    assert transcript is not None
-    assert transcript.transcript_text == "Test transcript"
+def test_read_element(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
+    element = db_manager.read_element(1)
+    assert element is not None
+    assert element.element_text == "Test element"
 
-def test_read_all_transcripts(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript 1", "EP001")
-    db_manager.create_transcript("Test transcript 2", "EP001")
-    transcripts = db_manager.read_all_transcripts()
-    assert len(transcripts) == 2
-    assert transcripts[0].transcript_text == "Test transcript 1"
-    assert transcripts[1].transcript_text == "Test transcript 2"
+def test_read_all_elements(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element 1", "EP001")
+    db_manager.create_element("Test element 2", "EP001")
+    elements = db_manager.read_all_elements()
+    assert len(elements) == 2
+    assert elements[0].element_text == "Test element 1"
+    assert elements[1].element_text == "Test element 2"
 
-def test_update_transcript(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
-    db_manager.update_transcript(1, transcript_text="Updated transcript")
-    transcript = db_manager.read_transcript(1)
-    assert transcript is not None
-    assert transcript.transcript_text == "Updated transcript"
+def test_update_element(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
+    db_manager.update_element(1, element_text="Updated element")
+    element = db_manager.read_element(1)
+    assert element is not None
+    assert element.element_text == "Updated element"
 
-def test_delete_transcript(db_manager: DatabaseManager) -> None:
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
-    db_manager.delete_transcript(1)
-    transcript = db_manager.read_transcript(1)
-    assert transcript is None
+def test_delete_element(db_manager: DatabaseManager) -> None:
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
+    db_manager.delete_element(1)
+    element = db_manager.read_element(1)
+    assert element is None
 
 # Annotation tests
 
 def test_create_annotation(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
     db_manager.create_annotation(1, 1)
     annotation = db_manager.read_annotation(1)
     assert annotation is not None
-    assert annotation.transcript_id == 1
+    assert annotation.element_id == 1
     assert annotation.code_id == 1
 
 def test_read_annotation(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
     db_manager.create_annotation(1, 1)
     annotation = db_manager.read_annotation(1)
     assert annotation is not None
-    assert annotation.transcript_id == 1
+    assert annotation.element_id == 1
     assert annotation.code_id == 1
 
 def test_read_all_annotations(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
     db_manager.create_code("Test Code 2", "Description 2", 1, "Reference 2", "Coordinates 2")
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_episode("EP002", "Test Episode 2")
-    db_manager.create_transcript("Test transcript 1", "EP001")
-    db_manager.create_transcript("Test transcript 2", "EP001")
-    db_manager.create_transcript("Test transcript 3", "EP002")
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_segment("EP002", "Test Segment 2")
+    db_manager.create_element("Test element 1", "EP001")
+    db_manager.create_element("Test element 2", "EP001")
+    db_manager.create_element("Test element 3", "EP002")
     db_manager.create_annotation(1, 1)
     db_manager.create_annotation(1, 2)
     db_manager.create_annotation(2, 1)
@@ -203,23 +203,23 @@ def test_read_all_annotations(db_manager: DatabaseManager) -> None:
     db_manager.create_annotation(3, 1)
     annotations = db_manager.read_all_annotations()
     assert len(annotations) == 5
-    assert annotations[0].transcript_id == 1
+    assert annotations[0].element_id == 1
     assert annotations[0].code_id == 1
-    assert annotations[1].transcript_id == 1
+    assert annotations[1].element_id == 1
     assert annotations[1].code_id == 2
-    assert annotations[2].transcript_id == 2
+    assert annotations[2].element_id == 2
     assert annotations[2].code_id == 1
-    assert annotations[3].transcript_id == 2
+    assert annotations[3].element_id == 2
     assert annotations[3].code_id == 2
-    assert annotations[4].transcript_id == 3
+    assert annotations[4].element_id == 3
     assert annotations[4].code_id == 1
 
 def test_update_annotation(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
     db_manager.create_code("Test Code 2", "Description 2", 1, "Reference 2", "Coordinates 2")
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
     db_manager.create_annotation(1, 1)
     db_manager.update_annotation(1, code_id=2)
     annotation = db_manager.read_annotation(1)
@@ -229,8 +229,8 @@ def test_update_annotation(db_manager: DatabaseManager) -> None:
 def test_delete_annotation(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript", "EP001")
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element", "EP001")
     db_manager.create_annotation(1, 1)
     db_manager.delete_annotation(1)
     annotation = db_manager.read_annotation(1)
@@ -246,15 +246,15 @@ def test_merge_codes(db_manager: DatabaseManager) -> None:
     db_manager.create_code("Code A", "Description A", 1, "Reference A", "Coordinates A")
     db_manager.create_code("Code B", "Description B", 1, "Reference B", "Coordinates B")
     
-    # Create an episode and two transcripts
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_transcript("Test transcript 1", "EP001")
-    db_manager.create_transcript("Test transcript 2", "EP001")
+    # Create an segment and two elements
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_element("Test element 1", "EP001")
+    db_manager.create_element("Test element 2", "EP001")
     
     # Create annotations for both codes
-    db_manager.create_annotation(1, 1)  # Annotation for Code A, Transcript 1
-    db_manager.create_annotation(2, 1)  # Annotation for Code A, Transcript 2
-    db_manager.create_annotation(1, 2)  # Annotation for Code B, Transcript 1
+    db_manager.create_annotation(1, 1)  # Annotation for Code A, Element 1
+    db_manager.create_annotation(2, 1)  # Annotation for Code A, Element 2
+    db_manager.create_annotation(1, 2)  # Annotation for Code B, Element 1
     
     # Merge Code A (id=1) into Code B (id=2)
     db_manager.merge_codes(1, 2)
@@ -271,9 +271,9 @@ def test_merge_codes(db_manager: DatabaseManager) -> None:
     assert code_b is not None
     assert code_b.term == "Code B"
     
-    # Check that we have annotations for both transcripts
-    transcript_ids = set(annotation.transcript_id for annotation in annotations)
-    assert transcript_ids == {1, 2}
+    # Check that we have annotations for both elements
+    element_ids = set(annotation.element_id for annotation in annotations)
+    assert element_ids == {1, 2}
 
 # Integrity error handling test
 
@@ -284,11 +284,11 @@ def test_integrity_error_handling(db_manager: DatabaseManager) -> None:
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates")  # Should not raise an exception, but print a message
 
-    db_manager.create_episode("EP001", "Test Episode")
-    db_manager.create_episode("EP001", "Test Episode")  # Should not raise an exception, but print a message
+    db_manager.create_segment("EP001", "Test Segment")
+    db_manager.create_segment("EP001", "Test Segment")  # Should not raise an exception, but print a message
 
-    db_manager.create_transcript("Test transcript", "EP001")
-    db_manager.create_transcript("Test transcript", "EP001")  # Should not raise an exception, but print a message
+    db_manager.create_element("Test element", "EP001")
+    db_manager.create_element("Test element", "EP001")  # Should not raise an exception, but print a message
 
     db_manager.create_annotation(1, 1)
     db_manager.create_annotation(1, 1)  # Should not raise an exception, but print a message

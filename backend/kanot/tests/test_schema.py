@@ -10,8 +10,8 @@ from ..db.schema import (
     Annotation,
     Code,
     CodeType,
-    Episode,
-    Transcript,
+    Element,
+    Segment,
     create_database,
     drop_database,
 )
@@ -59,26 +59,26 @@ def test_create_code(session: Session) -> None:
     assert code.reference == "Test Reference"
     assert code.coordinates == "Test Coordinates"
 
-def test_create_episode(session: Session) -> None:
-    episode = Episode(episode_id="EP001", episode_title="Test Episode")
-    session.add(episode)
+def test_create_segment(session: Session) -> None:
+    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    session.add(segment)
     session.commit()
 
-    assert episode.episode_id == "EP001"
-    assert episode.episode_title == "Test Episode"
+    assert segment.segment_id == "EP001"
+    assert segment.segment_title == "Test Segment"
 
-def test_create_transcript(session: Session) -> None:
-    episode = Episode(episode_id="EP001", episode_title="Test Episode")
-    session.add(episode)
+def test_create_element(session: Session) -> None:
+    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    session.add(segment)
     session.commit()
 
-    transcript = Transcript(transcript_text="Test Transcript", episode_id=episode.episode_id)
-    session.add(transcript)
+    element = Element(element_text="Test Element", segment_id=segment.segment_id)
+    session.add(element)
     session.commit()
 
-    assert transcript.transcript_id is not None
-    assert transcript.transcript_text == "Test Transcript"
-    assert transcript.episode_id == episode.episode_id
+    assert element.element_id is not None
+    assert element.element_text == "Test Element"
+    assert element.segment_id == segment.segment_id
 
 def test_create_annotation(session: Session) -> None:
     code_type = CodeType(type_name="Test Type")
@@ -94,20 +94,20 @@ def test_create_annotation(session: Session) -> None:
     )
     session.add(code)
 
-    episode = Episode(episode_id="EP001", episode_title="Test Episode")
-    session.add(episode)
+    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    session.add(segment)
     session.commit()
 
-    transcript = Transcript(transcript_text="Test Transcript", episode_id=episode.episode_id)
-    session.add(transcript)
+    element = Element(element_text="Test Element", segment_id=segment.segment_id)
+    session.add(element)
     session.commit()
 
-    annotation = Annotation(transcript_id=transcript.transcript_id, code_id=code.code_id)
+    annotation = Annotation(element_id=element.element_id, code_id=code.code_id)
     session.add(annotation)
     session.commit()
 
     assert annotation.annotation_id is not None
-    assert annotation.transcript_id == transcript.transcript_id
+    assert annotation.element_id == element.element_id
     assert annotation.code_id == code.code_id
 
 def test_relationships(session: Session) -> None:
@@ -124,22 +124,22 @@ def test_relationships(session: Session) -> None:
     )
     session.add(code)
 
-    episode = Episode(episode_id="EP001", episode_title="Test Episode")
-    session.add(episode)
+    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    session.add(segment)
     session.commit()
 
-    transcript = Transcript(transcript_text="Test Transcript", episode_id=episode.episode_id)
-    session.add(transcript)
+    element = Element(element_text="Test Element", segment_id=segment.segment_id)
+    session.add(element)
     session.commit()
 
-    annotation = Annotation(transcript_id=transcript.transcript_id, code_id=code.code_id)
+    annotation = Annotation(element_id=element.element_id, code_id=code.code_id)
     session.add(annotation)
     session.commit()
 
     # Test relationships
     assert code.code_type == code_type
-    assert transcript.episode == episode
-    assert annotation.transcript == transcript
+    assert element.segment == segment
+    assert annotation.element == element
     assert annotation.code == code
 
 def test_unique_constraints(session: Session) -> None:
@@ -165,13 +165,13 @@ def test_unique_constraints(session: Session) -> None:
         session.commit()
     session.rollback()
 
-    # Test unique constraint on Episode
-    episode1 = Episode(episode_id="EP001", episode_title="Test Episode")
-    session.add(episode1)
+    # Test unique constraint on Segment
+    segment1 = Segment(segment_id="EP001", segment_title="Test Segment")
+    session.add(segment1)
     session.commit()
 
-    episode2 = Episode(episode_id="EP001", episode_title="Another Test Episode")
-    session.add(episode2)
+    segment2 = Segment(segment_id="EP001", segment_title="Another Test Segment")
+    session.add(segment2)
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=sa_exc.SAWarning)
         with pytest.raises(IntegrityError):
@@ -179,15 +179,15 @@ def test_unique_constraints(session: Session) -> None:
     session.rollback()
 
     # Test unique constraint on Annotation
-    transcript = Transcript(transcript_text="Test Transcript", episode_id=episode1.episode_id)
-    session.add(transcript)
+    element = Element(element_text="Test Element", segment_id=segment1.segment_id)
+    session.add(element)
     session.commit()
 
-    annotation1 = Annotation(transcript_id=transcript.transcript_id, code_id=code1.code_id)
+    annotation1 = Annotation(element_id=element.element_id, code_id=code1.code_id)
     session.add(annotation1)
     session.commit()
 
-    annotation2 = Annotation(transcript_id=transcript.transcript_id, code_id=code1.code_id)
+    annotation2 = Annotation(element_id=element.element_id, code_id=code1.code_id)
     session.add(annotation2)
     with pytest.raises(Exception):
         session.commit()

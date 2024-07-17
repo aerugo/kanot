@@ -1,14 +1,6 @@
 from typing import Any
 
-from sqlalchemy import (
-    Column,
-    Engine,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import Column, Engine, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
 # Define the base class for declarative models
@@ -34,40 +26,43 @@ class Code(Base):
     def __repr__(self):
         return f"Code(code_id={self.code_id}, term={self.term}, description={self.description}, type_id={self.type_id}, reference={self.reference}, coordinates={self.coordinates})"
 
-# Define the Episodes class
-class Episode(Base): # type: ignore
-    __tablename__ = 'episodes'
-    episode_id: Any = Column(String, primary_key=True)
-    episode_title: Any = Column(Text, unique=True, nullable=False)
+class Series(Base):
+    __tablename__ = 'series'
+    series_id: Any = Column(Integer, primary_key=True, autoincrement=True)
+    series_title: Any = Column(Text, nullable=False)
 
-# Define the Transcripts class
-class Transcript(Base): # type: ignore
-    __tablename__ = 'transcripts'
-    transcript_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    transcript_text: Any = Column(Text)
-    episode_id: Any = Column(String, ForeignKey('episodes.episode_id'))
-    episode = relationship("Episode")
+class Segment(Base):
+    __tablename__ = 'segments'
+    segment_id: Any = Column(Integer, primary_key=True)
+    segment_title: Any = Column(Text, unique=True, nullable=False)
+    series_id: Any = Column(Integer, ForeignKey('series.series_id'))
+    series = relationship("Series")
+
+class Element(Base):
+    __tablename__ = 'elements'
+    element_id: Any = Column(Integer, primary_key=True, autoincrement=True)
+    element_text: Any = Column(Text, nullable=False, default="")
+    segment_id: Any = Column(Integer, ForeignKey('segments.segment_id'))
+    segment = relationship("Segment")
+    annotations = relationship("Annotation", back_populates="element")
 
     def __repr__(self):
-        return f"Transcript(transcript_id={self.transcript_id}, transcript_text={self.transcript_text}, episode_id={self.episode_id})"
+        return f"Element(element_id={self.element_id}, element_text={self.element_text}, segment_id={self.segment_id})"
 
-# Define the Annotations class
 class Annotation(Base): # type: ignore
     __tablename__ = 'annotations'
     annotation_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    transcript_id: Any = Column(Integer, ForeignKey('transcripts.transcript_id'))
+    element_id: Any = Column(Integer, ForeignKey('elements.element_id'))
     code_id: Any = Column(Integer, ForeignKey('codes.code_id'))
-    transcript = relationship("Transcript")
+    element = relationship("Element", back_populates="annotations")
     code = relationship("Code")
-    __table_args__ = (UniqueConstraint('transcript_id', 'code_id', name='_transcript_code_uc'),)
+    __table_args__ = (UniqueConstraint('element_id', 'code_id', name='_element_code_uc'),)
 
     def __repr__(self):
-        return f"Annotation(annotation_id={self.annotation_id}, transcript_id={self.transcript_id}, code_id={self.code_id})"
+        return f"Annotation(annotation_id={self.annotation_id}, element_id={self.element_id}, code_id={self.code_id})"
 
-# define the function to create the database
 def create_database(engine: Engine):
     Base.metadata.create_all(engine)
 
-# define the function to drop the database
 def drop_database(engine: Engine):
     Base.metadata.drop_all(engine)

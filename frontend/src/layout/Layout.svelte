@@ -13,7 +13,9 @@
       <li class:active={$location.pathname === "/codes"}>
         <Link to="/codes">Codes</Link>
       </li>
-      <!-- Add more navigation items as needed -->
+      <li class:active={$location.pathname === "/content"}>
+        <Link to="/content">Content</Link>
+      </li>
     </ul>
   </nav>
 

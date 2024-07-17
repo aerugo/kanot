@@ -2,11 +2,19 @@ import logging
 from logging.config import dictConfig
 from typing import Any, Optional
 
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload, sessionmaker
+from sqlalchemy.orm import contains_eager, joinedload, sessionmaker
 
-from .schema import Annotation, Code, CodeType, Episode, Transcript, create_database
+from .schema import (
+    Annotation,
+    Code,
+    CodeType,
+    Element,
+    Segment,
+    Series,
+    create_database,
+)
 
 # Define logging configuration
 log_config = {
@@ -64,7 +72,7 @@ class DatabaseManager:
         session.close()
         return code_type
     
-    def read_all_code_types(self) -> list[CodeType]:
+    def read_all_code_types(self) -> Optional[list[CodeType]]:
         session = self.Session()
         code_types = session.query(CodeType).all()
         session.close()
@@ -122,7 +130,7 @@ class DatabaseManager:
         session.close()
         return code
 
-    def read_all_codes(self) -> list[Code]:
+    def read_all_codes(self) -> Optional[list[Code]]:
         session = self.Session()
         codes = (
             session.query(Code)
@@ -161,118 +169,206 @@ class DatabaseManager:
             session.commit()
         session.close()
 
-    # Episode CRUD
+    # Series CRUD
 
-    def create_episode(self, episode_id: str, episode_title: str) -> Episode | None:
+    def create_series(self, series_title: str) -> Series | None:
         session = self.Session()
-        new_episode = Episode(episode_id=episode_id, episode_title=episode_title)
+        new_series = Series(series_title=series_title)
         try:
-            session.add(new_episode)
+            session.add(new_series)
             session.commit()
-            return new_episode
+            return new_series
         except IntegrityError:
             session.rollback()
-            logger.error(f"Episode with episode_id={episode_id} or episode_title={episode_title} already exists.")
+            logger.error(f"Series with series_title={series_title} already exists.")
+            return None
+        finally:
+            session.close()
+
+    def read_series(self, series_id: int) -> Optional[Series]:
+        session = self.Session()
+        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        session.close()
+        return series
+    
+    def read_all_series(self) -> Optional[list[Series]]:
+        session = self.Session()
+        series = session.query(Series).all()
+        session.close()
+        return series
+        
+    def update_series(self, series_id: int, series_title: Optional[str]) -> None:
+        session = self.Session()
+        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        if series:
+            try:
+                if series_title is not None:
+                    series.series_title = series_title
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                logger.error("Failed to update Series due to a unique constraint violation.")
+        session.close()
+
+
+    def delete_series(self, series_id: int) -> None:
+        session = self.Session()
+        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        if series:
+            session.delete(series)
+            session.commit()
+        session.close()
+
+    # Segment CRUD
+
+    def create_segment(self, segment_id: int, segment_title: Optional[str]) -> Segment | None:
+        session = self.Session()
+        new_segment = Segment(segment_id=segment_id, segment_title=segment_title)
+        try:
+            session.add(new_segment)
+            session.commit()
+            return new_segment
+        except IntegrityError:
+            session.rollback()
+            logger.error(f"Segment with segment_id={segment_id} or segment_title={segment_title} already exists.")
             return None
         finally:
             session.close()
     
-    def read_episode(self, episode_id: str) -> Optional[Episode]:
+    def read_segment(self, segment_id: int) -> Optional[Segment]:
         session = self.Session()
-        episode: Optional[Episode] = session.query(Episode).filter_by(episode_id=episode_id).first()
+        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
         session.close()
-        return episode
+        return segment
     
-    def read_all_episodes(self) -> list[Episode]:
+    def read_all_segments(self) -> Optional[list[Segment]]:
         session = self.Session()
-        episodes = session.query(Episode).all()
-        session.close()
-        return episodes
+        try:
+            segments = (
+                session.query(Segment)
+                .options(joinedload(Segment.series))
+                .all()
+            )
+            return segments
+        finally:
+            session.close()
     
-    def update_episode(self, episode_id: str, episode_title: Optional[str] = None) -> None:
+    def update_segment(self, segment_id: int, segment_title: Optional[str] = None) -> None:
         session = self.Session()
-        episode: Optional[Episode] = session.query(Episode).filter_by(episode_id=episode_id).first()
-        if episode:
+        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
+        if segment:
             try:
-                if episode_title:
-                    episode.episode_title = episode_title
+                if segment_title:
+                    segment.segment_title = segment_title
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Episode due to a unique constraint violation.")
+                logger.error("Failed to update Segment due to a unique constraint violation.")
         session.close()
     
-    def delete_episode(self, episode_id: str) -> None:
+    def delete_segment(self, segment_id: int) -> None:
         session = self.Session()
-        episode: Optional[Episode] = session.query(Episode).filter_by(episode_id=episode_id).first()
-        if episode:
-            session.delete(episode)
+        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
+        if segment:
+            session.delete(segment)
             session.commit()
         session.close()
 
-    # Transcript CRUD
+    # Element CRUD
     
-    def create_transcript(self, transcript_text: str, episode_id: str) -> Transcript | None:
+    def create_element(self, element_text: str, segment_id: int) -> Element | None:
         session = self.Session()
-        new_transcript = Transcript(transcript_text=transcript_text, episode_id=episode_id)
+        new_element = Element(element_text=element_text, segment_id=segment_id)
         try:
-            session.add(new_transcript)
+            session.add(new_element)
             session.commit()
-            return new_transcript
+            return new_element
         except IntegrityError:
             session.rollback()
-            logger.error(f"Transcript for episode_id={episode_id} already exists.")
+            logger.error(f"Element for segment_id={segment_id} already exists.")
             return None
         finally:
             session.close()
     
-    def read_transcript(self, transcript_id: int) -> Optional[Transcript]:
+    def read_element(self, element_id: int) -> Optional[Element]:
         session = self.Session()
-        transcript: Optional[Transcript] = session.query(Transcript).filter_by(transcript_id=transcript_id).first()
+        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
         session.close()
-        return transcript
+        return element
     
-    def read_all_transcripts(self) -> list[Transcript]:
+    def read_all_elements(self) -> Optional[list[Element]]:
         session = self.Session()
-        transcripts = session.query(Transcript).all()
-        session.close()
-        return transcripts
+        try:
+            elements = (
+                session.query(Element)
+                .options(
+                    joinedload(Element.segment).joinedload(Segment.series),
+                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                )
+                .all()
+            )
+            return elements
+        except Exception as e:
+            logger.error(f"Error reading all elements: {str(e)}")
+            return None
+        finally:
+            session.close()
     
-    def update_transcript(self, transcript_id: int, transcript_text: Optional[str] = None, episode_id: Optional[str] = None) -> None:
+    def read_elements_paginated(self, skip: int = 0, limit: int = 100) -> Optional[list[Element]]:
         session = self.Session()
-        transcript: Optional[Transcript] = session.query(Transcript).filter_by(transcript_id=transcript_id).first()
-        if transcript:
+        try:
+            elements = (
+                session.query(Element)
+                .options(
+                    joinedload(Element.segment).joinedload(Segment.series),
+                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                )
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+            return elements
+        except Exception as e:
+            logger.error(f"Error reading elements with pagination: {str(e)}")
+            return None
+        finally:
+            session.close()
+
+    def update_element(self, element_id: int, element_text: Optional[str] = None, segment_id: Optional[int] = None) -> None:
+        session = self.Session()
+        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
+        if element:
             try:
-                if transcript_text:
-                    transcript.transcript_text = transcript_text
-                if episode_id:
-                    transcript.episode_id = episode_id
+                if element_text:
+                    element.element_text = element_text
+                if segment_id:
+                    element.segment_id = segment_id
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Transcript due to a unique constraint violation.")
+                logger.error("Failed to update Element due to a unique constraint violation.")
         session.close()
     
-    def delete_transcript(self, transcript_id: int) -> None:
+    def delete_element(self, element_id: int) -> None:
         session = self.Session()
-        transcript: Optional[Transcript] = session.query(Transcript).filter_by(transcript_id=transcript_id).first()
-        if transcript:
-            session.delete(transcript)
+        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
+        if element:
+            session.delete(element)
             session.commit()
         session.close()
 
     # Annotation CRUD
     
-    def create_annotation(self, transcript_id: int, code_id: int) -> Transcript | None:
+    def create_annotation(self, element_id: int, code_id: int) -> Element | None:
         session = self.Session()
-        new_annotation = Annotation(transcript_id=transcript_id, code_id=code_id)
+        new_annotation = Annotation(element_id=element_id, code_id=code_id)
         try:
             session.add(new_annotation)
             session.commit()
             return new_annotation
         except IntegrityError:
             session.rollback()
-            logger.error(f"Annotation with transcript_id={transcript_id} and code_id={code_id} already exists.")
+            logger.error(f"Annotation with element_id={element_id} and code_id={code_id} already exists.")
             return None
         finally:
             session.close()
@@ -283,19 +379,19 @@ class DatabaseManager:
         session.close()
         return annotation
     
-    def read_all_annotations(self) -> list[Annotation]:
+    def read_all_annotations(self) -> Optional[list[Annotation]]:
         session = self.Session()
         annotations = session.query(Annotation).all()
         session.close()
         return annotations
     
-    def update_annotation(self, annotation_id: int, transcript_id: Optional[int] = None, code_id: Optional[int] = None) -> None:
+    def update_annotation(self, annotation_id: int, element_id: Optional[int] = None, code_id: Optional[int] = None) -> None:
         session = self.Session()
         annotation: Optional[Annotation] = session.query(Annotation).filter_by(annotation_id=annotation_id).first()
         if annotation:
             try:
-                if transcript_id:
-                    annotation.transcript_id = transcript_id
+                if element_id:
+                    annotation.element_id = element_id
                 if code_id:
                     annotation.code_id = code_id
                 session.commit()
@@ -312,6 +408,8 @@ class DatabaseManager:
             session.commit()
         session.close()
 
+# Merge codes
+
     def merge_codes(self, code_a_id: int, code_b_id: int) -> Code | None:
         session = self.Session()
         try:
@@ -327,9 +425,9 @@ class DatabaseManager:
             annotations_a = session.query(Annotation).filter_by(code_id=code_a_id).all()
 
             for annotation in annotations_a:
-                # Check if there's already an annotation for this transcript with code_b
+                # Check if there's already an annotation for this element with code_b
                 existing_annotation = session.query(Annotation).filter(
-                    and_(Annotation.transcript_id == annotation.transcript_id,
+                    and_(Annotation.element_id == annotation.element_id,
                          Annotation.code_id == code_b_id)
                 ).first()
 
@@ -354,10 +452,70 @@ class DatabaseManager:
         finally:
             session.close()
 
+# Get annotations for code
+
     def get_annotations_for_code(self, code_id: int) -> list[Annotation]:
         session = self.Session()
         try:
             annotations = session.query(Annotation).filter_by(code_id=code_id).all()
             return annotations
+        finally:
+            session.close()
+
+# Search elements by string
+
+    def search_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = [], skip: int = 0, limit: int = 100) -> Optional[list[Element]]:
+        logger.info(f"Searching elements - series_ids: {series_ids}, segment_ids: {segment_ids}, code_ids: {code_ids}")
+        session = self.Session()
+        try:
+            query = (
+                session.query(Element)
+                .join(Element.segment)
+                .join(Segment.series)
+                .outerjoin(Element.annotations)
+            )
+
+            if search_term:
+                query = query.filter(func.lower(Element.element_text).like(func.lower(f"%{search_term}%")))
+
+            if series_ids:
+                query = query.filter(Series.series_id.in_(series_ids))
+            if segment_ids:
+                query = query.filter(Segment.segment_id.in_(segment_ids))
+            if code_ids:
+                query = query.filter(Annotation.code_id.in_(code_ids))
+
+            elements = (
+                query.options(
+                    joinedload(Element.segment).joinedload(Segment.series),
+                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                )
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+            return elements
+        except Exception as e:
+            logger.error(f"Error searching elements: {str(e)}")
+            return None
+        finally:
+            session.close()
+
+    def count_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = []) -> int:
+        session = self.Session()
+        try:
+            query = session.query(func.count(Element.element_id)).join(Element.segment).join(Segment.series).outerjoin(Element.annotations)
+
+            if search_term:
+                query = query.filter(func.lower(Element.element_text).like(func.lower(f"%{search_term}%")))
+
+            if series_ids:
+                query = query.filter(Series.series_id.in_(series_ids))
+            if segment_ids:
+                query = query.filter(Segment.segment_id.in_(segment_ids))
+            if code_ids:
+                query = query.filter(Annotation.code_id.in_(code_ids))
+
+            return query.scalar()
         finally:
             session.close()
