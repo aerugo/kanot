@@ -102,9 +102,11 @@
         $selectedSegments,
         $selectedCodes
       );
-      elementsStore.update(currentElements => {
-      return page === 1 ? newElements : [...currentElements, ...newElements];
-    });
+      elementsStore.update((currentElements) => {
+        const updatedElements =
+          page === 1 ? newElements : [...currentElements, ...newElements];
+        return updatedElements;
+      });
       hasMore = newElements.length > 0;
       page++;
     } catch (error) {
@@ -417,7 +419,7 @@
       </tr>
     </thead>
     <tbody>
-      {#each $elementsStore as element, index (element.element_id)}
+      {#each $elementsStore as element, index}
         <tr transition:fade={{ duration: 100 }}>
           <td>
             <input
