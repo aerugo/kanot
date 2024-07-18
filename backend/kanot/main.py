@@ -199,13 +199,16 @@ class AnnotationUpdate(BaseModel):
     element_id: Optional[int] = None
     code_id: Optional[int] = None
 
-class AnnotationResponse(AnnotationBase):
+class AnnotationResponse(BaseModel):
     annotation_id: int
+    element_id: int
+    code_id: int
     code: Optional[CodeResponse]
 
     class Config:
         from_attributes = True
-
+        orm_mode = True
+        
 # API endpoints
 
 # CodeType endpoints
@@ -398,6 +401,8 @@ def delete_element(element_id: int, db: Session = Depends(get_db)):
 @app.post("/annotations/", response_model=AnnotationResponse)
 def create_annotation(annotation: AnnotationCreate, db: Session = Depends(get_db)):
     new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id)
+    if new_annotation is None:
+        raise HTTPException(status_code=400, detail="Failed to create annotation")
     return new_annotation
 
 @app.get("/annotations/", response_model=List[AnnotationResponse])

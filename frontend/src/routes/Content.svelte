@@ -1,10 +1,13 @@
 <script>
   import { onDestroy, onMount } from "svelte";
+  import AnnotationDropdown from "../components/AnnotationDropdown.svelte";
   import FilterDropdown from "../components/FilterDropdown.svelte";
   import SearchBar from "../components/SearchBar.svelte";
   import SelectedFilters from "../components/SelectedFilters.svelte";
   import { codes } from "../stores/codeStore.js";
   import {
+    createAnnotation,
+    deleteAnnotation,
     fetchCodeTypes,
     fetchSegments,
     fetchSeries,
@@ -22,10 +25,17 @@
   let page = 1;
   let loading = false;
   let hasMore = true;
+  let annotationDropdownOpen = false;
+  let activeElementId = null;
 
   // Debounced search function
   const debouncedSearch = debounce(async () => {
-    if (searchTerm.length >= 3 || selectedSeries.length > 0 || selectedSegments.length > 0 || selectedCodes.length > 0) {
+    if (
+      searchTerm.length >= 3 ||
+      selectedSeries.length > 0 ||
+      selectedSegments.length > 0 ||
+      selectedCodes.length > 0
+    ) {
       page = 1;
       elements = [];
       hasMore = true;
@@ -110,9 +120,19 @@
   }, 200);
 
   // Reactive statement to trigger debounced search when search term or filters change
-  $: if (searchTerm.length >= 3 || selectedSeries.length > 0 || selectedSegments.length > 0 || selectedCodes.length > 0) {
+  $: if (
+    searchTerm.length >= 3 ||
+    selectedSeries.length > 0 ||
+    selectedSegments.length > 0 ||
+    selectedCodes.length > 0
+  ) {
     debouncedSearch();
-  } else if (searchTerm.length === 0 && selectedSeries.length === 0 && selectedSegments.length === 0 && selectedCodes.length === 0) {
+  } else if (
+    searchTerm.length === 0 &&
+    selectedSeries.length === 0 &&
+    selectedSegments.length === 0 &&
+    selectedCodes.length === 0
+  ) {
     resetSearch();
   }
 
@@ -120,6 +140,7 @@
 
   onMount(() => {
     loadData();
+    codes.refresh();
     scrollHandler = () => handleScroll();
     window.addEventListener("scroll", scrollHandler);
   });
@@ -152,15 +173,17 @@
   }
 
   function clearFilter(id, type) {
-    switch(type) {
-      case 'series':
-        selectedSeries = selectedSeries.filter(seriesId => seriesId !== id);
+    switch (type) {
+      case "series":
+        selectedSeries = selectedSeries.filter((seriesId) => seriesId !== id);
         break;
-      case 'segment':
-        selectedSegments = selectedSegments.filter(segmentId => segmentId !== id);
+      case "segment":
+        selectedSegments = selectedSegments.filter(
+          (segmentId) => segmentId !== id
+        );
         break;
-      case 'code':
-        selectedCodes = selectedCodes.filter(codeId => codeId !== id);
+      case "code":
+        selectedCodes = selectedCodes.filter((codeId) => codeId !== id);
         break;
     }
     resetSearch();
@@ -171,6 +194,56 @@
     selectedSegments = [];
     selectedCodes = [];
     resetSearch();
+  }
+
+  async function addAnnotation(event) {
+    const { elementId, codeId } = event.detail;
+    try {
+      const newAnnotation = await createAnnotation({
+        element_id: elementId,
+        code_id: codeId,
+      });
+
+      if (newAnnotation) {
+        elements = elements.map((element) => {
+          if (element.element_id === elementId) {
+            return {
+              ...element,
+              annotations: [...element.annotations, newAnnotation],
+            };
+          }
+          return element;
+        });
+      } else {
+        console.error("Failed to create annotation");
+        // Optionally, show an error message to the user
+      }
+    } catch (error) {
+      console.error("Error adding annotation:", error);
+      // Optionally, show an error message to the user
+    }
+  }
+
+  async function removeAnnotation(elementId, annotationId) {
+    try {
+      await deleteAnnotation(annotationId);
+      const elementIndex = elements.findIndex(
+        (el) => el.element_id === elementId
+      );
+      if (elementIndex !== -1) {
+        elements[elementIndex].annotations = elements[
+          elementIndex
+        ].annotations.filter((a) => a.annotation_id !== annotationId);
+        elements = [...elements];
+      }
+    } catch (error) {
+      console.error("Error removing annotation:", error);
+    }
+  }
+
+  function openAnnotationDropdown(elementId) {
+    activeElementId = elementId;
+    annotationDropdownOpen = true;
   }
 </script>
 
@@ -208,9 +281,9 @@
   </div>
 
   <SelectedFilters
-    selectedSeries={selectedSeries}
-    selectedSegments={selectedSegments}
-    selectedCodes={selectedCodes}
+    {selectedSeries}
+    {selectedSegments}
+    {selectedCodes}
     seriesOptions={series}
     segmentOptions={segments}
     onClearFilter={clearFilter}
@@ -240,10 +313,28 @@
             {#each element.annotations as annotation}
               <span class="code-tag">
                 {annotation.code?.term}
-                <button class="remove-code">×</button>
+                <button
+                  class="remove-code"
+                  on:click={() =>
+                    removeAnnotation(
+                      element.element_id,
+                      annotation.annotation_id
+                    )}>×</button
+                >
               </span>
             {/each}
-            <button class="add-code">+</button>
+            <button
+              class="add-code"
+              on:click={() => openAnnotationDropdown(element.element_id)}
+              >+</button
+            >
+            {#if annotationDropdownOpen && activeElementId === element.element_id}
+              <AnnotationDropdown
+                bind:isOpen={annotationDropdownOpen}
+                elementId={element.element_id}
+                on:select={addAnnotation}
+              />
+            {/if}
           </td>
         </tr>
       {/each}
@@ -284,13 +375,13 @@
   }
 
   .code-tag {
+    display: inline-flex;
+    align-items: center;
     background-color: #e0e0e0;
     border-radius: 4px;
     padding: 2px 4px;
     margin-right: 4px;
     font-size: 0.8em;
-    display: inline-flex;
-    align-items: center;
   }
 
   .remove-code,

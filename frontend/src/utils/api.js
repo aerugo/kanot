@@ -52,6 +52,25 @@ export async function deleteCode(id) {
   }
 }
 
+export async function createAnnotation(annotationData) {
+  try {
+    const response = await axios.post(`${BASE_URL}/annotations/`, annotationData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating annotation:", error);
+    throw error;
+  }
+}
+
+export async function deleteAnnotation(annotationId) {
+  try {
+    await axios.delete(`${BASE_URL}/annotations/${annotationId}`);
+  } catch (error) {
+    console.error("Error deleting annotation:", error);
+    throw error;
+  }
+}
+
 export async function fetchPaginatedElements(page = 1, pageSize = 100) {
   try {
     const response = await axios.get(`${BASE_URL}/elements/`, {

@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import contains_eager, joinedload, sessionmaker
+from sqlalchemy.orm import joinedload, sessionmaker
 
 from .schema import (
     Annotation,
@@ -358,21 +358,40 @@ class DatabaseManager:
         session.close()
 
     # Annotation CRUD
-    
-    def create_annotation(self, element_id: int, code_id: int) -> Element | None:
+        
+    def create_annotation(self, element_id: int, code_id: int) -> Annotation | None:
         session = self.Session()
-        new_annotation = Annotation(element_id=element_id, code_id=code_id)
         try:
+            new_annotation = Annotation(element_id=element_id, code_id=code_id)
             session.add(new_annotation)
             session.commit()
-            return new_annotation
+            
+            # Fetch the annotation with its related code and code_type
+            result = (
+                session.query(Annotation)
+                .options(joinedload(Annotation.code).joinedload(Code.code_type))
+                .filter(Annotation.annotation_id == new_annotation.annotation_id)
+                .first()
+            )
+            
+            # Explicitly access the code and code_type to ensure they're loaded
+            if result:
+                _ = result.code
+                if result.code:
+                    _ = result.code.code_type
+            
+            return result
         except IntegrityError:
             session.rollback()
             logger.error(f"Annotation with element_id={element_id} and code_id={code_id} already exists.")
             return None
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error creating annotation: {str(e)}")
+            return None
         finally:
             session.close()
-    
+        
     def read_annotation(self, annotation_id: int) -> Optional[Annotation]:
         session = self.Session()
         annotation: Optional[Annotation] = session.query(Annotation).filter_by(annotation_id=annotation_id).first()
