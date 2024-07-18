@@ -2,7 +2,7 @@
   // Import statements
   import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
-  import { slide } from "svelte/transition";
+  import { fade, slide } from "svelte/transition";
 // Component imports
   import AnnotationDropdown from "../components/AnnotationDropdown.svelte";
   import BatchAnnotationModal from "../components/BatchAnnotationModal.svelte";
@@ -102,10 +102,9 @@
         $selectedSegments,
         $selectedCodes
       );
-      elementsStore.update((currentElements) => {
-        const updatedElements = page === 1 ? newElements : [...currentElements, ...newElements];
-        return updatedElements;
-      });
+      elementsStore.update(currentElements => {
+      return page === 1 ? newElements : [...currentElements, ...newElements];
+    });
       hasMore = newElements.length > 0;
       page++;
     } catch (error) {
@@ -291,7 +290,6 @@
   // Element selection functions
 
   function handleElementSelection(index, elementId, event) {
-
     let newSelectedElements;
 
     if (event.shiftKey && rangeStartIndex !== -1) {
@@ -419,8 +417,8 @@
       </tr>
     </thead>
     <tbody>
-      {#each $elementsStore as element, index}
-        <tr>
+      {#each $elementsStore as element, index (element.element_id)}
+        <tr transition:fade={{ duration: 100 }}>
           <td>
             <input
               type="checkbox"
@@ -514,10 +512,6 @@
     width: 100%;
     border-collapse: collapse;
     visibility: visible;
-  }
-
-  table.loading {
-    visibility: hidden;
   }
 
   th,
