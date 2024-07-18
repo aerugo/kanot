@@ -91,3 +91,4 @@ poetry.lock
 */_temp/
 /_archive/
 */_archive/
+local_database.db
