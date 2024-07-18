@@ -1,14 +1,16 @@
 <script>
+  // Import statements
   import { onDestroy, onMount } from "svelte";
   import { writable } from "svelte/store";
   import { slide } from "svelte/transition";
+// Component imports
   import AnnotationDropdown from "../components/AnnotationDropdown.svelte";
   import BatchAnnotationModal from "../components/BatchAnnotationModal.svelte";
   import FilterDropdown from "../components/FilterDropdown.svelte";
   import SearchBar from "../components/SearchBar.svelte";
   import SelectedFilters from "../components/SelectedFilters.svelte";
+// Store imports
   import { codes } from "../stores/codeStore.js";
-
   import {
     filteredElements,
     loadMoreElements,
@@ -17,6 +19,7 @@
     selectedSegments,
     selectedSeries,
   } from "../stores/elementStore.js";
+// API function imports
 
   import {
     createAnnotation,
@@ -26,8 +29,11 @@
     fetchSegments,
     fetchSeries,
   } from "../utils/api.js";
+  // Helper function imports
 
   import { debounce } from "../utils/helpers.js";
+
+  // Local state variables
 
   let elementsStore = writable([]);
   let page = 1;
@@ -39,10 +45,14 @@
   let showBatchAnnotationModal = false;
   let seriesOptions = [];
   let segmentOptions = [];
+  let rangeStartIndex = -1;
+
+  // Reactive statement to update elementsStore
 
   $: $elementsStore = $filteredElements;
 
   // Debounced search function
+
   const debouncedSearch = debounce(async () => {
     if (
       $searchTerm.length >= 3 ||
@@ -55,7 +65,14 @@
   }, 300);
 
   // Function to load initial data
-  async function loadData() {
+
+  async function loadInitialData() {
+    await loadFilterOptions();
+    await fetchCodeTypes();
+    await loadMoreData();
+  }
+
+  async function loadFilterOptions() {
     const [seriesData, segmentsData] = await Promise.all([
       fetchSeries(),
       fetchSegments(),
@@ -70,9 +87,9 @@
       id: s.segment_id,
       name: s.segment_title,
     }));
-
-    await fetchCodeTypes(); // Ensure code types are loaded into store
   }
+
+  // Function to load more data
 
   async function loadMoreData() {
     if (loading || !hasMore) return;
@@ -85,10 +102,10 @@
         $selectedSegments,
         $selectedCodes
       );
-      elementsStore.update((currentElements) => [
-        ...currentElements,
-        ...newElements,
-      ]);
+      elementsStore.update((currentElements) => {
+        const updatedElements = page === 1 ? newElements : [...currentElements, ...newElements];
+        return updatedElements;
+      });
       hasMore = newElements.length > 0;
       page++;
     } catch (error) {
@@ -99,12 +116,15 @@
   }
 
   // Function to reset search results
+
   async function resetSearch() {
     page = 1;
     elementsStore.set([]);
     hasMore = true;
     await loadMoreData();
   }
+
+  // Debounced reset search function
 
   const debouncedResetSearch = debounce(async () => {
     page = 1;
@@ -114,18 +134,12 @@
   }, 300);
 
   // Scroll handler to load more elements when scrolling to the bottom
+
   const debouncedHandleScroll = debounce(() => {
     const bottom =
       window.innerHeight + window.scrollY >=
       document.documentElement.scrollHeight - 500;
-    console.log(
-      "Scroll position:",
-      window.scrollY,
-      "Bottom threshold:",
-      bottom
-    ); // Debugging log
     if (bottom && !loading && hasMore) {
-      console.log("Triggering loadMoreData from scroll handler..."); // Debugging log
       loadMoreData();
     }
   }, 200);
@@ -134,20 +148,18 @@
     debouncedHandleScroll();
   }
 
-  // Update the onMount function
   onMount(async () => {
-    await loadData();
-    await loadMoreData();
+    await loadInitialData();
     codes.refresh();
     window.addEventListener("scroll", handleScroll);
   });
 
-  // Make sure to remove the event listener in onDestroy
   onDestroy(() => {
     window.removeEventListener("scroll", handleScroll);
   });
 
-  // Reactive statement to trigger debounced search when search term or filters change
+  // Reactive statement for search and filters
+
   $: if (
     $searchTerm.length >= 3 ||
     $selectedSeries.length > 0 ||
@@ -165,6 +177,7 @@
   }
 
   // Event handlers for filters
+
   function handleSearch(event) {
     $searchTerm = event.detail;
     resetSearch();
@@ -212,6 +225,8 @@
     selectedCodes.set([]);
     resetSearch();
   }
+
+  // Annotation functions
 
   async function addAnnotation(event) {
     const { elementId, codeId } = event.detail;
@@ -273,17 +288,13 @@
     annotationDropdownOpen = true;
   }
 
-  let rangeStartIndex = -1;
+  // Element selection functions
 
   function handleElementSelection(index, elementId, event) {
-    console.log("Event:", event);
-    console.log("Shift key pressed:", event.shiftKey);
-    console.log("Range start index:", rangeStartIndex);
 
     let newSelectedElements;
 
     if (event.shiftKey && rangeStartIndex !== -1) {
-      console.log("Entering shift-select logic");
       const start = Math.min(rangeStartIndex, index);
       const end = Math.max(rangeStartIndex, index);
 
@@ -303,14 +314,13 @@
 
     // Update selectedElements
     selectedElements = newSelectedElements;
-
-    console.log("Selected elements:", selectedElements);
-    console.log("New range start index:", rangeStartIndex);
   }
 
   function clearSelection() {
     selectedElements = [];
   }
+
+  // Batch annotation functions
 
   function openBatchAnnotationModal() {
     showBatchAnnotationModal = true;
@@ -346,8 +356,12 @@
   }
 </script>
 
+<!-- HTML structure -->
+
 <main>
   <h1>Content</h1>
+
+  <!-- Filters section -->
 
   <div class="filters">
     <SearchBar
@@ -380,6 +394,8 @@
     />
   </div>
 
+  <!-- Selected filters display -->
+
   <SelectedFilters
     selectedSeries={$selectedSeries}
     selectedSegments={$selectedSegments}
@@ -390,6 +406,7 @@
     onClearAll={clearAllFilters}
   />
 
+  <!-- Main content table -->
   <table class:loading>
     <thead>
       <tr>
@@ -449,6 +466,8 @@
     </tbody>
   </table>
 
+  <!-- Loading and "No more elements" messages -->
+
   {#if loading}
     <p>Loading more elements...</p>
   {/if}
@@ -456,6 +475,8 @@
   {#if !hasMore}
     <p>No more elements to load.</p>
   {/if}
+
+  <!-- Selection bar for batch annotation -->
 
   {#if selectedElements.length > 0}
     <div class="selection-bar" transition:slide={{ duration: 300, y: 100 }}>
@@ -472,6 +493,8 @@
       </button>
     </div>
   {/if}
+
+  <!-- Batch annotation modal -->
 
   <BatchAnnotationModal
     bind:show={showBatchAnnotationModal}
