@@ -1,10 +1,13 @@
 <script>
   import { onDestroy, onMount } from "svelte";
+  import { slide } from "svelte/transition";
   import AnnotationDropdown from "../components/AnnotationDropdown.svelte";
+  import BatchAnnotationModal from "../components/BatchAnnotationModal.svelte";
   import FilterDropdown from "../components/FilterDropdown.svelte";
   import SearchBar from "../components/SearchBar.svelte";
   import SelectedFilters from "../components/SelectedFilters.svelte";
   import { codes } from "../stores/codeStore.js";
+
   import {
     createAnnotation,
     deleteAnnotation,
@@ -27,6 +30,9 @@
   let hasMore = true;
   let annotationDropdownOpen = false;
   let activeElementId = null;
+  let selectedElements = [];
+  let selectAll = false;
+  let showBatchAnnotationModal = false;
 
   // Debounced search function
   const debouncedSearch = debounce(async () => {
@@ -245,6 +251,39 @@
     activeElementId = elementId;
     annotationDropdownOpen = true;
   }
+
+  function toggleSelectAll() {
+    selectAll = !selectAll;
+    selectedElements = selectAll ? elements.map((e) => e.element_id) : [];
+  }
+
+  function toggleElementSelection(elementId) {
+    if (selectedElements.includes(elementId)) {
+      selectedElements = selectedElements.filter(id => id !== elementId);
+    } else {
+      selectedElements = [...selectedElements, elementId];
+    }
+  }
+
+  function clearSelection() {
+    selectedElements = [];
+    // If you're using a selectAll checkbox, make sure to uncheck it
+    selectAll = false;
+  }
+
+  function openBatchAnnotationModal() {
+    showBatchAnnotationModal = true;
+  }
+
+  async function applyBatchAnnotations(event) {
+    const { codeIds } = event.detail;
+    // Implement batch annotation logic here
+    console.log('Applying batch annotations', { elementIds: selectedElements, codeIds });
+    // TODO: Call API to apply batch annotations
+    // Reset selection after applying annotations
+    clearSelection();
+  }
+
 </script>
 
 <main>
@@ -293,6 +332,14 @@
   <table>
     <thead>
       <tr>
+        <th>
+          <input
+            type="checkbox"
+            bind:checked={selectAll}
+            on:change={toggleSelectAll}
+            aria-label="Select all elements"
+          />
+        </th>
         <th>Series</th>
         <th>Segment</th>
         <th>Segment Title</th>
@@ -303,12 +350,18 @@
     <tbody>
       {#each elements as element}
         <tr>
+          <td>
+            <input
+              type="checkbox"
+              checked={selectedElements.includes(element.element_id)}
+              on:change={() => toggleElementSelection(element.element_id)}
+              aria-label={`Select element ${element.element_id}`}
+            />
+          </td>
           <td>{element.segment?.series?.series_title || "N/A"}</td>
           <td>{element.segment?.segment_id || "N/A"}</td>
           <td>{element.segment?.segment_title || "N/A"}</td>
-          <td>
-            {element.element_text}
-          </td>
+          <td>{element.element_text}</td>
           <td>
             {#each element.annotations as annotation}
               <span class="code-tag">
@@ -348,6 +401,24 @@
   {#if !hasMore}
     <p>No more elements to load.</p>
   {/if}
+
+  {#if selectedElements.length > 0}
+    <div class="selection-bar" transition:slide="{{ duration: 300, y: 100 }}">
+      <span class="selection-count">{selectedElements.length} element{selectedElements.length !== 1 ? 's' : ''} selected</span>
+      <button class="annotate-button" on:click={openBatchAnnotationModal}>
+        Annotate Selected
+      </button>
+      <button class="clear-button" on:click={clearSelection}>
+        Clear Selection
+      </button>
+    </div>
+  {/if}
+
+  <BatchAnnotationModal
+  bind:show={showBatchAnnotationModal}
+  selectedCount={selectedElements.length}
+  on:applyAnnotations={applyBatchAnnotations}
+/>
 </main>
 
 <style>
@@ -403,4 +474,49 @@
     justify-content: center;
     align-items: center;
   }
+
+  .selection-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f0f0f0;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .selection-count {
+    font-weight: bold;
+  }
+
+  .annotate-button, .clear-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .annotate-button {
+    background-color: #4a90e2;
+    color: white;
+  }
+
+  .clear-button {
+    background-color: transparent;
+    color: #333;
+  }
+
+  .annotate-button:hover, .clear-button:hover {
+    opacity: 0.8;
+  }
+
+  .annotate-button:focus, .clear-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #4a90e2;
+  }
+
 </style>

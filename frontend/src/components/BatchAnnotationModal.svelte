@@ -1,0 +1,260 @@
+<script>
+  import { createEventDispatcher, onMount } from "svelte";
+  import { codes } from "../stores/codeStore.js";
+  import AnnotationDropdown from "./AnnotationDropdown.svelte";
+
+  export let selectedCount = 0;
+  export let show = false;
+
+  let selectedCodes = [];
+  let modalElement;
+  let isDropdownOpen = false;
+  const dispatch = createEventDispatcher();
+
+  onMount(() => {
+    if (modalElement) {
+      modalElement.focus();
+    }
+  });
+
+  function closeModal() {
+    show = false;
+    selectedCodes = [];
+    isDropdownOpen = false;
+  }
+
+  function addCode(event) {
+    const codeId = event.detail.codeId;
+    if (!selectedCodes.includes(codeId)) {
+      selectedCodes = [...selectedCodes, codeId];
+    }
+    isDropdownOpen = false;
+  }
+
+  function removeCode(codeId) {
+    selectedCodes = selectedCodes.filter((id) => id !== codeId);
+  }
+
+  function applyAnnotations() {
+    dispatch("applyAnnotations", { codeIds: selectedCodes });
+    closeModal();
+  }
+
+  function handleKeydown(event) {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  }
+
+  function toggleDropdown() {
+    isDropdownOpen = !isDropdownOpen;
+  }
+
+  function handleOverlayClick(event) {
+    if (event.target === event.currentTarget) {
+      closeModal();
+    }
+  }
+
+  function handleOverlayKeydown(event) {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  }
+</script>
+
+{#if show}
+  <div
+    class="modal-overlay"
+    on:click={handleOverlayClick}
+    on:keydown={handleOverlayKeydown}
+    role="presentation"
+  >
+    <div
+      class="modal"
+      role="dialog"
+      aria-labelledby="modal-title"
+      bind:this={modalElement}
+      tabindex="-1"
+      on:keydown={handleKeydown}
+    >
+      <h2 id="modal-title">
+        Batch Annotate {selectedCount} Element{selectedCount !== 1 ? "s" : ""}
+      </h2>
+      <div class="code-selection">
+        <button class="add-button" on:click={toggleDropdown}> Add Code </button>
+        {#if isDropdownOpen}
+          <div class="dropdown-wrapper">
+            <AnnotationDropdown on:select={addCode} isOpen={true} />
+          </div>
+        {/if}
+        <div class="selected-codes">
+          {#each selectedCodes as codeId}
+            <span class="code-tag">
+              {$codes.find((code) => code.code_id === codeId)?.term}
+              <button
+                on:click={() => removeCode(codeId)}
+                aria-label="Remove code">×</button
+              >
+            </span>
+          {/each}
+        </div>
+      </div>
+      <div class="actions">
+        <button on:click={closeModal}>Cancel</button>
+        <button
+          on:click={applyAnnotations}
+          disabled={selectedCodes.length === 0}>Apply</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if show}
+  <div 
+    class="modal-overlay" 
+    on:click={handleOverlayClick}
+    on:keydown={handleOverlayKeydown}
+    role="presentation"
+  >
+    <div
+      class="modal"
+      role="dialog"
+      aria-labelledby="modal-title"
+      bind:this={modalElement}
+      tabindex="-1"
+      on:keydown={handleKeydown}
+    >
+      <h2 id="modal-title">
+        Batch Annotate {selectedCount} Element{selectedCount !== 1 ? 's' : ''}
+      </h2>
+      <div class="code-selection">
+        <button class="add-button" on:click={toggleDropdown}>
+          Add Codes
+        </button>
+        {#if isDropdownOpen}
+          <div class="dropdown-wrapper">
+            <AnnotationDropdown on:select={addCode} isOpen={true} />
+          </div>
+        {/if}
+        <div class="selected-codes">
+          {#each selectedCodes as codeId}
+            <span class="code-tag">
+              {$codes.find((code) => code.code_id === codeId)?.term}
+              <button
+                on:click={() => removeCode(codeId)}
+                aria-label="Remove code">×</button
+              >
+            </span>
+          {/each}
+        </div>
+      </div>
+      <div class="actions">
+        <button on:click={closeModal}>Cancel</button>
+        <button
+          on:click={applyAnnotations}
+          disabled={selectedCodes.length === 0}>Apply</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: visible;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .code-selection {
+    margin-top: 1rem;
+  }
+
+  .add-button {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .dropdown-wrapper {
+    position: absolute;
+    left: 2rem;
+    right: 2rem;
+    z-index: 1001;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    max-height: 300px;
+  }
+
+  .selected-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .code-tag {
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+  }
+
+  .code-tag button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0 2px;
+    margin-left: 4px;
+  }
+
+  .actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
