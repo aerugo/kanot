@@ -137,7 +137,6 @@ class SeriesResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 class SegmentBase(BaseModel):
     segment_id: int
@@ -157,7 +156,6 @@ class SegmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 class ElementBase(BaseModel):
     element_text: str
@@ -178,7 +176,6 @@ class ElementResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 class AnnotationResponseNoElement(BaseModel):
     annotation_id: int
@@ -186,7 +183,6 @@ class AnnotationResponseNoElement(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 class AnnotationBase(BaseModel):
     element_id: int
@@ -194,6 +190,10 @@ class AnnotationBase(BaseModel):
 
 class AnnotationCreate(AnnotationBase):
     pass
+
+class BatchAnnotationCreate(BaseModel):
+    element_ids: List[int]
+    code_ids: List[int]
 
 class AnnotationUpdate(BaseModel):
     element_id: Optional[int] = None
@@ -207,7 +207,6 @@ class AnnotationResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
         
 # API endpoints
 
@@ -405,6 +404,17 @@ def create_annotation(annotation: AnnotationCreate, db: Session = Depends(get_db
         raise HTTPException(status_code=400, detail="Failed to create annotation")
     return new_annotation
 
+@app.post("/batch_annotations/", response_model=List[AnnotationResponse])
+def create_batch_annotations(batch_data: BatchAnnotationCreate, db: Session = Depends(get_db)):
+    new_annotations: List[AnnotationResponse] = []
+    for element_id in batch_data.element_ids:
+        for code_id in batch_data.code_ids:
+            annotation = db_manager.create_annotation(element_id, code_id)
+            if annotation:
+                new_annotations.append(annotation)
+    
+    return new_annotations
+
 @app.get("/annotations/", response_model=List[AnnotationResponse])
 def read_annotations(db: Session = Depends(get_db)):
     annotations = db_manager.read_all_annotations()
@@ -452,7 +462,6 @@ def search_elements(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
 ):
-    logger.info(f"Received search request - series_ids: {series_ids}, segment_ids: {segment_ids}, code_ids: {code_ids}")
     series_id_list = [int(id) for id in series_ids.split(",")] if series_ids else []
     segment_id_list = [int(id) for id in segment_ids.split(",")] if segment_ids else []
     code_id_list = [int(id) for id in code_ids.split(",")] if code_ids else []

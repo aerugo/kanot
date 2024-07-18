@@ -31,8 +31,10 @@ done <<< "$file_tree"
 # Build the prompt with the file tree and concatenated file contents
 prompt="File Tree:\n$file_tree\n\nConcatenated Files:\n$concatenated_files"
 
-# delete the file if it already exists
-rm -f context_prompt.txt
+prompt_pretext="I want you to help me fix some issues with my Svelte project with a Python backend. I have attached the code and file structure."
+
+# Add the pretext to the prompt
+prompt="$prompt_pretext\n\n$prompt"
 
 # Copy the prompt to clipboard using pbcopy
 echo -e "$prompt" | pbcopy

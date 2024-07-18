@@ -484,7 +484,6 @@ class DatabaseManager:
 # Search elements by string
 
     def search_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = [], skip: int = 0, limit: int = 100) -> Optional[list[Element]]:
-        logger.info(f"Searching elements - series_ids: {series_ids}, segment_ids: {segment_ids}, code_ids: {code_ids}")
         session = self.Session()
         try:
             query = (

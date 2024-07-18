@@ -3,6 +3,8 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:8000";
 
+// Codes API
+
 export async function fetchCodes() {
   try {
     const response = await axios.get(`${BASE_URL}/codes/`);
@@ -52,12 +54,25 @@ export async function deleteCode(id) {
   }
 }
 
+// Annotations API
+
 export async function createAnnotation(annotationData) {
   try {
     const response = await axios.post(`${BASE_URL}/annotations/`, annotationData);
     return response.data;
   } catch (error) {
     console.error("Error creating annotation:", error);
+    throw error;
+  }
+}
+
+
+export async function createBatchAnnotations(elementIds, codeIds) {
+  try {
+    const response = await axios.post(`${BASE_URL}/batch_annotations/`, { element_ids: elementIds, code_ids: codeIds });
+    return response.data; // This should be an array of new annotations
+  } catch (error) {
+    console.error("Error creating batch annotations:", error);
     throw error;
   }
 }
@@ -71,6 +86,8 @@ export async function deleteAnnotation(annotationId) {
   }
 }
 
+// Elements API
+
 export async function fetchPaginatedElements(page = 1, pageSize = 100) {
   try {
     const response = await axios.get(`${BASE_URL}/elements/`, {
@@ -81,18 +98,6 @@ export async function fetchPaginatedElements(page = 1, pageSize = 100) {
     console.error("Error fetching paginated elements:", error);
     throw error;
   }
-}
-
-export async function fetchSeries() {
-  const response = await fetch(`${BASE_URL}/series/`);
-  if (!response.ok) throw new Error("Failed to fetch series");
-  return response.json();
-}
-
-export async function fetchSegments() {
-  const response = await fetch(`${BASE_URL}/segments/`);
-  if (!response.ok) throw new Error("Failed to fetch segments");
-  return response.json();
 }
 
 export async function searchElements(
@@ -120,4 +125,20 @@ export async function searchElements(
     console.error("Failed to search elements:", error);
     throw error;
   }
+}
+
+// Series API
+
+export async function fetchSeries() {
+  const response = await fetch(`${BASE_URL}/series/`);
+  if (!response.ok) throw new Error("Failed to fetch series");
+  return response.json();
+}
+
+// Segments API
+
+export async function fetchSegments() {
+  const response = await fetch(`${BASE_URL}/segments/`);
+  if (!response.ok) throw new Error("Failed to fetch segments");
+  return response.json();
 }

@@ -1,5 +1,6 @@
 <script>
   import { onDestroy, onMount } from "svelte";
+  import { writable } from "svelte/store";
   import { slide } from "svelte/transition";
   import AnnotationDropdown from "../components/AnnotationDropdown.svelte";
   import BatchAnnotationModal from "../components/BatchAnnotationModal.svelte";
@@ -9,87 +10,86 @@
   import { codes } from "../stores/codeStore.js";
 
   import {
+    filteredElements,
+    loadMoreElements,
+    searchTerm,
+    selectedCodes,
+    selectedSegments,
+    selectedSeries,
+  } from "../stores/elementStore.js";
+
+  import {
     createAnnotation,
+    createBatchAnnotations,
     deleteAnnotation,
     fetchCodeTypes,
     fetchSegments,
     fetchSeries,
-    searchElements,
   } from "../utils/api.js";
+
   import { debounce } from "../utils/helpers.js";
 
-  let elements = [];
-  let searchTerm = "";
-  let series = [];
-  let segments = [];
-  let selectedSeries = [];
-  let selectedSegments = [];
-  let selectedCodes = [];
+  let elementsStore = writable([]);
   let page = 1;
   let loading = false;
   let hasMore = true;
   let annotationDropdownOpen = false;
   let activeElementId = null;
   let selectedElements = [];
-  let selectAll = false;
   let showBatchAnnotationModal = false;
+  let seriesOptions = [];
+  let segmentOptions = [];
+
+  $: $elementsStore = $filteredElements;
 
   // Debounced search function
   const debouncedSearch = debounce(async () => {
     if (
-      searchTerm.length >= 3 ||
-      selectedSeries.length > 0 ||
-      selectedSegments.length > 0 ||
-      selectedCodes.length > 0
+      $searchTerm.length >= 3 ||
+      $selectedSeries.length > 0 ||
+      $selectedSegments.length > 0 ||
+      $selectedCodes.length > 0
     ) {
-      page = 1;
-      elements = [];
-      hasMore = true;
-      await loadMoreElements(
-        searchTerm,
-        selectedSeries,
-        selectedSegments,
-        selectedCodes
-      );
+      resetSearch();
     }
   }, 300);
 
   // Function to load initial data
   async function loadData() {
-    series = (await fetchSeries()).map((s) => ({
+    const [seriesData, segmentsData] = await Promise.all([
+      fetchSeries(),
+      fetchSegments(),
+    ]);
+
+    seriesOptions = seriesData.map((s) => ({
       id: s.series_id,
       name: s.series_title,
     }));
-    segments = (await fetchSegments()).map((s) => ({
+
+    segmentOptions = segmentsData.map((s) => ({
       id: s.segment_id,
       name: s.segment_title,
     }));
+
     await fetchCodeTypes(); // Ensure code types are loaded into store
-    await codes.refresh(); // Load codes into the store
-    await loadMoreElements();
   }
 
-  // Function to load more elements based on search and filters
-  async function loadMoreElements(
-    term = "",
-    seriesIds = [],
-    segmentIds = [],
-    codeIds = []
-  ) {
+  async function loadMoreData() {
     if (loading || !hasMore) return;
     loading = true;
     try {
-      const newElements = await searchElements(
-        term,
-        seriesIds,
-        segmentIds,
-        codeIds,
-        page
+      const newElements = await loadMoreElements(
+        page,
+        $searchTerm,
+        $selectedSeries,
+        $selectedSegments,
+        $selectedCodes
       );
-      if (newElements.length === 0) {
-        hasMore = false;
-      }
-      elements = [...elements, ...newElements];
+      elementsStore.update((currentElements) => [
+        ...currentElements,
+        ...newElements,
+      ]);
+      hasMore = newElements.length > 0;
       page++;
     } catch (error) {
       console.error("Error loading more elements:", error);
@@ -99,106 +99,117 @@
   }
 
   // Function to reset search results
-  function resetSearch() {
+  async function resetSearch() {
     page = 1;
-    elements = [];
+    elementsStore.set([]);
     hasMore = true;
-    loadMoreElements(
-      searchTerm,
-      selectedSeries,
-      selectedSegments,
-      selectedCodes
-    );
+    await loadMoreData();
   }
 
+  const debouncedResetSearch = debounce(async () => {
+    page = 1;
+    elementsStore.set([]);
+    hasMore = true;
+    await loadMoreData();
+  }, 300);
+
   // Scroll handler to load more elements when scrolling to the bottom
-  const handleScroll = debounce(() => {
+  const debouncedHandleScroll = debounce(() => {
     const bottom =
-      window.innerHeight + window.scrollY >= document.body.offsetHeight - 500;
-    if (bottom && hasMore) {
-      loadMoreElements(
-        searchTerm,
-        selectedSeries,
-        selectedSegments,
-        selectedCodes
-      );
+      window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight - 500;
+    console.log(
+      "Scroll position:",
+      window.scrollY,
+      "Bottom threshold:",
+      bottom
+    ); // Debugging log
+    if (bottom && !loading && hasMore) {
+      console.log("Triggering loadMoreData from scroll handler..."); // Debugging log
+      loadMoreData();
     }
   }, 200);
 
+  function handleScroll() {
+    debouncedHandleScroll();
+  }
+
+  // Update the onMount function
+  onMount(async () => {
+    await loadData();
+    await loadMoreData();
+    codes.refresh();
+    window.addEventListener("scroll", handleScroll);
+  });
+
+  // Make sure to remove the event listener in onDestroy
+  onDestroy(() => {
+    window.removeEventListener("scroll", handleScroll);
+  });
+
   // Reactive statement to trigger debounced search when search term or filters change
   $: if (
-    searchTerm.length >= 3 ||
-    selectedSeries.length > 0 ||
-    selectedSegments.length > 0 ||
-    selectedCodes.length > 0
+    $searchTerm.length >= 3 ||
+    $selectedSeries.length > 0 ||
+    $selectedSegments.length > 0 ||
+    $selectedCodes.length > 0
   ) {
     debouncedSearch();
   } else if (
-    searchTerm.length === 0 &&
-    selectedSeries.length === 0 &&
-    selectedSegments.length === 0 &&
-    selectedCodes.length === 0
+    $searchTerm.length === 0 &&
+    $selectedSeries.length === 0 &&
+    $selectedSegments.length === 0 &&
+    $selectedCodes.length === 0
   ) {
-    resetSearch();
+    debouncedResetSearch();
   }
-
-  let scrollHandler;
-
-  onMount(() => {
-    loadData();
-    codes.refresh();
-    scrollHandler = () => handleScroll();
-    window.addEventListener("scroll", scrollHandler);
-  });
-
-  onDestroy(() => {
-    if (scrollHandler) {
-      window.removeEventListener("scroll", scrollHandler);
-    }
-  });
 
   // Event handlers for filters
   function handleSearch(event) {
-    searchTerm = event.detail;
+    $searchTerm = event.detail;
     resetSearch();
   }
 
   function handleSeriesChanged(event) {
-    selectedSeries = event.detail;
+    selectedSeries.set(event.detail);
     resetSearch();
   }
 
   function handleSegmentChanged(event) {
-    selectedSegments = event.detail;
+    selectedSegments.set(event.detail);
     resetSearch();
   }
 
   function handleCodesChanged(event) {
-    selectedCodes = event.detail;
+    selectedCodes.set(event.detail);
     resetSearch();
   }
 
   function clearFilter(id, type) {
     switch (type) {
       case "series":
-        selectedSeries = selectedSeries.filter((seriesId) => seriesId !== id);
+        selectedSeries.update((series) =>
+          series.filter((seriesId) => seriesId !== id)
+        );
         break;
       case "segment":
-        selectedSegments = selectedSegments.filter(
-          (segmentId) => segmentId !== id
+        selectedSegments.update((segments) =>
+          segments.filter((segmentId) => segmentId !== id)
         );
         break;
       case "code":
-        selectedCodes = selectedCodes.filter((codeId) => codeId !== id);
+        selectedCodes.update((codes) =>
+          codes.filter((codeId) => codeId !== id)
+        );
         break;
     }
     resetSearch();
   }
 
   function clearAllFilters() {
-    selectedSeries = [];
-    selectedSegments = [];
-    selectedCodes = [];
+    selectedSeries.set([]);
+    selectedSegments.set([]);
+    selectedCodes.set([]);
     resetSearch();
   }
 
@@ -211,37 +222,47 @@
       });
 
       if (newAnnotation) {
-        elements = elements.map((element) => {
-          if (element.element_id === elementId) {
-            return {
-              ...element,
-              annotations: [...element.annotations, newAnnotation],
-            };
-          }
-          return element;
-        });
+        elementsStore.update((elements) =>
+          elements.map((element) => {
+            if (element.element_id === elementId) {
+              return {
+                ...element,
+                annotations: [...element.annotations, newAnnotation],
+              };
+            }
+            return element;
+          })
+        );
       } else {
         console.error("Failed to create annotation");
-        // Optionally, show an error message to the user
       }
     } catch (error) {
       console.error("Error adding annotation:", error);
-      // Optionally, show an error message to the user
     }
   }
 
   async function removeAnnotation(elementId, annotationId) {
     try {
       await deleteAnnotation(annotationId);
-      const elementIndex = elements.findIndex(
-        (el) => el.element_id === elementId
-      );
-      if (elementIndex !== -1) {
-        elements[elementIndex].annotations = elements[
-          elementIndex
-        ].annotations.filter((a) => a.annotation_id !== annotationId);
-        elements = [...elements];
-      }
+      elementsStore.update((elements) => {
+        const elementIndex = elements.findIndex(
+          (el) => el.element_id === elementId
+        );
+        if (elementIndex !== -1) {
+          const updatedElement = {
+            ...elements[elementIndex],
+            annotations: elements[elementIndex].annotations.filter(
+              (a) => a.annotation_id !== annotationId
+            ),
+          };
+          return [
+            ...elements.slice(0, elementIndex),
+            updatedElement,
+            ...elements.slice(elementIndex + 1),
+          ];
+        }
+        return elements;
+      });
     } catch (error) {
       console.error("Error removing annotation:", error);
     }
@@ -252,23 +273,43 @@
     annotationDropdownOpen = true;
   }
 
-  function toggleSelectAll() {
-    selectAll = !selectAll;
-    selectedElements = selectAll ? elements.map((e) => e.element_id) : [];
-  }
+  let rangeStartIndex = -1;
 
-  function toggleElementSelection(elementId) {
-    if (selectedElements.includes(elementId)) {
-      selectedElements = selectedElements.filter(id => id !== elementId);
+  function handleElementSelection(index, elementId, event) {
+    console.log("Event:", event);
+    console.log("Shift key pressed:", event.shiftKey);
+    console.log("Range start index:", rangeStartIndex);
+
+    let newSelectedElements;
+
+    if (event.shiftKey && rangeStartIndex !== -1) {
+      console.log("Entering shift-select logic");
+      const start = Math.min(rangeStartIndex, index);
+      const end = Math.max(rangeStartIndex, index);
+
+      newSelectedElements = [
+        ...new Set([
+          ...selectedElements,
+          ...$elementsStore.slice(start, end + 1).map((e) => e.element_id),
+        ]),
+      ];
     } else {
-      selectedElements = [...selectedElements, elementId];
+      newSelectedElements = selectedElements.includes(elementId)
+        ? selectedElements.filter((id) => id !== elementId)
+        : [...selectedElements, elementId];
+
+      rangeStartIndex = newSelectedElements.includes(elementId) ? index : -1;
     }
+
+    // Update selectedElements
+    selectedElements = newSelectedElements;
+
+    console.log("Selected elements:", selectedElements);
+    console.log("New range start index:", rangeStartIndex);
   }
 
   function clearSelection() {
     selectedElements = [];
-    // If you're using a selectAll checkbox, make sure to uncheck it
-    selectAll = false;
   }
 
   function openBatchAnnotationModal() {
@@ -277,13 +318,32 @@
 
   async function applyBatchAnnotations(event) {
     const { codeIds } = event.detail;
-    // Implement batch annotation logic here
-    console.log('Applying batch annotations', { elementIds: selectedElements, codeIds });
-    // TODO: Call API to apply batch annotations
-    // Reset selection after applying annotations
-    clearSelection();
-  }
+    try {
+      const newAnnotations = await createBatchAnnotations(
+        selectedElements,
+        codeIds
+      );
 
+      elementsStore.update((elements) =>
+        elements.map((element) => {
+          if (selectedElements.includes(element.element_id)) {
+            const elementNewAnnotations = newAnnotations.filter(
+              (annotation) => annotation.element_id === element.element_id
+            );
+            return {
+              ...element,
+              annotations: [...element.annotations, ...elementNewAnnotations],
+            };
+          }
+          return element;
+        })
+      );
+
+      clearSelection();
+    } catch (error) {
+      console.error("Error applying batch annotations:", error);
+    }
+  }
 </script>
 
 <main>
@@ -291,21 +351,22 @@
 
   <div class="filters">
     <SearchBar
-      bind:value={searchTerm}
+      value={$searchTerm}
+      on:input={(e) => searchTerm.set(e.target.value)}
       placeholder="Search element texts..."
       debounceDelay={300}
       on:search={handleSearch}
     />
     <FilterDropdown
       label="Filter by Series"
-      options={series}
-      bind:selected={selectedSeries}
+      options={seriesOptions}
+      selected={$selectedSeries}
       on:change={handleSeriesChanged}
     />
     <FilterDropdown
       label="Filter by Segment"
-      options={segments}
-      bind:selected={selectedSegments}
+      options={segmentOptions}
+      selected={$selectedSegments}
       on:change={handleSegmentChanged}
     />
     <FilterDropdown
@@ -314,32 +375,25 @@
         id: code.code_id,
         name: code.term,
       }))}
-      bind:selected={selectedCodes}
+      selected={$selectedCodes}
       on:change={handleCodesChanged}
     />
   </div>
 
   <SelectedFilters
-    {selectedSeries}
-    {selectedSegments}
-    {selectedCodes}
-    seriesOptions={series}
-    segmentOptions={segments}
+    selectedSeries={$selectedSeries}
+    selectedSegments={$selectedSegments}
+    selectedCodes={$selectedCodes}
+    {seriesOptions}
+    {segmentOptions}
     onClearFilter={clearFilter}
     onClearAll={clearAllFilters}
   />
 
-  <table>
+  <table class:loading>
     <thead>
       <tr>
-        <th>
-          <input
-            type="checkbox"
-            bind:checked={selectAll}
-            on:change={toggleSelectAll}
-            aria-label="Select all elements"
-          />
-        </th>
+        <th>Select</th>
         <th>Series</th>
         <th>Segment</th>
         <th>Segment Title</th>
@@ -348,13 +402,14 @@
       </tr>
     </thead>
     <tbody>
-      {#each elements as element}
+      {#each $elementsStore as element, index}
         <tr>
           <td>
             <input
               type="checkbox"
               checked={selectedElements.includes(element.element_id)}
-              on:change={() => toggleElementSelection(element.element_id)}
+              on:click={(event) =>
+                handleElementSelection(index, element.element_id, event)}
               aria-label={`Select element ${element.element_id}`}
             />
           </td>
@@ -403,8 +458,12 @@
   {/if}
 
   {#if selectedElements.length > 0}
-    <div class="selection-bar" transition:slide="{{ duration: 300, y: 100 }}">
-      <span class="selection-count">{selectedElements.length} element{selectedElements.length !== 1 ? 's' : ''} selected</span>
+    <div class="selection-bar" transition:slide={{ duration: 300, y: 100 }}>
+      <span class="selection-count"
+        >{selectedElements.length} element{selectedElements.length !== 1
+          ? "s"
+          : ""} selected</span
+      >
       <button class="annotate-button" on:click={openBatchAnnotationModal}>
         Annotate Selected
       </button>
@@ -415,10 +474,10 @@
   {/if}
 
   <BatchAnnotationModal
-  bind:show={showBatchAnnotationModal}
-  selectedCount={selectedElements.length}
-  on:applyAnnotations={applyBatchAnnotations}
-/>
+    bind:show={showBatchAnnotationModal}
+    selectedCount={selectedElements.length}
+    on:applyAnnotations={applyBatchAnnotations}
+  />
 </main>
 
 <style>
@@ -431,6 +490,11 @@
   table {
     width: 100%;
     border-collapse: collapse;
+    visibility: visible;
+  }
+
+  table.loading {
+    visibility: hidden;
   }
 
   th,
@@ -492,7 +556,8 @@
     font-weight: bold;
   }
 
-  .annotate-button, .clear-button {
+  .annotate-button,
+  .clear-button {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -510,13 +575,14 @@
     color: #333;
   }
 
-  .annotate-button:hover, .clear-button:hover {
+  .annotate-button:hover,
+  .clear-button:hover {
     opacity: 0.8;
   }
 
-  .annotate-button:focus, .clear-button:focus {
+  .annotate-button:focus,
+  .clear-button:focus {
     outline: none;
     box-shadow: 0 0 0 2px #4a90e2;
   }
-
 </style>
