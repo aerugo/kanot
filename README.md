@@ -7,12 +7,12 @@
 
 ### Path to preview launch
 
-- Refactor project to use SvelteKit
-- Enable batch removal of tags
-- Automatic code creation and annotation flow with LLM
-- Command line scripts for auto annotion
-- Show project code co-occurrence graph, filter by co-occurrence count
-- Export project as static site dashboard with data in JSON
+- [ ] Refactor project to use SvelteKit
+- [ ] Enable batch removal of tags
+- [ ] Automatic code creation and annotation flow with LLM
+- [ ] Command line scripts for auto annotion
+- [ ] Show project code co-occurrence graph, filter by co-occurrence count
+- [ ] Export project as static site dashboard with data in JSON
 
 ### All tasks
 
