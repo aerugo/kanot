@@ -52,6 +52,13 @@ Project Settings
 - [ ] Define code fields on project level
 - [ ] Define code types on project level
 - [ ] Set which code fields to show as columns in list
+  
+Kanot Cloud
+- [ ] Make project multi-user
+- [ ] Define user roles for projects
+- [ ] Define workspaces
+- [ ] Invite user to workspace
+- [ ] Invite user to project
 
 Publish 
 - [ ] Export project as static site dashboard with data in JSON
