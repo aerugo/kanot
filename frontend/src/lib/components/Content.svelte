@@ -40,7 +40,6 @@
 	let loading: boolean = false;
 	let hasMore: boolean = true;
 	let annotationDropdownOpen: { [key: number]: boolean } = {};
-	let activeElementId: number | null = null;
 	let selectedElementIds: number[] = [];
 	let showBatchAnnotationModal: boolean = false;
 	let showBatchRemovalModal: boolean = false;

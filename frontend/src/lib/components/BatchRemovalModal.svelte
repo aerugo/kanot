@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { allElements } from '../stores/elementStore';
+	import { filteredElements } from '../stores/elementStore';
 	import type { Annotation } from '../types';
 
 	export let show = false;
@@ -12,7 +12,7 @@
 	let modalElement: HTMLDialogElement;
 	let selectedCodesToRemove: number[] = [];
 
-	$: selectedElements = $allElements.filter((element) =>
+	$: selectedElements = $filteredElements.filter((element) =>
 		selectedElementIds.includes(element.element_id)
 	);
 

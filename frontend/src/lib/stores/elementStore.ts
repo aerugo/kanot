@@ -74,11 +74,6 @@ export async function loadMoreElements(
 			pageSize
 		);
 
-		console.log('Received elements:', newElements);
-		console.log(
-			'Element IDs:',
-			newElements.map((e) => e.element_id)
-		);
 
 		allElements.update((elements) => {
 			if (page === 1) {

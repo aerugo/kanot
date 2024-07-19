@@ -8,7 +8,7 @@
 ### Path to preview launch
 
 - [x] Refactor project to use SvelteKit
-- [ ] Enable batch removal of tags
+- [x] Enable batch removal of tags
 - [ ] Automatic code creation and annotation flow with LLM
 - [ ] Command line scripts for auto annotion
 - [ ] Show project code co-occurrence graph, filter by co-occurrence count
@@ -20,7 +20,7 @@ Refactoring
 - [x] Refactor project to use SvelteKit
 
 UX and Actions
-- [ ] Enable batch removal of tags
+- [x] Enable batch removal of tags
 - [ ] Create and apply new code through dropdown
 - [ ] Project switching
 - [ ] Show code and its annotations
