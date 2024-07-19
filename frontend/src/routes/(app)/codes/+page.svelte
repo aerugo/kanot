@@ -5,11 +5,7 @@
 
   export let data;
 
-  console.log('Page data:', data);
-
   onMount(() => {
-    console.log('Setting codes:', data.codes);
-    console.log('Setting code types:', data.codeTypes);
     codes.set(data.codes);
     codeTypes.set(data.codeTypes);
     codes.refresh(fetch);
