@@ -53,6 +53,9 @@ Project Settings
 - [ ] Define code types on project level
 - [ ] Set which code fields to show as columns in list
   
+Styles
+- [ ] Harmonize styles across components
+  
 Kanot Cloud
 - [ ] Make project multi-user
 - [ ] Define user roles for projects
