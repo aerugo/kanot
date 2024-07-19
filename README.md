@@ -7,7 +7,7 @@
 
 ### Path to preview launch
 
-- [ ] Refactor project to use SvelteKit
+- [x] Refactor project to use SvelteKit
 - [ ] Enable batch removal of tags
 - [ ] Automatic code creation and annotation flow with LLM
 - [ ] Command line scripts for auto annotion
@@ -17,7 +17,7 @@
 ### All tasks
 
 Refactoring
-- [ ] Refactor project to use SvelteKit
+- [x] Refactor project to use SvelteKit
 
 UX and Actions
 - [ ] Enable batch removal of tags
