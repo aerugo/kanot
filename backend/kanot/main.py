@@ -195,6 +195,10 @@ class BatchAnnotationCreate(BaseModel):
     element_ids: List[int]
     code_ids: List[int]
 
+class BatchAnnotationRemove(BaseModel):
+    element_ids: List[int]
+    code_ids: List[int]
+
 class AnnotationUpdate(BaseModel):
     element_id: Optional[int] = None
     code_id: Optional[int] = None
@@ -414,6 +418,30 @@ def create_batch_annotations(batch_data: BatchAnnotationCreate, db: Session = De
                 new_annotations.append(annotation)
     
     return new_annotations
+
+@app.delete("/batch_annotations/", response_model=List[AnnotationResponse])
+def remove_batch_annotations(batch_data: BatchAnnotationRemove, db: Session = Depends(get_db)):
+    try:
+        removed_annotations: List[AnnotationResponse] = []
+        for element_id in batch_data.element_ids:
+            for code_id in batch_data.code_ids:
+                # Get annotations for the specific element and code
+                annotations = db_manager.get_annotations_for_element_and_code(element_id, code_id)
+                for annotation in annotations:
+                    # Remove the annotation
+                    db_manager.delete_annotation(annotation.annotation_id)
+                    # Append to the list of removed annotations
+                    removed_annotations.append(AnnotationResponse(
+                        annotation_id=annotation.annotation_id,
+                        element_id=annotation.element_id,
+                        code_id=annotation.code_id,
+                        code=annotation.code
+                    ))
+        
+        return removed_annotations
+    except Exception as e:
+        logger.error(f"Error in batch annotation removal: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred during batch annotation removal")
 
 @app.get("/annotations/", response_model=List[AnnotationResponse])
 def read_annotations(db: Session = Depends(get_db)):

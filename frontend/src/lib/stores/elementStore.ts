@@ -74,11 +74,27 @@ export async function loadMoreElements(
 			pageSize
 		);
 
+		console.log('Received elements:', newElements);
+		console.log(
+			'Element IDs:',
+			newElements.map((e) => e.element_id)
+		);
+
 		allElements.update((elements) => {
 			if (page === 1) {
 				return newElements;
 			} else {
-				return [...elements, ...newElements];
+				const combinedElements = [...elements, ...newElements];
+				const uniqueElementIds = new Set();
+				const uniqueElements = combinedElements.filter((element) => {
+					if (uniqueElementIds.has(element.element_id)) {
+						console.warn('Duplicate element ID found:', element.element_id);
+						return false;
+					}
+					uniqueElementIds.add(element.element_id);
+					return true;
+				});
+				return uniqueElements;
 			}
 		});
 

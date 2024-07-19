@@ -9,10 +9,12 @@
 		deleteAnnotation,
 		fetchCodeTypes,
 		fetchSegments,
-		fetchSeries
+		fetchSeries,
+		removeBatchAnnotations
 	} from '../api';
 	import AnnotationDropdown from '../components/AnnotationDropdown.svelte';
 	import BatchAnnotationModal from '../components/BatchAnnotationModal.svelte';
+	import BatchRemovalModal from '../components/BatchRemovalModal.svelte';
 	import FilterDropdown from '../components/FilterDropdown.svelte';
 	import SearchBar from '../components/SearchBar.svelte';
 	import SelectedFilters from '../components/SelectedFilters.svelte';
@@ -37,10 +39,11 @@
 	let page: number = 1;
 	let loading: boolean = false;
 	let hasMore: boolean = true;
-	let annotationDropdownOpen: boolean = false;
+	let annotationDropdownOpen: { [key: number]: boolean } = {};
 	let activeElementId: number | null = null;
-	let selectedElements: number[] = [];
+	let selectedElementIds: number[] = [];
 	let showBatchAnnotationModal: boolean = false;
+	let showBatchRemovalModal: boolean = false;
 	let seriesOptions: Option[] = [];
 	let segmentOptions: Option[] = [];
 	let rangeStartIndex: number = -1;
@@ -79,29 +82,32 @@
 	}
 
 	async function loadMoreData(): Promise<void> {
-		if (!browser || loading || !hasMore) return;
-		if (loading || !hasMore) return;
-		loading = true;
-		try {
-			const newElements = await loadMoreElements(
-				page,
-				$searchTerm,
-				$selectedSeries,
-				$selectedSegments,
-				$selectedCodes
-			);
-			elementsStore.update((currentElements) => {
-				const updatedElements = page === 1 ? newElements : [...currentElements, ...newElements];
-				return updatedElements;
-			});
-			hasMore = newElements.length > 0;
-			page++;
-		} catch (error) {
-			console.error('Error loading more elements:', error);
-		} finally {
-			loading = false;
-		}
-	}
+    if (!browser || loading || !hasMore) return;
+    loading = true;
+    try {
+        const newElements = await loadMoreElements(
+            page,
+            $searchTerm,
+            $selectedSeries,
+            $selectedSegments,
+            $selectedCodes
+        );
+        elementsStore.update((currentElements) => {
+            const updatedElements = page === 1 ? newElements : [...currentElements];
+            // Filter out duplicates based on element_id
+            const uniqueElements = newElements.filter(
+                (newElement) => !updatedElements.some((existingElement) => existingElement.element_id === newElement.element_id)
+            );
+            return [...updatedElements, ...uniqueElements];
+        });
+        hasMore = newElements.length > 0;
+        page++;
+    } catch (error) {
+        console.error('Error loading more elements:', error);
+    } finally {
+        loading = false;
+    }
+}
 
 	async function resetSearch(): Promise<void> {
 		page = 1;
@@ -267,50 +273,58 @@
 	}
 
 	function openAnnotationDropdown(elementId: number): void {
-		activeElementId = elementId;
-		annotationDropdownOpen = true;
+		annotationDropdownOpen = { ...annotationDropdownOpen, [elementId]: true };
+	}
+
+	function closeAnnotationDropdown(elementId: number): void {
+		annotationDropdownOpen = { ...annotationDropdownOpen, [elementId]: false };
 	}
 
 	function handleElementSelection(index: number, elementId: number, event: MouseEvent): void {
-		let newSelectedElements: number[];
+		let newSelectedElementIds: number[];
 
 		if (event.shiftKey && rangeStartIndex !== -1) {
 			const start = Math.min(rangeStartIndex, index);
 			const end = Math.max(rangeStartIndex, index);
 
-			newSelectedElements = [
+			newSelectedElementIds = [
 				...new Set([
-					...selectedElements,
+					...selectedElementIds,
 					...$elementsStore.slice(start, end + 1).map((e) => e.element_id)
 				])
 			];
 		} else {
-			newSelectedElements = selectedElements.includes(elementId)
-				? selectedElements.filter((id) => id !== elementId)
-				: [...selectedElements, elementId];
+			newSelectedElementIds = selectedElementIds.includes(elementId)
+				? selectedElementIds.filter((id) => id !== elementId)
+				: [...selectedElementIds, elementId];
 
-			rangeStartIndex = newSelectedElements.includes(elementId) ? index : -1;
+			rangeStartIndex = newSelectedElementIds.includes(elementId) ? index : -1;
 		}
 
-		selectedElements = newSelectedElements;
+		selectedElementIds = newSelectedElementIds;
 	}
 
 	function clearSelection(): void {
-		selectedElements = [];
+		selectedElementIds = [];
 	}
 
 	function openBatchAnnotationModal(): void {
 		showBatchAnnotationModal = true;
 	}
 
+	function openBatchRemovalModal(): void {
+		console.log('Opening batch removal modal');
+		showBatchRemovalModal = true;
+	}
+
 	async function applyBatchAnnotations(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
 		try {
-			const newAnnotations = await createBatchAnnotations(selectedElements, codeIds);
+			const newAnnotations = await createBatchAnnotations(selectedElementIds, codeIds);
 
 			elementsStore.update((elements) =>
 				elements.map((element) => {
-					if (selectedElements.includes(element.element_id)) {
+					if (selectedElementIds.includes(element.element_id)) {
 						const elementNewAnnotations = newAnnotations.filter(
 							(annotation: Annotation) => annotation.element_id === element.element_id
 						);
@@ -328,14 +342,37 @@
 			console.error('Error applying batch annotations:', error);
 		}
 	}
-</script>
 
-<!-- HTML structure -->
+	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
+		const { codeIds } = event.detail;
+		try {
+			await removeBatchAnnotations(selectedElementIds, codeIds);
+
+			elementsStore.update((elements) => {
+				return elements.map((element) => {
+					if (selectedElementIds.includes(element.element_id)) {
+						return {
+							...element,
+							annotations: element.annotations.filter(
+								(annotation) => !codeIds.includes(annotation.code?.code_id ?? -1)
+							)
+						};
+					}
+					return element;
+				});
+			});
+
+			// Clear selection and close modal
+			clearSelection();
+			showBatchRemovalModal = false;
+		} catch (error) {
+			console.error('Error removing batch annotations:', error);
+		}
+	}
+</script>
 
 <main>
 	<h1>Content</h1>
-
-	<!-- Filters section -->
 
 	<div class="filters">
 		<SearchBar
@@ -368,8 +405,6 @@
 		/>
 	</div>
 
-	<!-- Selected filters display -->
-
 	<SelectedFilters
 		selectedSeries={$selectedSeries}
 		selectedSegments={$selectedSegments}
@@ -380,7 +415,6 @@
 		onClearAll={clearAllFilters}
 	/>
 
-	<!-- Main content table -->
 	<table class:loading>
 		<thead>
 			<tr>
@@ -398,7 +432,7 @@
 					<td>
 						<input
 							type="checkbox"
-							checked={selectedElements.includes(element.element_id)}
+							checked={selectedElementIds.includes(element.element_id)}
 							on:click={(event) => handleElementSelection(index, element.element_id, event)}
 							aria-label={`Select element ${element.element_id}`}
 						/>
@@ -421,11 +455,15 @@
 						<button class="add-code" on:click={() => openAnnotationDropdown(element.element_id)}
 							>+</button
 						>
-						{#if annotationDropdownOpen && activeElementId === element.element_id}
+						{#if annotationDropdownOpen[element.element_id]}
 							<AnnotationDropdown
-								bind:isOpen={annotationDropdownOpen}
+								isOpen={true}
 								elementId={element.element_id}
-								on:select={addAnnotation}
+								on:select={(event) => {
+									addAnnotation(event);
+									closeAnnotationDropdown(element.element_id);
+								}}
+								on:close={() => closeAnnotationDropdown(element.element_id)}
 							/>
 						{/if}
 					</td>
@@ -433,8 +471,6 @@
 			{/each}
 		</tbody>
 	</table>
-
-	<!-- Loading and "No more elements" messages -->
 
 	{#if loading}
 		<p>Loading more elements...</p>
@@ -444,26 +480,33 @@
 		<p>No more elements to load.</p>
 	{/if}
 
-	<!-- Selection bar for batch annotation -->
-
-	{#if selectedElements.length > 0}
+	{#if selectedElementIds.length > 0}
 		<div class="selection-bar" transition:slide={{ duration: 300, axis: 'y' }}>
 			<span class="selection-count">
-				{selectedElements.length} element{selectedElements.length !== 1 ? 's' : ''} selected
+				{selectedElementIds.length} element{selectedElementIds.length !== 1 ? 's' : ''} selected
 			</span>
 			<button class="annotate-button" on:click={openBatchAnnotationModal}>
 				Annotate Selected
+			</button>
+			<button class="remove-annotations-button" on:click={() => (showBatchRemovalModal = true)}>
+				Remove Annotations
 			</button>
 			<button class="clear-button" on:click={clearSelection}>Clear Selection</button>
 		</div>
 	{/if}
 
-	<!-- Batch annotation modal -->
-
 	<BatchAnnotationModal
 		bind:show={showBatchAnnotationModal}
-		selectedCount={selectedElements.length}
+		selectedCount={selectedElementIds.length}
+		{selectedElementIds}
 		on:applyAnnotations={applyBatchAnnotations}
+	/>
+
+	<BatchRemovalModal
+		bind:show={showBatchRemovalModal}
+		selectedCount={selectedElementIds.length}
+		{selectedElementIds}
+		on:removeAnnotations={handleBatchRemoval}
 	/>
 </main>
 
@@ -540,6 +583,7 @@
 	}
 
 	.annotate-button,
+	.remove-annotations-button,
 	.clear-button {
 		padding: 0.5rem 1rem;
 		border: none;
@@ -553,17 +597,24 @@
 		color: white;
 	}
 
+	.remove-annotations-button {
+		background-color: #e74c3c;
+		color: white;
+	}
+
 	.clear-button {
 		background-color: transparent;
 		color: #333;
 	}
 
 	.annotate-button:hover,
+	.remove-annotations-button:hover,
 	.clear-button:hover {
 		opacity: 0.8;
 	}
 
 	.annotate-button:focus,
+	.remove-annotations-button:focus,
 	.clear-button:focus {
 		outline: none;
 		box-shadow: 0 0 0 2px #4a90e2;

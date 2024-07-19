@@ -481,6 +481,34 @@ class DatabaseManager:
         finally:
             session.close()
 
+# Get codes for element
+
+    def get_codes_for_element(self, element_id: int) -> list[Code]:
+        session = self.Session()
+        try:
+            codes = (
+                session.query(Code)
+                .join(Annotation)
+                .filter(Annotation.element_id == element_id)
+                .all()
+            )
+            return codes
+        finally:
+            session.close()
+
+    def get_annotations_for_element_and_code(self, element_id: int, code_id: int) -> list[Annotation]:
+        session = self.Session()
+        try:
+            annotations = (
+                session.query(Annotation)
+                .options(joinedload(Annotation.code).joinedload(Code.code_type))
+                .filter(Annotation.element_id == element_id, Annotation.code_id == code_id)
+                .all()
+            )
+            return annotations
+        finally:
+            session.close()
+
 # Search elements by string
 
     def search_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = [], skip: int = 0, limit: int = 100) -> Optional[list[Element]]:

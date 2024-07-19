@@ -7,14 +7,19 @@ type FetchFunction = (input: RequestInfo | URL, init?: RequestInit) => Promise<R
 
 /**
  * General function for API requests
- * 
+ *
  * @param {string} endpoint - The API endpoint
  * @param {string} [method='GET'] - The HTTP method
  * @param {Object|null} [data=null] - The request payload
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>} - The API response data
  */
-async function apiRequest(endpoint: string, method: string = 'GET', data: any = null, fetchFunc: FetchFunction = fetch): Promise<any> {
+async function apiRequest(
+	endpoint: string,
+	method: string = 'GET',
+	data: any = null,
+	fetchFunc: FetchFunction = fetch
+): Promise<any> {
 	const url = `${BASE_URL}${endpoint}`;
 	const options: RequestInit = {
 		method,
@@ -39,7 +44,7 @@ async function apiRequest(endpoint: string, method: string = 'GET', data: any = 
 
 /**
  * Fetch codes
- * 
+ *
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
@@ -49,7 +54,7 @@ export async function fetchCodes(fetchFunc: FetchFunction = fetch): Promise<any>
 
 /**
  * Fetch code types
- * 
+ *
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
@@ -59,7 +64,7 @@ export async function fetchCodeTypes(fetchFunc: FetchFunction = fetch): Promise<
 
 /**
  * Add a new code
- * 
+ *
  * @param {Object} newCode - The new code data
  * @returns {Promise<any>}
  */
@@ -69,7 +74,7 @@ export async function addCode(newCode: any): Promise<any> {
 
 /**
  * Update an existing code
- * 
+ *
  * @param {number|string} id - The code ID
  * @param {Object} updatedCode - The updated code data
  * @returns {Promise<any>}
@@ -80,7 +85,7 @@ export async function updateCode(id: number | string, updatedCode: any): Promise
 
 /**
  * Delete a code
- * 
+ *
  * @param {number|string} id - The code ID
  * @returns {Promise<any>}
  */
@@ -92,7 +97,7 @@ export async function deleteCode(id: number | string): Promise<any> {
 
 /**
  * Create an annotation
- * 
+ *
  * @param {Object} annotationData - The annotation data
  * @returns {Promise<any>}
  */
@@ -102,18 +107,37 @@ export async function createAnnotation(annotationData: any): Promise<any> {
 
 /**
  * Create batch annotations
- * 
+ *
  * @param {number[]} elementIds - Array of element IDs
  * @param {number[]} codeIds - Array of code IDs
  * @returns {Promise<any>}
  */
-export async function createBatchAnnotations(elementIds: number[], codeIds: number[]): Promise<any> {
+export async function createBatchAnnotations(
+	elementIds: number[],
+	codeIds: number[]
+): Promise<any> {
 	return apiRequest('/batch_annotations/', 'POST', { element_ids: elementIds, code_ids: codeIds });
 }
 
 /**
+ *
+ * @param {number[]} elementIds - Array of element IDs
+ * @param {number[]} codeIds - Array of code IDs
+ * @returns {Promise<any>}
+ */
+export async function removeBatchAnnotations(
+	elementIds: number[],
+	codeIds: number[]
+): Promise<any> {
+	return apiRequest('/batch_annotations/', 'DELETE', {
+		element_ids: elementIds,
+		code_ids: codeIds
+	});
+}
+
+/**
  * Delete an annotation
- * 
+ *
  * @param {number|string} annotationId - The annotation ID
  * @returns {Promise<any>}
  */
@@ -125,18 +149,21 @@ export async function deleteAnnotation(annotationId: number | string): Promise<a
 
 /**
  * Fetch paginated elements
- * 
+ *
  * @param {number} [page=1] - The page number
  * @param {number} [pageSize=100] - The page size
  * @returns {Promise<any>}
  */
-export async function fetchPaginatedElements(page: number = 1, pageSize: number = 100): Promise<any> {
+export async function fetchPaginatedElements(
+	page: number = 1,
+	pageSize: number = 100
+): Promise<any> {
 	return apiRequest(`/elements/?skip=${(page - 1) * pageSize}&limit=${pageSize}`);
 }
 
 /**
  * Search elements
- * 
+ *
  * @param {string} searchTerm - The search term
  * @param {number[]} [seriesIds=[]] - Array of series IDs
  * @param {number[]} [segmentIds=[]] - Array of segment IDs
@@ -170,7 +197,7 @@ export async function searchElements(
 
 /**
  * Fetch series
- * 
+ *
  * @returns {Promise<any>}
  */
 export async function fetchSeries(): Promise<any> {
@@ -181,7 +208,7 @@ export async function fetchSeries(): Promise<any> {
 
 /**
  * Fetch segments
- * 
+ *
  * @returns {Promise<any>}
  */
 export async function fetchSegments(): Promise<any> {
