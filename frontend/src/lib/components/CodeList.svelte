@@ -4,6 +4,7 @@
 	import { codes } from '../stores/codeStore';
 	import type { Code } from '../types';
 	import { generateGoogleMapsLink, getDomain } from '../utils/helpers';
+	import DeleteConfirmModal from './DeleteConfirmModal.svelte';
 
 	const dispatch = createEventDispatcher<{
 		editCode: Code;
@@ -13,6 +14,7 @@
 
 	let sortColumn: 'term' | 'type' = 'term';
 	let sortOrder: 'asc' | 'desc' = 'asc';
+	let codeToDelete: Code | null = null;
 
 	function isSortableColumn(column: string): boolean {
 		return ['term', 'type'].includes(column);
@@ -45,16 +47,24 @@
 		});
 	}
 
-	async function confirmDelete(id: number): Promise<void> {
-		if (confirm('Are you sure you want to delete this code?')) {
-			try {
-				await deleteCode(id);
-				codes.remove(id);
-			} catch (error) {
-				console.error('Error deleting code:', error);
-				// Optionally, show an error message to the user
-			}
+	function openDeleteModal(code: Code): void {
+		codeToDelete = code;
+	}
+
+	async function handleDeleteConfirm(event: CustomEvent<number>): Promise<void> {
+		const id = event.detail;
+		try {
+			await deleteCode(id);
+			codes.remove(id);
+			codeToDelete = null;
+		} catch (error) {
+			console.error('Error deleting code:', error);
+			// Optionally, show an error message to the user
 		}
+	}
+
+	function handleDeleteCancel(): void {
+		codeToDelete = null;
 	}
 
 	function startEditing(code: Code): void {
@@ -107,7 +117,7 @@
 						</td>
 						<td class="actions">
 							<button class="btn btn-primary" on:click={() => startEditing(code)}>Edit</button>
-							<button class="btn btn-danger" on:click={() => confirmDelete(code.code_id)}>Delete</button>
+							<button class="btn btn-danger" on:click={() => openDeleteModal(code)}>Delete</button>
 						</td>
 					</tr>
 				{/each}
@@ -214,3 +224,11 @@
 		font-style: italic;
 	}
 </style>
+
+{#if codeToDelete}
+	<DeleteConfirmModal
+		code={codeToDelete}
+		on:confirm={handleDeleteConfirm}
+		on:cancel={handleDeleteCancel}
+	/>
+{/if}
