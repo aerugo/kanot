@@ -106,9 +106,8 @@
 							{/if}
 						</td>
 						<td class="actions">
-							<button on:click={() => startEditing(code)}>Edit</button>
-							<button class="delete-btn" on:click={() => confirmDelete(code.code_id)}>Delete</button
-							>
+							<button class="btn btn-primary" on:click={() => startEditing(code)}>Edit</button>
+							<button class="btn btn-danger" on:click={() => confirmDelete(code.code_id)}>Delete</button>
 						</td>
 					</tr>
 				{/each}
@@ -184,13 +183,27 @@
 	.actions button {
 		font-size: 0.8rem;
 		padding: 0.3rem 0.6rem;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
 	}
 
-	.delete-btn {
+	.btn-primary {
+		background-color: #3498db;
+		color: white;
+	}
+
+	.btn-primary:hover {
+		background-color: #2980b9;
+	}
+
+	.btn-danger {
 		background-color: #e74c3c;
+		color: white;
 	}
 
-	.delete-btn:hover {
+	.btn-danger:hover {
 		background-color: #c0392b;
 	}
 
