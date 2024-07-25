@@ -108,11 +108,19 @@ def test_create_code_type(test_db):
     )
     project_id = project_response.json()["project_id"]
 
+    # Create a code type
     response = client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_id}
     )
     assert response.status_code == 200
+
+    # Try to create the same code type again
+    response = client.post(
+        "/code_types/",
+        json={"type_name": "Test CodeType", "project_id": project_id}
+    )
+    assert response.status_code == 200  # It should still return 200 as we're returning the existing code type
     data = response.json()
     assert data["type_name"] == "Test CodeType"
     assert "type_id" in data
