@@ -221,16 +221,16 @@ class DatabaseManager:
 
     # Segment CRUD
 
-    def create_segment(self, segment_id: int, segment_title: Optional[str]) -> Segment | None:
+    def create_segment(self, segment_title: Optional[str], series_id: int) -> Segment | None:
         session = self.Session()
-        new_segment = Segment(segment_id=segment_id, segment_title=segment_title)
+        new_segment = Segment(segment_title=segment_title, series_id=series_id)
         try:
             session.add(new_segment)
             session.commit()
             return new_segment
         except IntegrityError:
             session.rollback()
-            logger.error(f"Segment with segment_id={segment_id} or segment_title={segment_title} already exists.")
+            logger.error(f"Segment with segment_title={segment_title} already exists.")
             return None
         finally:
             session.close()
