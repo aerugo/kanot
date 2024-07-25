@@ -145,8 +145,9 @@ class SeriesBase(BaseModel):
     series_title: str
     project_id: int
 
-class SeriesCreate(SeriesBase):
-    pass
+class SeriesCreate(BaseModel):
+    series_title: str
+    project_id: int
 
 class SeriesUpdate(BaseModel):
     series_title: Optional[str] = ""
@@ -362,6 +363,8 @@ def delete_code(code_id: int, db: Session = Depends(get_db)):
 @app.post("/series/", response_model=SeriesResponse)
 def create_series(series: SeriesCreate, db: Session = Depends(get_db)):
     new_series = db_manager.create_series(series.series_title, series.project_id)
+    if new_series is None:
+        raise HTTPException(status_code=400, detail="Failed to create series")
     return SeriesResponse(
         series_id=new_series.series_id,
         series_title=new_series.series_title,
