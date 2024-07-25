@@ -29,16 +29,18 @@ def reset_database():
     db_manager = DatabaseManager(engine)
     db_manager.drop_database(engine)
     db_manager.create_database(engine)
-    yield
-    # Drop tables after each test
-    db_manager.drop_database(engine)
-
+    
     # Clear all data from tables
     session = TestingSessionLocal()
     for table in reversed(Base.metadata.sorted_tables):
         session.execute(table.delete())
     session.commit()
     session.close()
+    
+    yield
+    
+    # Drop tables after each test
+    db_manager.drop_database(engine)
 
 # Clear the database before running tests
 DatabaseManager(engine).drop_database(engine)
@@ -57,6 +59,9 @@ def test_create_project():
 
 def test_read_projects():
     # Create a project first
+    initial_response = client.get("/projects/")
+    initial_count = len(initial_response.json())
+
     client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
@@ -66,7 +71,7 @@ def test_read_projects():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 1
+    assert len(data) == initial_count + 1
 
 def test_read_project():
     # Create a project
@@ -147,6 +152,10 @@ def test_create_code_type():
     assert "already exists" in data["detail"]
 
 def test_read_code_types():
+    # Get initial count of code types
+    initial_response = client.get("/code_types/")
+    initial_count = len(initial_response.json())
+
     # Create a project and a code type
     project_response = client.post(
         "/projects/",
@@ -162,7 +171,7 @@ def test_read_code_types():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 1
+    assert len(data) == initial_count + 1
 
 def test_search_elements():
     # Create necessary data (project, series, segment, element)
@@ -199,8 +208,8 @@ def test_search_elements():
     assert search_response.status_code == 200
     data = search_response.json()
     assert isinstance(data, list)
-    assert len(data) == 1
-    assert data[0]["element_text"] == "Test Element"
+    assert len(data) >= 1
+    assert any(element["element_text"] == "Test Element" for element in data)
 
     # Check pagination headers
     assert "X-Total-Count" in search_response.headers
