@@ -131,17 +131,17 @@ class DatabaseManager:
             session.rollback()
             existing_code_type = (
                 session.query(CodeType)
-                .filter_by(type_name=type_name)
+                .filter_by(type_name=type_name, project_id=project_id)
                 .first()
             )
             if existing_code_type:
                 logger.info(
-                    f"CodeType with type_name={type_name} already exists in project {existing_code_type.project_id}."
+                    f"CodeType with type_name={type_name} already exists in project {project_id}."
                 )
                 return existing_code_type
             else:
                 logger.error(
-                    f"Unexpected IntegrityError for CodeType with type_name={type_name}."
+                    f"Unexpected IntegrityError for CodeType with type_name={type_name} in project {project_id}."
                 )
                 raise
         except Exception as e:
@@ -218,8 +218,17 @@ class DatabaseManager:
             return new_code
         except IntegrityError:
             session.rollback()
-            logger.error(f"Code with term={term} already exists.")
-            return None
+            existing_code = (
+                session.query(Code)
+                .filter_by(term=term, project_id=project_id)
+                .first()
+            )
+            if existing_code:
+                logger.error(f"Code with term={term} already exists in project {project_id}.")
+                return existing_code
+            else:
+                logger.error(f"Unexpected IntegrityError for Code with term={term} in project {project_id}.")
+                raise
         except Exception as e:
             session.rollback()
             logger.error(f"Unexpected error in create_code: {str(e)}")

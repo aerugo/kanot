@@ -34,11 +34,14 @@ class CodeType(Base):
     
     __table_args__ = (UniqueConstraint('type_name', 'project_id', name='_type_name_project_uc'),)
 
+    def __repr__(self):
+        return f"CodeType(type_id={self.type_id}, type_name={self.type_name}, project_id={self.project_id})"
+
 # Define the Codes class
 class Code(Base):
     __tablename__ = 'codes'
     code_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    term: Any = Column(Text, unique=True, nullable=False)
+    term: Any = Column(Text, nullable=False)
     description: Any = Column(Text)
     type_id: Any = Column(Integer, ForeignKey('code_types.type_id'))
     reference: Any = Column(Text)
@@ -47,8 +50,10 @@ class Code(Base):
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project")
 
+    __table_args__ = (UniqueConstraint('term', 'project_id', name='_term_project_uc'),)
+
     def __repr__(self):
-        return f"Code(code_id={self.code_id}, term={self.term}, description={self.description}, type_id={self.type_id}, reference={self.reference}, coordinates={self.coordinates})"
+        return f"Code(code_id={self.code_id}, term={self.term}, description={self.description}, type_id={self.type_id}, reference={self.reference}, coordinates={self.coordinates}, project_id={self.project_id})"
 
 class Series(Base):
     __tablename__ = 'series'
