@@ -29,7 +29,10 @@ def test_db():
     # Override the dependency
     app.dependency_overrides[get_db] = override_get_db
     
-    yield TestingSessionLocal()
+    db = TestingSessionLocal()
+    yield db
+    
+    db.close()
     
     # Drop the test database after the test
     Base.metadata.drop_all(bind=engine)
@@ -41,3 +44,10 @@ def reset_database(test_db):
     for table in reversed(Base.metadata.sorted_tables):
         test_db.execute(table.delete())
     test_db.commit()
+
+@pytest.fixture(scope="module")
+def test_client():
+    app.dependency_overrides[get_db] = override_get_db
+    with app.test_client() as client:
+        yield client
+    app.dependency_overrides.clear()

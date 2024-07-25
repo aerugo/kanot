@@ -45,11 +45,10 @@ class ElementResponse(BaseModel):
     segment_id: int
     project_id: int
 
-client = TestClient(app)
-
 @pytest.fixture(scope="module")
 def test_client():
-    return client
+    with TestClient(app) as client:
+        yield client
 
 def test_create_project(test_client, test_db) -> None:
     response = test_client.post(
@@ -62,47 +61,47 @@ def test_create_project(test_client, test_db) -> None:
     assert data.project_description == "Test Description"
     assert data.project_id is not None
 
-def test_read_projects() -> None:
+def test_read_projects(test_client, test_db) -> None:
     # Create a project first
-    initial_response = client.get("/projects/")
+    initial_response = test_client.get("/projects/")
     initial_count = len(initial_response.json())
 
-    client.post(
+    test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     
-    response = client.get("/projects/")
+    response = test_client.get("/projects/")
     assert response.status_code == 200
     data = [ProjectResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) == initial_count + 1
 
-def test_read_project() -> None:
+def test_read_project(test_client, test_db) -> None:
     # Create a project
-    create_response = client.post(
+    create_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project 2", "project_description": "Test Description 2"}
     )
     project_data = ProjectResponse.model_validate(create_response.json())
 
     # Read the project
-    response = client.get(f"/projects/{project_data.project_id}")
+    response = test_client.get(f"/projects/{project_data.project_id}")
     assert response.status_code == 200
     data = ProjectResponse.model_validate(response.json())
     assert data.project_title == "Test Project 2"
     assert data.project_description == "Test Description 2"
 
-def test_update_project() -> None:
+def test_update_project(test_client, test_db) -> None:
     # Create a project
-    create_response = client.post(
+    create_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project 3", "project_description": "Test Description 3"}
     )
     project_data = ProjectResponse.model_validate(create_response.json())
 
     # Update the project
-    update_response = client.put(
+    update_response = test_client.put(
         f"/projects/{project_data.project_id}",
         json={"project_title": "Updated Project", "project_description": "Updated Description"}
     )
@@ -111,33 +110,33 @@ def test_update_project() -> None:
     assert data.project_title == "Updated Project"
     assert data.project_description == "Updated Description"
 
-def test_delete_project() -> None:
+def test_delete_project(test_client, test_db) -> None:
     # Create a project
-    create_response = client.post(
+    create_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project 4", "project_description": "Test Description 4"}
     )
     project_data = ProjectResponse.model_validate(create_response.json())
 
     # Delete the project
-    delete_response = client.delete(f"/projects/{project_data.project_id}")
+    delete_response = test_client.delete(f"/projects/{project_data.project_id}")
     assert delete_response.status_code == 200
     assert delete_response.json()["message"] == "Project deleted successfully"
 
     # Verify that the project is deleted
-    get_response = client.get(f"/projects/{project_data.project_id}")
+    get_response = test_client.get(f"/projects/{project_data.project_id}")
     assert get_response.status_code == 404
 
-def test_create_code_type() -> None:
+def test_create_code_type(test_client, test_db) -> None:
     # Create a project
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
     # Create a code type
-    response = client.post(
+    response = test_client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_data.project_id}
     )
@@ -147,7 +146,7 @@ def test_create_code_type() -> None:
     assert data.type_id is not None
 
     # Try to create the same code type again in the same project
-    response = client.post(
+    response = test_client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_data.project_id}
     )
@@ -156,44 +155,44 @@ def test_create_code_type() -> None:
     assert "detail" in str(data)
     assert "already exists" in response.json()["detail"]
 
-def test_read_code_types() -> None:
+def test_read_code_types(test_client, test_db) -> None:
     # Get initial count of code types
-    initial_response = client.get("/code_types/")
+    initial_response = test_client.get("/code_types/")
     initial_count = len(initial_response.json())
 
     # Create a project and a code type
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
-    client.post(
+    test_client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_data.project_id}
     )
 
-    response = client.get("/code_types/")
+    response = test_client.get("/code_types/")
     assert response.status_code == 200
     data = [CodeTypeResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) == initial_count + 1
 
-def test_create_code() -> None:
+def test_create_code(test_client, test_db) -> None:
     # Create a project and code type first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
     
-    code_type_response = client.post(
+    code_type_response = test_client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_data.project_id}
     )
     code_type_data = CodeTypeResponse.model_validate(code_type_response.json())
 
     # Create a code
-    response = client.post(
+    response = test_client.post(
         "/codes/",
         json={
             "term": "Test Code",
@@ -209,21 +208,21 @@ def test_create_code() -> None:
     assert data.term == "Test Code"
     assert data.code_id is not None
 
-def test_read_codes() -> None:
+def test_read_codes(test_client, test_db) -> None:
     # Create a project, code type, and code first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
     
-    code_type_response = client.post(
+    code_type_response = test_client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_data.project_id}
     )
     code_type_data = CodeTypeResponse.model_validate(code_type_response.json())
 
-    client.post(
+    test_client.post(
         "/codes/",
         json={
             "term": "Test Code",
@@ -235,22 +234,22 @@ def test_read_codes() -> None:
         }
     )
 
-    response = client.get("/codes/")
+    response = test_client.get("/codes/")
     assert response.status_code == 200
     data = [CodeResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) >= 1
 
-def test_create_series() -> None:
+def test_create_series(test_client, test_db) -> None:
     # Create a project first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
     # Create a series
-    response = client.post(
+    response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
@@ -259,34 +258,34 @@ def test_create_series() -> None:
     assert data.series_title == "Test Series"
     assert data.series_id is not None
 
-def test_read_series() -> None:
+def test_read_series(test_client, test_db) -> None:
     # Create a project and series first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    client.post(
+    test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
 
-    response = client.get("/series/")
+    response = test_client.get("/series/")
     assert response.status_code == 200
     data = [SeriesResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) >= 1
 
-def test_create_segment() -> None:
+def test_create_segment(test_client, test_db) -> None:
     # Create a project and series first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    series_response = client.post(
+    series_response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
@@ -294,7 +293,7 @@ def test_create_segment() -> None:
 
     # Create a segment
     unique_segment_title = f"Test Segment {uuid.uuid4()}"
-    response = client.post(
+    response = test_client.post(
         "/segments/",
         json={"segment_title": unique_segment_title, "series_id": series_data.series_id, "project_id": project_data.project_id}
     )
@@ -303,55 +302,55 @@ def test_create_segment() -> None:
     assert data.segment_title == unique_segment_title
     assert data.segment_id is not None
 
-def test_read_segments() -> None:
+def test_read_segments(test_client, test_db) -> None:
     # Create a project, series, and segment first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    series_response = client.post(
+    series_response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
     series_data = SeriesResponse.model_validate(series_response.json())
 
     unique_segment_title = f"Test Segment {uuid.uuid4()}"
-    client.post(
+    test_client.post(
         "/segments/",
         json={"segment_title": unique_segment_title, "series_id": series_data.series_id, "project_id": project_data.project_id}
     )
 
-    response = client.get("/segments/")
+    response = test_client.get("/segments/")
     assert response.status_code == 200
     data = [SegmentResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) >= 1
 
-def test_create_element() -> None:
+def test_create_element(test_client, test_db) -> None:
     # Create a project, series, and segment first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    series_response = client.post(
+    series_response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
     series_data = SeriesResponse.model_validate(series_response.json())
 
     unique_segment_title = f"Test Segment {uuid.uuid4()}"
-    segment_response = client.post(
+    segment_response = test_client.post(
         "/segments/",
         json={"segment_title": unique_segment_title, "series_id": series_data.series_id, "project_id": project_data.project_id}
     )
     segment_data = SegmentResponse.model_validate(segment_response.json())
 
     # Create an element
-    response = client.post(
+    response = test_client.post(
         "/elements/",
         json={"element_text": "Test Element", "segment_id": segment_data.segment_id, "project_id": project_data.project_id}
     )
@@ -360,54 +359,54 @@ def test_create_element() -> None:
     assert data.element_text == "Test Element"
     assert data.element_id is not None
 
-def test_read_elements() -> None:
+def test_read_elements(test_client, test_db) -> None:
     # Create a project, series, segment, and element first
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    series_response = client.post(
+    series_response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
     series_data = SeriesResponse.model_validate(series_response.json())
 
     unique_segment_title = f"Test Segment {uuid.uuid4()}"
-    segment_response = client.post(
+    segment_response = test_client.post(
         "/segments/",
         json={"segment_title": unique_segment_title, "series_id": series_data.series_id, "project_id": project_data.project_id}
     )
     segment_data = SegmentResponse.model_validate(segment_response.json())
 
-    client.post(
+    test_client.post(
         "/elements/",
         json={"element_text": "Test Element", "segment_id": segment_data.segment_id, "project_id": project_data.project_id}
     )
 
-    response = client.get("/elements/")
+    response = test_client.get("/elements/")
     assert response.status_code == 200
     data = [ElementResponse.model_validate(item) for item in response.json()]
     assert isinstance(data, list)
     assert len(data) >= 1
 
-def test_search_elements() -> None:
+def test_search_elements(test_client, test_db) -> None:
     # Create necessary data (project, series, segment, element)
-    project_response = client.post(
+    project_response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
     project_data = ProjectResponse.model_validate(project_response.json())
 
-    series_response = client.post(
+    series_response = test_client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_data.project_id}
     )
     series_data = SeriesResponse.model_validate(series_response.json())
 
     unique_segment_title = f"Test Segment {uuid.uuid4()}"
-    segment_response = client.post(
+    segment_response = test_client.post(
         "/segments/",
         json={"segment_title": unique_segment_title, "series_id": series_data.series_id, "project_id": project_data.project_id}
     )
@@ -415,7 +414,7 @@ def test_search_elements() -> None:
     segment_data = SegmentResponse.model_validate(segment_response.json())
     assert segment_data.segment_id is not None, f"segment_id is missing from response: {segment_response.json()}"
 
-    element_response = client.post(
+    element_response = test_client.post(
         "/elements/",
         json={"element_text": "Test Element", "segment_id": segment_data.segment_id, "project_id": project_data.project_id}
     )
@@ -429,7 +428,7 @@ def test_search_elements() -> None:
     time.sleep(0.5)
 
     # Search for elements
-    search_response = client.get(f"/search_elements/?search_term={element_data.element_text}&limit=1000")
+    search_response = test_client.get(f"/search_elements/?search_term={element_data.element_text}&limit=1000")
     assert search_response.status_code == 200
     search_data: List[Dict[str, Any]] = search_response.json()
     assert isinstance(search_data, list)
@@ -454,7 +453,7 @@ def test_search_elements() -> None:
     # Check pagination headers
     headers: Dict[str, str] = dict(search_response.headers)
     print(f"Response headers: {headers}")
-    assert "x-total-count" in headers  # Change this line to lowercase
+    assert "x-total-count" in headers
     assert "x-limit" in headers
     assert "x-skip" in headers
     assert int(headers["x-total-count"]) >= 1
