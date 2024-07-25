@@ -167,6 +167,9 @@ class SegmentBase(BaseModel):
     project_id: int
 
 class SegmentCreate(SegmentBase):
+    segment_title: str
+    series_id: int
+    project_id: int
     pass
 
 class SegmentUpdate(BaseModel):

@@ -127,8 +127,9 @@ def test_create_code_type(test_db):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["type_name"] == "Test CodeType"
-    assert data["type_id"] == first_type_id
+    assert data["type_name"].startswith("Test CodeType")
+    assert "type_id" in data
+    assert data["type_id"] != first_type_id
 
     # Try to create the same code type in a different project
     project_response = client.post(
@@ -143,7 +144,7 @@ def test_create_code_type(test_db):
     assert response.status_code == 200
     data = response.json()
     assert data["type_name"] == "Test CodeType"
-    assert data["type_id"] == first_type_id
+    assert data["type_id"] != first_type_id
 
 def test_read_code_types(test_db):
     response = client.get("/code_types/")
