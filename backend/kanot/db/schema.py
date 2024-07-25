@@ -23,13 +23,15 @@ class Project(Base):
         return f"Project(project_id={self.project_id}, project_title={self.project_title}, project_description={self.project_description})"
 
 # Define the CodeTypes class
-class CodeType(Base): # type: ignore # type: ignore
+class CodeType(Base):
     __tablename__ = 'code_types'
     type_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    type_name: Any = Column(Text, unique=True, nullable=False)
-    codes = relationship("Code", back_populates="code_type")
+    type_name: Any = Column(Text, nullable=False)
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project", back_populates="code_types")
+    codes = relationship("Code", back_populates="code_type")
+    
+    __table_args__ = (UniqueConstraint('type_name', 'project_id', name='_type_name_project_uc'),)
 
 # Define the Codes class
 class Code(Base):
