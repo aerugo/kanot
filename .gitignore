@@ -92,3 +92,4 @@ poetry.lock
 /_archive/
 */_archive/
 local_database.db
+.aider*
