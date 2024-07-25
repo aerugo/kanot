@@ -58,7 +58,7 @@ def test_create_code_type(db_manager: DatabaseManager) -> None:
 
     # Try to create the same code type again
     duplicate_code_type = db_manager.create_code_type("Test Type", project.project_id)
-    assert duplicate_code_type is not None
+    assert duplicate_code_type is None
     assert duplicate_code_type.type_id == new_code_type.type_id
 
 def test_read_all_code_types(db_manager: DatabaseManager) -> None:
