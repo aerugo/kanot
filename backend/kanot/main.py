@@ -583,7 +583,13 @@ def search_elements(
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Skip"] = str(skip)
     
-    return elements
+    # Ensure the response includes the element_text
+    elements_with_text = [
+        {**element.dict(), "element_text": element.element_text}
+        for element in elements
+    ]
+    
+    return elements_with_text
 
 
 if __name__ == "__main__":
