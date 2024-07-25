@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from ..db.crud import DatabaseManager
+from ..db.schema import Project
 
 
 @pytest.fixture
