@@ -144,51 +144,49 @@ def test_relationships(session: Session) -> None:
 
 def test_unique_constraints(session: Session) -> None:
     # Test unique constraint on CodeType
-    code_type1 = CodeType(type_name="Test Type")
+    code_type1 = CodeType(type_name="Test Type", project_id=1)
     session.add(code_type1)
     session.commit()
 
-    code_type2 = CodeType(type_name="Test Type")
+    code_type2 = CodeType(type_name="Test Type", project_id=1)
     session.add(code_type2)
-    with pytest.raises(Exception):  # SQLAlchemy will raise an exception for unique constraint violation
+    with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()
 
     # Test unique constraint on Code
-    code1 = Code(term="Test Code", type_id=code_type1.type_id)
+    code1 = Code(term="Test Code", type_id=code_type1.type_id, project_id=1)
     session.add(code1)
     session.commit()
 
-    code2 = Code(term="Test Code", type_id=code_type1.type_id)
+    code2 = Code(term="Test Code", type_id=code_type1.type_id, project_id=1)
     session.add(code2)
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()
 
     # Test unique constraint on Segment
-    segment1 = Segment(segment_title="Test Segment")
+    segment1 = Segment(segment_title="Test Segment", series_id=1, project_id=1)
     session.add(segment1)
     session.commit()
 
-    segment2 = Segment(segment_title="Test Segment")
+    segment2 = Segment(segment_title="Test Segment", series_id=1, project_id=1)
     session.add(segment2)
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=sa_exc.SAWarning)
-        with pytest.raises(IntegrityError):
-            session.commit()
+    with pytest.raises(IntegrityError):
+        session.commit()
     session.rollback()
 
     # Test unique constraint on Annotation
-    element = Element(element_text="Test Element", segment_id=segment1.segment_id)
+    element = Element(element_text="Test Element", segment_id=segment1.segment_id, project_id=1)
     session.add(element)
     session.commit()
 
-    annotation1 = Annotation(element_id=element.element_id, code_id=code1.code_id)
+    annotation1 = Annotation(element_id=element.element_id, code_id=code1.code_id, project_id=1)
     session.add(annotation1)
     session.commit()
 
-    annotation2 = Annotation(element_id=element.element_id, code_id=code1.code_id)
+    annotation2 = Annotation(element_id=element.element_id, code_id=code1.code_id, project_id=1)
     session.add(annotation2)
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()

@@ -51,11 +51,15 @@ def test_delete_project(db_manager: DatabaseManager) -> None:
 
 def test_create_code_type(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
-    db_manager.create_code_type("Test Type", project.project_id)
-    code_type = db_manager.read_code_type(1)
-    assert code_type is not None
-    assert code_type.type_name == "Test Type"
-    assert code_type.project_id == project.project_id
+    new_code_type = db_manager.create_code_type("Test Type", project.project_id)
+    assert new_code_type is not None
+    assert new_code_type.type_name == "Test Type"
+    assert new_code_type.project_id == project.project_id
+
+    # Try to create the same code type again
+    duplicate_code_type = db_manager.create_code_type("Test Type", project.project_id)
+    assert duplicate_code_type is not None
+    assert duplicate_code_type.type_id == new_code_type.type_id
 
 def test_read_all_code_types(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
