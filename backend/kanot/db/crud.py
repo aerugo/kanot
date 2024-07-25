@@ -50,11 +50,63 @@ class DatabaseManager:
         self.Session = sessionmaker(bind=engine)
         create_database(engine)
 
+    # Project CRUD
+    
+    def create_project(self, project_title: str, project_description: Optional[str] = None) -> Project:
+        session = self.Session()
+        new_project = Project(project_title=project_title, project_description=project_description)
+        try:
+            session.add(new_project)
+            session.commit()
+            session.refresh(new_project)
+            return new_project
+        except IntegrityError:
+            session.rollback()
+            logger.error(f"Project with title={project_title} already exists.")
+            return None
+        finally:
+            session.close()
+    
+    def read_project(self, project_id: int) -> Optional[Project]:
+        session = self.Session()
+        project = session.query(Project).filter_by(project_id=project_id).first()
+        session.close()
+        return project
+    
+    def read_all_projects(self) -> List[Project]:
+        session = self.Session()
+        projects = session.query(Project).all()
+        session.close()
+        return projects
+    
+    def update_project(self, project_id: int, project_title: Optional[str] = None, project_description: Optional[str] = None) -> None:
+        session = self.Session()
+        project = session.query(Project).filter_by(project_id=project_id).first()
+        if project:
+            if project_title:
+                project.project_title = project_title
+            if project_description is not None:
+                project.project_description = project_description
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                logger.error(f"Failed to update Project with ID {project_id} due to a unique constraint violation.")
+        session.close()
+    
+    def delete_project(self, project_id: int) -> None:
+        session = self.Session()
+        project = session.query(Project).filter_by(project_id=project_id).first()
+        if project:
+            session.delete(project)
+            session.commit()
+        session.close()
+
     # CodeType CRUD
     
-    def create_code_type(self, type_name: str) -> CodeType | None:
+    def create_code_type(self, type_name: str, project_id: int) -> CodeType | None:
         session = self.Session()
-        new_code_type = CodeType(type_name=type_name)
+        new_code_type = CodeType(type_name=type_name, project_id=project_id)
         try:
             session.add(new_code_type)
             session.commit()
@@ -101,10 +153,10 @@ class DatabaseManager:
 
     # Code CRUD
     
-    def create_code(self, term: str, description: str, type_id: int, reference: str, coordinates: str) -> Code | None:
+    def create_code(self, term: str, description: str, type_id: int, reference: str, coordinates: str, project_id: int) -> Code | None:
         session = self.Session()
         try:
-            new_code = Code(term=term, description=description, type_id=type_id, reference=reference, coordinates=coordinates)
+            new_code = Code(term=term, description=description, type_id=type_id, reference=reference, coordinates=coordinates, project_id=project_id)
             session.add(new_code)
             session.commit()
             session.refresh(new_code)
@@ -172,9 +224,9 @@ class DatabaseManager:
 
     # Series CRUD
 
-    def create_series(self, series_title: str) -> Series | None:
+    def create_series(self, series_title: str, project_id: int) -> Series | None:
         session = self.Session()
-        new_series = Series(series_title=series_title)
+        new_series = Series(series_title=series_title, project_id=project_id)
         try:
             session.add(new_series)
             session.commit()
@@ -223,9 +275,9 @@ class DatabaseManager:
 
     # Segment CRUD
 
-    def create_segment(self, segment_title: Optional[str], series_id: int) -> Segment | None:
+    def create_segment(self, segment_title: Optional[str], series_id: int, project_id: int) -> Segment | None:
         session = self.Session()
-        new_segment = Segment(segment_title=segment_title, series_id=series_id)
+        new_segment = Segment(segment_title=segment_title, series_id=series_id, project_id=project_id)
         try:
             session.add(new_segment)
             session.commit()
@@ -279,9 +331,9 @@ class DatabaseManager:
 
     # Element CRUD
     
-    def create_element(self, element_text: str, segment_id: int) -> Element | None:
+    def create_element(self, element_text: str, segment_id: int, project_id: int) -> Element | None:
         session = self.Session()
-        new_element = Element(element_text=element_text, segment_id=segment_id)
+        new_element = Element(element_text=element_text, segment_id=segment_id, project_id=project_id)
         try:
             session.add(new_element)
             session.commit()
@@ -363,10 +415,10 @@ class DatabaseManager:
 
     # Annotation CRUD
         
-    def create_annotation(self, element_id: int, code_id: int) -> Annotation | None:
+    def create_annotation(self, element_id: int, code_id: int, project_id: int) -> Annotation | None:
         session = self.Session()
         try:
-            new_annotation = Annotation(element_id=element_id, code_id=code_id)
+            new_annotation = Annotation(element_id=element_id, code_id=code_id, project_id=project_id)
             session.add(new_annotation)
             session.commit()
             
