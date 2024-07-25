@@ -166,11 +166,10 @@ class SegmentBase(BaseModel):
     series_id: int
     project_id: int
 
-class SegmentCreate(SegmentBase):
+class SegmentCreate(BaseModel):
     segment_title: str
     series_id: int
     project_id: int
-    pass
 
 class SegmentUpdate(BaseModel):
     segment_title: Optional[str] = None
