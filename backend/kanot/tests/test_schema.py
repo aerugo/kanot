@@ -60,15 +60,15 @@ def test_create_code(session: Session) -> None:
     assert code.coordinates == "Test Coordinates"
 
 def test_create_segment(session: Session) -> None:
-    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    segment = Segment(segment_title="Test Segment")
     session.add(segment)
     session.commit()
 
-    assert segment.segment_id == "EP001"
+    assert segment.segment_id == 1
     assert segment.segment_title == "Test Segment"
 
 def test_create_element(session: Session) -> None:
-    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    segment = Segment(segment_title="Test Segment")
     session.add(segment)
     session.commit()
 
@@ -94,7 +94,7 @@ def test_create_annotation(session: Session) -> None:
     )
     session.add(code)
 
-    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    segment = Segment(segment_title="Test Segment")
     session.add(segment)
     session.commit()
 
@@ -124,7 +124,7 @@ def test_relationships(session: Session) -> None:
     )
     session.add(code)
 
-    segment = Segment(segment_id="EP001", segment_title="Test Segment")
+    segment = Segment(segment_title="Test Segment")
     session.add(segment)
     session.commit()
 
@@ -166,11 +166,11 @@ def test_unique_constraints(session: Session) -> None:
     session.rollback()
 
     # Test unique constraint on Segment
-    segment1 = Segment(segment_id="EP001", segment_title="Test Segment")
+    segment1 = Segment(segment_title="Test Segment")
     session.add(segment1)
     session.commit()
 
-    segment2 = Segment(segment_id="EP001", segment_title="Another Test Segment")
+    segment2 = Segment(segment_title="Test Segment")
     session.add(segment2)
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=sa_exc.SAWarning)

@@ -58,6 +58,7 @@ class DatabaseManager:
         try:
             session.add(new_code_type)
             session.commit()
+            session.refresh(new_code_type)
             return new_code_type
         except IntegrityError:
             session.rollback()
@@ -177,6 +178,7 @@ class DatabaseManager:
         try:
             session.add(new_series)
             session.commit()
+            session.refresh(new_series)
             return new_series
         except IntegrityError:
             session.rollback()
@@ -221,16 +223,17 @@ class DatabaseManager:
 
     # Segment CRUD
 
-    def create_segment(self, segment_id: int, segment_title: Optional[str]) -> Segment | None:
+    def create_segment(self, segment_title: Optional[str], series_id: int) -> Segment | None:
         session = self.Session()
-        new_segment = Segment(segment_id=segment_id, segment_title=segment_title)
+        new_segment = Segment(segment_title=segment_title, series_id=series_id)
         try:
             session.add(new_segment)
             session.commit()
+            session.refresh(new_segment)
             return new_segment
         except IntegrityError:
             session.rollback()
-            logger.error(f"Segment with segment_id={segment_id} or segment_title={segment_title} already exists.")
+            logger.error(f"Segment with segment_title={segment_title} already exists.")
             return None
         finally:
             session.close()
@@ -282,6 +285,7 @@ class DatabaseManager:
         try:
             session.add(new_element)
             session.commit()
+            session.refresh(new_element)
             return new_element
         except IntegrityError:
             session.rollback()
@@ -380,6 +384,7 @@ class DatabaseManager:
                 if result.code:
                     _ = result.code.code_type
             
+            session.refresh(result)
             return result
         except IntegrityError:
             session.rollback()
