@@ -155,6 +155,8 @@ def test_read_code_types(test_db):
 # Add more tests for other endpoints (Code, Series, Segment, Element, Annotation) following the same pattern
 
 # Test search_elements endpoint
+import uuid
+
 def test_search_elements(test_db):
     # First, create necessary data (project, series, segment, element)
     project_response = client.post(
@@ -165,13 +167,13 @@ def test_search_elements(test_db):
 
     series_response = client.post(
         "/series/",
-        json={"series_title": "Test Series", "project_id": project_id}
+        json={"series_title": f"Test Series {uuid.uuid4()}", "project_id": project_id}
     )
     series_id = series_response.json()["series_id"]
 
     segment_response = client.post(
         "/segments/",
-        json={"segment_title": "Test Segment", "series_id": series_id, "project_id": project_id}
+        json={"segment_title": f"Test Segment {uuid.uuid4()}", "series_id": series_id, "project_id": project_id}
     )
     assert segment_response.status_code == 200, f"Failed to create segment: {segment_response.json()}"
     segment_id = segment_response.json().get("segment_id")
