@@ -96,9 +96,9 @@ class CodeTypeBase(BaseModel):
     type_id: int
     project_id: int
 
-class CodeTypeCreate(CodeTypeBase):
+class CodeTypeCreate(BaseModel):
     type_name: str
-    pass
+    project_id: int
 
 class CodeTypeUpdate(BaseModel):
     type_name: Optional[str] = None
@@ -154,6 +154,7 @@ class SeriesUpdate(BaseModel):
 class SeriesResponse(BaseModel):
     series_id: int
     series_title: str
+    project_id: int
 
     class Config:
         from_attributes = True
@@ -361,7 +362,11 @@ def delete_code(code_id: int, db: Session = Depends(get_db)):
 @app.post("/series/", response_model=SeriesResponse)
 def create_series(series: SeriesCreate, db: Session = Depends(get_db)):
     new_series = db_manager.create_series(series.series_title, series.project_id)
-    return new_series
+    return SeriesResponse(
+        series_id=new_series.series_id,
+        series_title=new_series.series_title,
+        project_id=new_series.project_id
+    )
 
 @app.get("/series/", response_model=List[SeriesResponse])
 def read_all_series(db: Session = Depends(get_db)):
