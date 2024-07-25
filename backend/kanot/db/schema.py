@@ -22,7 +22,7 @@ class CodeType(Base): # type: ignore # type: ignore
     __tablename__ = 'code_types'
     type_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     type_name: Any = Column(Text, unique=True, nullable=False)
-    codes = relationship("Code")
+    codes = relationship("Code", back_populates="code_type")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project", back_populates="code_types")
 
@@ -35,7 +35,7 @@ class Code(Base):
     type_id: Any = Column(Integer, ForeignKey('code_types.type_id'))
     reference: Any = Column(Text)
     coordinates: Any = Column(Text)
-    code_type = relationship("CodeType", overlaps="codes")
+    code_type = relationship("CodeType", back_populates="codes")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project")
 
