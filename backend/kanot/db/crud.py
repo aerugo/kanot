@@ -49,6 +49,9 @@ class DatabaseManager:
     def __init__(self, engine: Any) -> None:
         self.engine = engine
         self.Session = sessionmaker(bind=engine)
+        self.create_database(engine)
+
+    def create_database(self, engine: Any) -> None:
         create_database(engine)
 
     def drop_database(self, engine: Any) -> None:
