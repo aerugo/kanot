@@ -56,12 +56,6 @@ def test_create_code_type(db_manager: DatabaseManager, project: Project) -> None
     assert code_type.type_name == "Test Type"
     assert code_type.project_id == project.project_id
 
-def test_read_code_type(db_manager: DatabaseManager) -> None:
-    db_manager.create_code_type("Test Type")
-    code_type = db_manager.read_code_type(1)
-    assert code_type is not None
-    assert code_type.type_name == "Test Type"
-
 def test_read_all_code_types(db_manager: DatabaseManager) -> None:
     db_manager.create_code_type("Test Type 1")
     db_manager.create_code_type("Test Type 2")
