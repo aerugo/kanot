@@ -4,13 +4,8 @@ from typing import Any, Dict, List, Optional
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from ..db.crud import DatabaseManager
-from ..db.schema import Base
-from ..main import app, get_db
-
+from ..main import app
 
 # Pydantic models for response validation
 class ProjectResponse(BaseModel):
@@ -49,47 +44,14 @@ class ElementResponse(BaseModel):
     segment_id: int
     project_id: int
 
-# Setup test database
-TEST_DB_URL: str = "sqlite:///./test.db"
-engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def reset_database() -> None:
-    # Drop and recreate tables before each test
-    db_manager = DatabaseManager(engine)
-    db_manager.drop_database(engine)
-    db_manager.create_database(engine)
-    
-    # Clear all data from tables
-    session = TestingSessionLocal()
-    for table in reversed(Base.metadata.sorted_tables):
-        session.execute(table.delete())
-    session.commit()
-    session.close()
-    
-    yield
-    
-    # Drop tables after each test
-    db_manager.drop_database(engine)
+@pytest.fixture(scope="module")
+def test_client():
+    return client
 
-# Clear the database before running tests
-DatabaseManager(engine).drop_database(engine)
-DatabaseManager(engine)
-
-def test_create_project() -> None:
-    response = client.post(
+def test_create_project(test_client, test_db) -> None:
+    response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "Test Description"}
     )
