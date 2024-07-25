@@ -1,22 +1,22 @@
-import os
-import sys
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..db.crud import DatabaseManager
+from sqlalchemy.pool import StaticPool
 from ..db.schema import Base
 from ..main import app, get_db
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 # Setup test database
-TEST_DB_URL = "sqlite:///./test.db"
-engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
+TEST_DB_URL = "sqlite:///:memory:"
+engine = create_engine(
+    TEST_DB_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def override_get_db():
+    db = TestingSessionLocal()
     try:
-        db = TestingSessionLocal()
         yield db
     finally:
         db.close()
@@ -29,25 +29,22 @@ def test_db():
     # Override the dependency
     app.dependency_overrides[get_db] = override_get_db
     
-    db = TestingSessionLocal()
-    yield db
-    
-    db.close()
+    yield TestingSessionLocal()
     
     # Drop the test database after the test
     Base.metadata.drop_all(bind=engine)
-    app.dependency_overrides.clear()
+
+@pytest.fixture(scope="function")
+def test_client():
+    # Create a new test client for each test function
+    with app.test_client() as client:
+        yield client
 
 @pytest.fixture(autouse=True)
-def reset_database(test_db):
-    # Clear all data from tables before each test
+def setup_and_teardown(test_db):
+    # This fixture will run automatically before and after each test function
+    yield
+    # After the test, clear all data from tables
     for table in reversed(Base.metadata.sorted_tables):
         test_db.execute(table.delete())
     test_db.commit()
-
-@pytest.fixture(scope="module")
-def test_client():
-    app.dependency_overrides[get_db] = override_get_db
-    with app.test_client() as client:
-        yield client
-    app.dependency_overrides.clear()
