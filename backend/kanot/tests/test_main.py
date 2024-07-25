@@ -115,16 +115,35 @@ def test_create_code_type(test_db):
         json={"type_name": "Test CodeType", "project_id": project_id}
     )
     assert response.status_code == 200
+    data = response.json()
+    assert data["type_name"] == "Test CodeType"
+    assert "type_id" in data
+    first_type_id = data["type_id"]
 
-    # Try to create the same code type again
+    # Try to create the same code type again in the same project
     response = client.post(
         "/code_types/",
         json={"type_name": "Test CodeType", "project_id": project_id}
     )
-    assert response.status_code == 200  # It should still return 200 as we're returning the existing code type
+    assert response.status_code == 200
     data = response.json()
     assert data["type_name"] == "Test CodeType"
-    assert "type_id" in data
+    assert data["type_id"] == first_type_id
+
+    # Try to create the same code type in a different project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 2", "project_description": "Test Description 2"}
+    )
+    project_id_2 = project_response.json()["project_id"]
+    response = client.post(
+        "/code_types/",
+        json={"type_name": "Test CodeType", "project_id": project_id_2}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["type_name"] == "Test CodeType"
+    assert data["type_id"] == first_type_id
 
 def test_read_code_types(test_db):
     response = client.get("/code_types/")
@@ -154,12 +173,15 @@ def test_search_elements(test_db):
         "/segments/",
         json={"segment_title": "Test Segment", "series_id": series_id, "project_id": project_id}
     )
-    segment_id = segment_response.json()["segment_id"]
+    assert segment_response.status_code == 200, f"Failed to create segment: {segment_response.json()}"
+    segment_id = segment_response.json().get("segment_id")
+    assert segment_id is not None, f"segment_id is missing from response: {segment_response.json()}"
 
     element_response = client.post(
         "/elements/",
         json={"element_text": "Test Element", "segment_id": segment_id, "project_id": project_id}
     )
+    assert element_response.status_code == 200, f"Failed to create element: {element_response.json()}"
 
     # Then, search for elements
     search_response = client.get("/search_elements/?search_term=Test")

@@ -139,12 +139,21 @@ class DatabaseManager:
             return new_code_type
         except IntegrityError:
             session.rollback()
-            logger.error(
-                f"CodeType with type_name={type_name} already exists in another project."
+            existing_code_type = (
+                session.query(CodeType)
+                .filter_by(type_name=type_name)
+                .first()
             )
-            raise ValueError(
-                f"CodeType with type_name={type_name} already exists in another project."
-            )
+            if existing_code_type:
+                logger.info(
+                    f"CodeType with type_name={type_name} already exists in project {existing_code_type.project_id}."
+                )
+                return existing_code_type
+            else:
+                logger.error(
+                    f"Unexpected IntegrityError for CodeType with type_name={type_name}."
+                )
+                raise
         except Exception as e:
             session.rollback()
             logger.error(f"Error creating CodeType: {str(e)}")
