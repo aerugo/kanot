@@ -13,6 +13,11 @@ class Project(Base):
     project_title: Any = Column(Text, nullable=False)
     project_description: Any = Column(Text)
     code_types = relationship("CodeType", back_populates="project")
+    codes = relationship("Code", back_populates="project")
+    series = relationship("Series", back_populates="project")
+    segments = relationship("Segment", back_populates="project")
+    elements = relationship("Element", back_populates="project")
+    annotations = relationship("Annotation", back_populates="project")
 
     def __repr__(self):
         return f"Project(project_id={self.project_id}, project_title={self.project_title}, project_description={self.project_description})"
@@ -47,27 +52,28 @@ class Series(Base):
     series_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     series_title: Any = Column(Text, nullable=False)
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project")
+    project = relationship("Project", back_populates="series")
+    segments = relationship("Segment", back_populates="series")
 
 class Segment(Base):
     __tablename__ = 'segments'
     segment_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     segment_title: Any = Column(Text, unique=True, nullable=False)
     series_id: Any = Column(Integer, ForeignKey('series.series_id'))
-    series = relationship("Series")
-    elements = relationship("Element")
+    series = relationship("Series", back_populates="segments")
+    elements = relationship("Element", back_populates="segment")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project")
+    project = relationship("Project", back_populates="segments")
 
 class Element(Base):
     __tablename__ = 'elements'
     element_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     element_text: Any = Column(Text, nullable=False, default="")
     segment_id: Any = Column(Integer, ForeignKey('segments.segment_id'))
-    segment = relationship("Segment", overlaps="elements")
+    segment = relationship("Segment", back_populates="elements")
     annotations = relationship("Annotation", back_populates="element")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project")
+    project = relationship("Project", back_populates="elements")
 
     def __repr__(self):
         return f"Element(element_id={self.element_id}, element_text={self.element_text}, segment_id={self.segment_id})"
