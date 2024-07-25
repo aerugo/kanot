@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from ..main import app
 
+
 # Pydantic models for response validation
 class ProjectResponse(BaseModel):
     project_id: int
