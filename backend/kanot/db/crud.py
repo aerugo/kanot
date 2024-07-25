@@ -413,13 +413,20 @@ class DatabaseManager:
         self, element_text: str, segment_id: int, project_id: int
     ) -> Element | None:
         session = self.Session()
-        new_element = Element(
-            element_text=element_text, segment_id=segment_id, project_id=project_id
-        )
         try:
+            new_element = Element(
+                element_text=element_text, segment_id=segment_id, project_id=project_id
+            )
             session.add(new_element)
             session.commit()
+            
+            # Explicitly load related objects
             session.refresh(new_element)
+            session.query(Element).options(
+                joinedload(Element.segment).joinedload(Segment.series),
+                joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+            ).filter(Element.element_id == new_element.element_id).first()
+            
             return new_element
         except IntegrityError:
             session.rollback()
