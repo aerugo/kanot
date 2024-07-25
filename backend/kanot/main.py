@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -75,8 +75,26 @@ def get_db():
         session.close()
 
 # Pydantic models
+class ProjectBase(BaseModel):
+    project_title: str
+    project_description: str | None = None
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectUpdate(BaseModel):
+    project_title: str | None = None
+    project_description: str | None = None
+
+class ProjectResponse(ProjectBase):
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
 class CodeTypeBase(BaseModel):
     type_id: int
+    project_id: int
 
 class CodeTypeCreate(CodeTypeBase):
     type_name: str
@@ -98,6 +116,7 @@ class CodeBase(BaseModel):
     type_id: int
     reference: str
     coordinates: str
+    project_id: int
 
 class CodeCreate(CodeBase):
     pass
@@ -124,6 +143,7 @@ class CodeResponse(BaseModel):
 class SeriesBase(BaseModel):
     series_id: int
     series_title: str
+    project_id: int
 
 class SeriesCreate(SeriesBase):
     pass
@@ -142,6 +162,7 @@ class SegmentBase(BaseModel):
     segment_id: int
     segment_title: str
     series_id: int
+    project_id: int
 
 class SegmentCreate(SegmentBase):
     pass
@@ -160,6 +181,7 @@ class SegmentResponse(BaseModel):
 class ElementBase(BaseModel):
     element_text: str
     segment_id: int
+    project_id: int
 
 class ElementCreate(ElementBase):
     pass
@@ -187,6 +209,7 @@ class AnnotationResponseNoElement(BaseModel):
 class AnnotationBase(BaseModel):
     element_id: int
     code_id: int
+    project_id: int
 
 class AnnotationCreate(AnnotationBase):
     pass
@@ -214,10 +237,41 @@ class AnnotationResponse(BaseModel):
         
 # API endpoints
 
+# Project endpoints
+@app.post("/projects/", response_model=ProjectResponse)
+def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
+    new_project = db_manager.create_project(project.project_title, project.project_description)
+    return new_project
+
+@app.get("/projects/", response_model=List[ProjectResponse])
+def read_projects(db: Session = Depends(get_db)):
+    projects = db_manager.read_all_projects()
+    return projects
+
+@app.get("/projects/{project_id}", response_model=ProjectResponse)
+def read_project(project_id: int, db: Session = Depends(get_db)):
+    project = db_manager.read_project(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
+
+@app.put("/projects/{project_id}", response_model=ProjectResponse)
+def update_project(project_id: int, project: ProjectUpdate, db: Session = Depends(get_db)):
+    db_manager.update_project(project_id, project.project_title, project.project_description)
+    updated_project = db_manager.read_project(project_id)
+    if updated_project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return updated_project
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int, db: Session = Depends(get_db)):
+    db_manager.delete_project(project_id)
+    return {"message": "Project deleted successfully"}
+
 # CodeType endpoints
 @app.post("/code_types/", response_model=CodeTypeResponse)
 def create_code_type(code_type: CodeTypeCreate, db: Session = Depends(get_db)):
-    new_code_type = db_manager.create_code_type(code_type.type_name)
+    new_code_type = db_manager.create_code_type(code_type.type_name, code_type.project_id)
     return new_code_type
 
 @app.get("/code_types/", response_model=List[CodeTypeResponse])
@@ -249,7 +303,7 @@ def delete_code_type(type_id: int, db: Session = Depends(get_db)):
 @app.post("/codes/", response_model=CodeResponse)
 def create_code(code: CodeCreate, db: Session = Depends(get_db)):
     try:
-        new_code = db_manager.create_code(code.term, code.description, code.type_id, code.reference, code.coordinates)
+        new_code = db_manager.create_code(code.term, code.description, code.type_id, code.reference, code.coordinates, code.project_id)
         if new_code is None:
             return JSONResponse(
                 status_code=400,
@@ -306,7 +360,7 @@ def delete_code(code_id: int, db: Session = Depends(get_db)):
 # Series endpoints
 @app.post("/series/", response_model=SeriesResponse)
 def create_series(series: SeriesCreate, db: Session = Depends(get_db)):
-    new_series = db_manager.create_series(series.series_title)
+    new_series = db_manager.create_series(series.series_title, series.project_id)
     return new_series
 
 @app.get("/series/", response_model=List[SeriesResponse])
@@ -337,7 +391,7 @@ def delete_series(series_id: int, db: Session = Depends(get_db)):
 # Segment endpoints
 @app.post("/segments/", response_model=SegmentResponse)
 def create_segment(segment: SegmentCreate, db: Session = Depends(get_db)):
-    new_segment = db_manager.create_segment(segment.segment_id, segment.segment_title)
+    new_segment = db_manager.create_segment(segment.segment_title, segment.series_id, segment.project_id)
     return new_segment
 
 @app.get("/segments/", response_model=List[SegmentResponse])
@@ -368,7 +422,7 @@ def delete_segment(segment_id: int, db: Session = Depends(get_db)):
 # Element endpoints
 @app.post("/elements/", response_model=ElementResponse)
 def create_element(element: ElementCreate, db: Session = Depends(get_db)):
-    new_element = db_manager.create_element(element.element_text, element.segment_id)
+    new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     return new_element
 
 @app.get("/elements/", response_model=List[ElementResponse])
@@ -403,7 +457,7 @@ def delete_element(element_id: int, db: Session = Depends(get_db)):
 # Annotation endpoints
 @app.post("/annotations/", response_model=AnnotationResponse)
 def create_annotation(annotation: AnnotationCreate, db: Session = Depends(get_db)):
-    new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id)
+    new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
     if new_annotation is None:
         raise HTTPException(status_code=400, detail="Failed to create annotation")
     return new_annotation
