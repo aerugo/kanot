@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Optional
 
+from pydantic import BaseModel
 from sqlalchemy import Column, Engine, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
