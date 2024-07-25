@@ -121,6 +121,10 @@ class DatabaseManager:
             session.commit()
             session.refresh(new_code_type)
             return new_code_type
+        except IntegrityError:
+            session.rollback()
+            logger.error(f"CodeType with type_name={type_name} already exists.")
+            return None
         except Exception as e:
             session.rollback()
             logger.error(f"Error creating CodeType: {str(e)}")

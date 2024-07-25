@@ -404,7 +404,14 @@ def delete_series(series_id: int, db: Session = Depends(get_db)):
 @app.post("/segments/", response_model=SegmentResponse)
 def create_segment(segment: SegmentCreate, db: Session = Depends(get_db)):
     new_segment = db_manager.create_segment(segment.segment_title, segment.series_id, segment.project_id)
-    return new_segment
+    if new_segment is None:
+        raise HTTPException(status_code=400, detail="Failed to create segment")
+    return SegmentResponse(
+        segment_id=new_segment.segment_id,
+        segment_title=new_segment.segment_title,
+        series_id=new_segment.series_id,
+        project_id=new_segment.project_id
+    )
 
 @app.get("/segments/", response_model=List[SegmentResponse])
 def read_segments(db: Session = Depends(get_db)):
