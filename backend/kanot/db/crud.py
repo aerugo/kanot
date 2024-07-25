@@ -1,6 +1,6 @@
 import logging
 from logging.config import dictConfig
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +11,7 @@ from .schema import (
     Code,
     CodeType,
     Element,
+    Project,
     Segment,
     Series,
     create_database,
