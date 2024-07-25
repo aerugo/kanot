@@ -58,6 +58,7 @@ class DatabaseManager:
         try:
             session.add(new_code_type)
             session.commit()
+            session.refresh(new_code_type)
             return new_code_type
         except IntegrityError:
             session.rollback()
@@ -228,6 +229,7 @@ class DatabaseManager:
         try:
             session.add(new_segment)
             session.commit()
+            session.refresh(new_segment)
             return new_segment
         except IntegrityError:
             session.rollback()
@@ -283,6 +285,7 @@ class DatabaseManager:
         try:
             session.add(new_element)
             session.commit()
+            session.refresh(new_element)
             return new_element
         except IntegrityError:
             session.rollback()
@@ -381,6 +384,7 @@ class DatabaseManager:
                 if result.code:
                     _ = result.code.code_type
             
+            session.refresh(result)
             return result
         except IntegrityError:
             session.rollback()
