@@ -204,6 +204,58 @@ class ElementResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        populate_by_name = True
+
+class SegmentResponse(BaseModel):
+    segment_id: int
+    segment_title: str
+    series_id: int
+    project_id: int
+    series: Optional[SeriesResponse] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+class SeriesResponse(BaseModel):
+    series_id: int
+    series_title: str
+    project_id: int
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+class CodeTypeResponse(BaseModel):
+    type_id: int
+    type_name: str
+    project_id: int
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+class CodeResponse(BaseModel):
+    code_id: int
+    term: str
+    description: Optional[str] = None
+    type_id: Optional[int] = None
+    code_type: Optional[CodeTypeResponse] = None
+    reference: Optional[str] = None
+    coordinates: Optional[str] = None
+    project_id: int
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+class AnnotationResponseNoElement(BaseModel):
+    annotation_id: int
+    code: Optional[CodeResponse] = None
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 class AnnotationResponseNoElement(BaseModel):
     annotation_id: int
@@ -583,41 +635,46 @@ def search_elements(
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Skip"] = str(skip)
     
-    # Convert SQLAlchemy model instances to dictionaries
-    elements_with_text = []
+    # Convert SQLAlchemy model instances to Pydantic models
+    elements_response = []
     for element in elements:
-        element_dict = {
-            "element_id": element.element_id,
-            "element_text": element.element_text,
-            "segment": {
-                "segment_id": element.segment.segment_id,
-                "segment_title": element.segment.segment_title,
-                "series": {
-                    "series_id": element.segment.series.series_id,
-                    "series_title": element.segment.series.series_title
-                } if element.segment.series else None
-            } if element.segment else None,
-            "annotations": [
-                {
-                    "annotation_id": annotation.annotation_id,
-                    "code": {
-                        "code_id": annotation.code.code_id,
-                        "term": annotation.code.term,
-                        "description": annotation.code.description,
-                        "type_id": annotation.code.type_id,
-                        "code_type": {
-                            "type_id": annotation.code.code_type.type_id,
-                            "type_name": annotation.code.code_type.type_name
-                        } if annotation.code.code_type else None,
-                        "reference": annotation.code.reference,
-                        "coordinates": annotation.code.coordinates
-                    } if annotation.code else None
-                } for annotation in element.annotations
+        element_response = ElementResponse(
+            element_id=element.element_id,
+            element_text=element.element_text,
+            segment=SegmentResponse(
+                segment_id=element.segment.segment_id,
+                segment_title=element.segment.segment_title,
+                series_id=element.segment.series_id,
+                project_id=element.segment.project_id,
+                series=SeriesResponse(
+                    series_id=element.segment.series.series_id,
+                    series_title=element.segment.series.series_title,
+                    project_id=element.segment.series.project_id
+                ) if element.segment.series else None
+            ) if element.segment else None,
+            annotations=[
+                AnnotationResponseNoElement(
+                    annotation_id=annotation.annotation_id,
+                    code=CodeResponse(
+                        code_id=annotation.code.code_id,
+                        term=annotation.code.term,
+                        description=annotation.code.description,
+                        type_id=annotation.code.type_id,
+                        code_type=CodeTypeResponse(
+                            type_id=annotation.code.code_type.type_id,
+                            type_name=annotation.code.code_type.type_name,
+                            project_id=annotation.code.code_type.project_id
+                        ) if annotation.code.code_type else None,
+                        reference=annotation.code.reference,
+                        coordinates=annotation.code.coordinates,
+                        project_id=annotation.code.project_id
+                    ) if annotation.code else None
+                ) for annotation in element.annotations
             ]
-        }
-        elements_with_text.append(element_dict)
+        )
+        elements_response.append(element_response)
     
-    return elements_with_text
+    return elements_response
 
 
 if __name__ == "__main__":
