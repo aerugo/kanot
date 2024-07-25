@@ -749,6 +749,7 @@ class DatabaseManager:
                     .joinedload(Annotation.code)
                     .joinedload(Code.code_type),
                 )
+                .distinct()
                 .offset(skip)
                 .limit(limit)
                 .all()
