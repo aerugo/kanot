@@ -583,11 +583,39 @@ def search_elements(
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Skip"] = str(skip)
     
-    # Ensure the response includes the element_text
-    elements_with_text = [
-        {**element.dict(), "element_text": element.element_text}
-        for element in elements
-    ]
+    # Convert SQLAlchemy model instances to dictionaries
+    elements_with_text = []
+    for element in elements:
+        element_dict = {
+            "element_id": element.element_id,
+            "element_text": element.element_text,
+            "segment": {
+                "segment_id": element.segment.segment_id,
+                "segment_title": element.segment.segment_title,
+                "series": {
+                    "series_id": element.segment.series.series_id,
+                    "series_title": element.segment.series.series_title
+                } if element.segment.series else None
+            } if element.segment else None,
+            "annotations": [
+                {
+                    "annotation_id": annotation.annotation_id,
+                    "code": {
+                        "code_id": annotation.code.code_id,
+                        "term": annotation.code.term,
+                        "description": annotation.code.description,
+                        "type_id": annotation.code.type_id,
+                        "code_type": {
+                            "type_id": annotation.code.code_type.type_id,
+                            "type_name": annotation.code.code_type.type_name
+                        } if annotation.code.code_type else None,
+                        "reference": annotation.code.reference,
+                        "coordinates": annotation.code.coordinates
+                    } if annotation.code else None
+                } for annotation in element.annotations
+            ]
+        }
+        elements_with_text.append(element_dict)
     
     return elements_with_text
 
