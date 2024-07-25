@@ -77,7 +77,6 @@ class SegmentCreate(BaseModel):
     segment_title: Optional[str]
     series_id: int
     project_id: int
-    segment_id: Optional[int] = None
 
 class Element(Base):
     __tablename__ = 'elements'
