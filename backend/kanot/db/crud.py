@@ -177,6 +177,7 @@ class DatabaseManager:
         try:
             session.add(new_series)
             session.commit()
+            session.refresh(new_series)
             return new_series
         except IntegrityError:
             session.rollback()
