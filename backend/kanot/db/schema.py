@@ -12,7 +12,7 @@ class Project(Base):
     project_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     project_title: Any = Column(Text, nullable=False)
     project_description: Any = Column(Text)
-    code_types = relationship("CodeType")
+    code_types = relationship("CodeType", back_populates="project")
 
     def __repr__(self):
         return f"Project(project_id={self.project_id}, project_title={self.project_title}, project_description={self.project_description})"
