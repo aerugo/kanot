@@ -51,6 +51,9 @@ class DatabaseManager:
         self.Session = sessionmaker(bind=engine)
         create_database(engine)
 
+    def drop_database(self, engine: Any) -> None:
+        drop_database(engine)
+
     # Project CRUD
     
     def create_project(self, project_title: str, project_description: Optional[str] = None) -> Project:
