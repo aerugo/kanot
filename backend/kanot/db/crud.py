@@ -15,6 +15,7 @@ from .schema import (
     Segment,
     Series,
     create_database,
+    drop_database,
 )
 
 # Define logging configuration
