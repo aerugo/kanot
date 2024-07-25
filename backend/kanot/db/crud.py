@@ -36,15 +36,14 @@ log_config = {
             "stream": "ext://sys.stdout",
         },
     },
-    "loggers": {
-        "kanot": {"handlers": ["default"], "level": "INFO"}
-    },
+    "loggers": {"kanot": {"handlers": ["default"], "level": "INFO"}},
 }
 
 dictConfig(log_config)
 
 # Initialize logger
 logger = logging.getLogger("kanot")
+
 
 class DatabaseManager:
     def __init__(self, engine: Any) -> None:
@@ -56,10 +55,14 @@ class DatabaseManager:
         drop_database(engine)
 
     # Project CRUD
-    
-    def create_project(self, project_title: str, project_description: Optional[str] = None) -> Project:
+
+    def create_project(
+        self, project_title: str, project_description: Optional[str] = None
+    ) -> Project:
         session = self.Session()
-        new_project = Project(project_title=project_title, project_description=project_description)
+        new_project = Project(
+            project_title=project_title, project_description=project_description
+        )
         try:
             session.add(new_project)
             session.commit()
@@ -71,20 +74,25 @@ class DatabaseManager:
             return None
         finally:
             session.close()
-    
+
     def read_project(self, project_id: int) -> Optional[Project]:
         session = self.Session()
         project = session.query(Project).filter_by(project_id=project_id).first()
         session.close()
         return project
-    
+
     def read_all_projects(self) -> List[Project]:
         session = self.Session()
         projects = session.query(Project).all()
         session.close()
         return projects
-    
-    def update_project(self, project_id: int, project_title: Optional[str] = None, project_description: Optional[str] = None) -> None:
+
+    def update_project(
+        self,
+        project_id: int,
+        project_title: Optional[str] = None,
+        project_description: Optional[str] = None,
+    ) -> None:
         session = self.Session()
         project = session.query(Project).filter_by(project_id=project_id).first()
         if project:
@@ -96,9 +104,11 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error(f"Failed to update Project with ID {project_id} due to a unique constraint violation.")
+                logger.error(
+                    f"Failed to update Project with ID {project_id} due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_project(self, project_id: int) -> None:
         session = self.Session()
         project = session.query(Project).filter_by(project_id=project_id).first()
@@ -108,13 +118,19 @@ class DatabaseManager:
         session.close()
 
     # CodeType CRUD
-    
+
     def create_code_type(self, type_name: str, project_id: int) -> CodeType:
         session = self.Session()
         try:
-            existing_code_type = session.query(CodeType).filter_by(type_name=type_name, project_id=project_id).first()
+            existing_code_type = (
+                session.query(CodeType)
+                .filter_by(type_name=type_name, project_id=project_id)
+                .first()
+            )
             if existing_code_type:
-                logger.info(f"CodeType with type_name={type_name} already exists in project {project_id}.")
+                logger.info(
+                    f"CodeType with type_name={type_name} already exists in project {project_id}."
+                )
                 return existing_code_type
             new_code_type = CodeType(type_name=type_name, project_id=project_id)
             session.add(new_code_type)
@@ -123,53 +139,80 @@ class DatabaseManager:
             return new_code_type
         except IntegrityError:
             session.rollback()
-            logger.error(f"CodeType with type_name={type_name} already exists in another project.")
-            raise ValueError(f"CodeType with type_name={type_name} already exists in another project.")
+            logger.error(
+                f"CodeType with type_name={type_name} already exists in another project."
+            )
+            raise ValueError(
+                f"CodeType with type_name={type_name} already exists in another project."
+            )
         except Exception as e:
             session.rollback()
             logger.error(f"Error creating CodeType: {str(e)}")
             raise
         finally:
             session.close()
-    
+
     def read_code_type(self, type_id: int) -> Optional[CodeType]:
         session = self.Session()
-        code_type: Optional[CodeType] = session.query(CodeType).filter_by(type_id=type_id).first()
+        code_type: Optional[CodeType] = (
+            session.query(CodeType).filter_by(type_id=type_id).first()
+        )
         session.close()
         return code_type
-    
+
     def read_all_code_types(self) -> Optional[list[CodeType]]:
         session = self.Session()
         code_types = session.query(CodeType).all()
         session.close()
         return code_types
-    
+
     def update_code_type(self, type_id: int, type_name: str) -> None:
         session = self.Session()
-        code_type: Optional[CodeType] = session.query(CodeType).filter_by(type_id=type_id).first()
+        code_type: Optional[CodeType] = (
+            session.query(CodeType).filter_by(type_id=type_id).first()
+        )
         if code_type:
             try:
                 code_type.type_name = type_name
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error(f"Failed to update CodeType to type_name={type_name} due to a unique constraint violation.")
+                logger.error(
+                    f"Failed to update CodeType to type_name={type_name} due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_code_type(self, type_id: int) -> None:
         session = self.Session()
-        code_type: Optional[CodeType] = session.query(CodeType).filter_by(type_id=type_id).first()
+        code_type: Optional[CodeType] = (
+            session.query(CodeType).filter_by(type_id=type_id).first()
+        )
         if code_type:
             session.delete(code_type)
             session.commit()
         session.close()
 
     # Code CRUD
-    
-    def create_code(self, term: str, description: str, type_id: int, reference: str, coordinates: str, project_id: int) -> Code | None:
+
+    def create_code(
+        self,
+        term: str,
+        description: str,
+        type_id: int,
+        reference: str,
+        coordinates: str,
+        project_id: int,
+    ) -> Code | None:
         session = self.Session()
         try:
-            new_code = Code(term=term, description=description, type_id=type_id, reference=reference, coordinates=coordinates, project_id=project_id)
+            new_code = Code(
+                term=term,
+                description=description,
+                type_id=type_id,
+                reference=reference,
+                coordinates=coordinates,
+                project_id=project_id,
+            )
             session.add(new_code)
             session.commit()
             session.refresh(new_code)
@@ -184,7 +227,7 @@ class DatabaseManager:
             raise
         finally:
             session.close()
-    
+
     def read_code(self, code_id: int) -> Optional[Code]:
         session = self.Session()
         code: Optional[Code] = (
@@ -198,15 +241,19 @@ class DatabaseManager:
 
     def read_all_codes(self) -> Optional[list[Code]]:
         session = self.Session()
-        codes = (
-            session.query(Code)
-            .options(joinedload(Code.code_type))
-            .all()
-        )
+        codes = session.query(Code).options(joinedload(Code.code_type)).all()
         session.close()
         return codes
 
-    def update_code(self, code_id: int, term: Optional[str] = None, description: Optional[str] = None, type_id: Optional[int] = None, reference: Optional[str] = None, coordinates: Optional[str] = None) -> None:
+    def update_code(
+        self,
+        code_id: int,
+        term: Optional[str] = None,
+        description: Optional[str] = None,
+        type_id: Optional[int] = None,
+        reference: Optional[str] = None,
+        coordinates: Optional[str] = None,
+    ) -> None:
         session = self.Session()
         code: Optional[Code] = session.query(Code).filter_by(code_id=code_id).first()
         if code:
@@ -224,9 +271,11 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Code due to a unique constraint violation.")
+                logger.error(
+                    "Failed to update Code due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_code(self, code_id: int) -> None:
         session = self.Session()
         code: Optional[Code] = session.query(Code).filter_by(code_id=code_id).first()
@@ -254,19 +303,23 @@ class DatabaseManager:
 
     def read_series(self, series_id: int) -> Optional[Series]:
         session = self.Session()
-        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        series: Optional[Series] = (
+            session.query(Series).filter_by(series_id=series_id).first()
+        )
         session.close()
         return series
-    
+
     def read_all_series(self) -> Optional[list[Series]]:
         session = self.Session()
         series = session.query(Series).all()
         session.close()
         return series
-        
+
     def update_series(self, series_id: int, series_title: Optional[str]) -> None:
         session = self.Session()
-        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        series: Optional[Series] = (
+            session.query(Series).filter_by(series_id=series_id).first()
+        )
         if series:
             try:
                 if series_title is not None:
@@ -274,13 +327,16 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Series due to a unique constraint violation.")
+                logger.error(
+                    "Failed to update Series due to a unique constraint violation."
+                )
         session.close()
-
 
     def delete_series(self, series_id: int) -> None:
         session = self.Session()
-        series: Optional[Series] = session.query(Series).filter_by(series_id=series_id).first()
+        series: Optional[Series] = (
+            session.query(Series).filter_by(series_id=series_id).first()
+        )
         if series:
             session.delete(series)
             session.commit()
@@ -288,9 +344,13 @@ class DatabaseManager:
 
     # Segment CRUD
 
-    def create_segment(self, segment_title: Optional[str], series_id: int, project_id: int) -> Segment | None:
+    def create_segment(
+        self, segment_title: Optional[str], series_id: int, project_id: int
+    ) -> Segment | None:
         session = self.Session()
-        new_segment = Segment(segment_title=segment_title, series_id=series_id, project_id=project_id)
+        new_segment = Segment(
+            segment_title=segment_title, series_id=series_id, project_id=project_id
+        )
         try:
             session.add(new_segment)
             session.commit()
@@ -306,28 +366,30 @@ class DatabaseManager:
             raise
         finally:
             session.close()
-    
+
     def read_segment(self, segment_id: int) -> Optional[Segment]:
         session = self.Session()
-        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
+        segment: Optional[Segment] = (
+            session.query(Segment).filter_by(segment_id=segment_id).first()
+        )
         session.close()
         return segment
-    
+
     def read_all_segments(self) -> Optional[list[Segment]]:
         session = self.Session()
         try:
-            segments = (
-                session.query(Segment)
-                .options(joinedload(Segment.series))
-                .all()
-            )
+            segments = session.query(Segment).options(joinedload(Segment.series)).all()
             return segments
         finally:
             session.close()
-    
-    def update_segment(self, segment_id: int, segment_title: Optional[str] = None) -> None:
+
+    def update_segment(
+        self, segment_id: int, segment_title: Optional[str] = None
+    ) -> None:
         session = self.Session()
-        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
+        segment: Optional[Segment] = (
+            session.query(Segment).filter_by(segment_id=segment_id).first()
+        )
         if segment:
             try:
                 if segment_title:
@@ -335,22 +397,30 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Segment due to a unique constraint violation.")
+                logger.error(
+                    "Failed to update Segment due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_segment(self, segment_id: int) -> None:
         session = self.Session()
-        segment: Optional[Segment] = session.query(Segment).filter_by(segment_id=segment_id).first()
+        segment: Optional[Segment] = (
+            session.query(Segment).filter_by(segment_id=segment_id).first()
+        )
         if segment:
             session.delete(segment)
             session.commit()
         session.close()
 
     # Element CRUD
-    
-    def create_element(self, element_text: str, segment_id: int, project_id: int) -> Element | None:
+
+    def create_element(
+        self, element_text: str, segment_id: int, project_id: int
+    ) -> Element | None:
         session = self.Session()
-        new_element = Element(element_text=element_text, segment_id=segment_id, project_id=project_id)
+        new_element = Element(
+            element_text=element_text, segment_id=segment_id, project_id=project_id
+        )
         try:
             session.add(new_element)
             session.commit()
@@ -362,13 +432,15 @@ class DatabaseManager:
             return None
         finally:
             session.close()
-    
+
     def read_element(self, element_id: int) -> Optional[Element]:
         session = self.Session()
-        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
+        element: Optional[Element] = (
+            session.query(Element).filter_by(element_id=element_id).first()
+        )
         session.close()
         return element
-    
+
     def read_all_elements(self) -> Optional[list[Element]]:
         session = self.Session()
         try:
@@ -376,7 +448,9 @@ class DatabaseManager:
                 session.query(Element)
                 .options(
                     joinedload(Element.segment).joinedload(Segment.series),
-                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                    joinedload(Element.annotations)
+                    .joinedload(Annotation.code)
+                    .joinedload(Code.code_type),
                 )
                 .all()
             )
@@ -386,15 +460,19 @@ class DatabaseManager:
             return None
         finally:
             session.close()
-    
-    def read_elements_paginated(self, skip: int = 0, limit: int = 100) -> Optional[list[Element]]:
+
+    def read_elements_paginated(
+        self, skip: int = 0, limit: int = 100
+    ) -> Optional[list[Element]]:
         session = self.Session()
         try:
             elements = (
                 session.query(Element)
                 .options(
                     joinedload(Element.segment).joinedload(Segment.series),
-                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                    joinedload(Element.annotations)
+                    .joinedload(Annotation.code)
+                    .joinedload(Code.code_type),
                 )
                 .offset(skip)
                 .limit(limit)
@@ -407,9 +485,16 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def update_element(self, element_id: int, element_text: Optional[str] = None, segment_id: Optional[int] = None) -> None:
+    def update_element(
+        self,
+        element_id: int,
+        element_text: Optional[str] = None,
+        segment_id: Optional[int] = None,
+    ) -> None:
         session = self.Session()
-        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
+        element: Optional[Element] = (
+            session.query(Element).filter_by(element_id=element_id).first()
+        )
         if element:
             try:
                 if element_text:
@@ -419,26 +504,34 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Element due to a unique constraint violation.")
+                logger.error(
+                    "Failed to update Element due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_element(self, element_id: int) -> None:
         session = self.Session()
-        element: Optional[Element] = session.query(Element).filter_by(element_id=element_id).first()
+        element: Optional[Element] = (
+            session.query(Element).filter_by(element_id=element_id).first()
+        )
         if element:
             session.delete(element)
             session.commit()
         session.close()
 
     # Annotation CRUD
-        
-    def create_annotation(self, element_id: int, code_id: int, project_id: int) -> Annotation | None:
+
+    def create_annotation(
+        self, element_id: int, code_id: int, project_id: int
+    ) -> Annotation | None:
         session = self.Session()
         try:
-            new_annotation = Annotation(element_id=element_id, code_id=code_id, project_id=project_id)
+            new_annotation = Annotation(
+                element_id=element_id, code_id=code_id, project_id=project_id
+            )
             session.add(new_annotation)
             session.commit()
-            
+
             # Fetch the annotation with its related code and code_type
             result = (
                 session.query(Annotation)
@@ -446,18 +539,20 @@ class DatabaseManager:
                 .filter(Annotation.annotation_id == new_annotation.annotation_id)
                 .first()
             )
-            
+
             # Explicitly access the code and code_type to ensure they're loaded
             if result:
                 _ = result.code
                 if result.code:
                     _ = result.code.code_type
-            
+
             session.refresh(result)
             return result
         except IntegrityError:
             session.rollback()
-            logger.error(f"Annotation with element_id={element_id} and code_id={code_id} already exists.")
+            logger.error(
+                f"Annotation with element_id={element_id} and code_id={code_id} already exists."
+            )
             return None
         except Exception as e:
             session.rollback()
@@ -465,22 +560,31 @@ class DatabaseManager:
             return None
         finally:
             session.close()
-        
+
     def read_annotation(self, annotation_id: int) -> Optional[Annotation]:
         session = self.Session()
-        annotation: Optional[Annotation] = session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        annotation: Optional[Annotation] = (
+            session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        )
         session.close()
         return annotation
-    
+
     def read_all_annotations(self) -> Optional[list[Annotation]]:
         session = self.Session()
         annotations = session.query(Annotation).all()
         session.close()
         return annotations
-    
-    def update_annotation(self, annotation_id: int, element_id: Optional[int] = None, code_id: Optional[int] = None) -> None:
+
+    def update_annotation(
+        self,
+        annotation_id: int,
+        element_id: Optional[int] = None,
+        code_id: Optional[int] = None,
+    ) -> None:
         session = self.Session()
-        annotation: Optional[Annotation] = session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        annotation: Optional[Annotation] = (
+            session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        )
         if annotation:
             try:
                 if element_id:
@@ -490,18 +594,22 @@ class DatabaseManager:
                 session.commit()
             except IntegrityError:
                 session.rollback()
-                logger.error("Failed to update Annotation due to a unique constraint violation.")
+                logger.error(
+                    "Failed to update Annotation due to a unique constraint violation."
+                )
         session.close()
-    
+
     def delete_annotation(self, annotation_id: int) -> None:
         session = self.Session()
-        annotation: Optional[Annotation] = session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        annotation: Optional[Annotation] = (
+            session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+        )
         if annotation:
             session.delete(annotation)
             session.commit()
         session.close()
 
-# Merge codes
+    # Merge codes
 
     def merge_codes(self, code_a_id: int, code_b_id: int) -> Code | None:
         session = self.Session()
@@ -511,7 +619,9 @@ class DatabaseManager:
             code_b = session.query(Code).filter_by(code_id=code_b_id).first()
 
             if not code_a or not code_b:
-                logger.error(f"One or both codes (ID: {code_a_id}, {code_b_id}) do not exist.")
+                logger.error(
+                    f"One or both codes (ID: {code_a_id}, {code_b_id}) do not exist."
+                )
                 return None
 
             # Get all annotations for code_a
@@ -519,10 +629,16 @@ class DatabaseManager:
 
             for annotation in annotations_a:
                 # Check if there's already an annotation for this element with code_b
-                existing_annotation = session.query(Annotation).filter(
-                    and_(Annotation.element_id == annotation.element_id,
-                         Annotation.code_id == code_b_id)
-                ).first()
+                existing_annotation = (
+                    session.query(Annotation)
+                    .filter(
+                        and_(
+                            Annotation.element_id == annotation.element_id,
+                            Annotation.code_id == code_b_id,
+                        )
+                    )
+                    .first()
+                )
 
                 if existing_annotation:
                     # If there's already an annotation, delete the one for code_a
@@ -545,7 +661,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-# Get annotations for code
+    # Get annotations for code
 
     def get_annotations_for_code(self, code_id: int) -> list[Annotation]:
         session = self.Session()
@@ -555,7 +671,7 @@ class DatabaseManager:
         finally:
             session.close()
 
-# Get codes for element
+    # Get codes for element
 
     def get_codes_for_element(self, element_id: int) -> list[Code]:
         session = self.Session()
@@ -570,22 +686,34 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def get_annotations_for_element_and_code(self, element_id: int, code_id: int) -> list[Annotation]:
+    def get_annotations_for_element_and_code(
+        self, element_id: int, code_id: int
+    ) -> list[Annotation]:
         session = self.Session()
         try:
             annotations = (
                 session.query(Annotation)
                 .options(joinedload(Annotation.code).joinedload(Code.code_type))
-                .filter(Annotation.element_id == element_id, Annotation.code_id == code_id)
+                .filter(
+                    Annotation.element_id == element_id, Annotation.code_id == code_id
+                )
                 .all()
             )
             return annotations
         finally:
             session.close()
 
-# Search elements by string
+    # Search elements by string
 
-    def search_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = [], skip: int = 0, limit: int = 100) -> Optional[list[Element]]:
+    def search_elements(
+        self,
+        search_term: str,
+        series_ids: list[int] = [],
+        segment_ids: list[int] = [],
+        code_ids: list[int] = [],
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Optional[list[Element]]:
         session = self.Session()
         try:
             query = (
@@ -596,7 +724,11 @@ class DatabaseManager:
             )
 
             if search_term:
-                query = query.filter(func.lower(Element.element_text).like(func.lower(f"%{search_term}%")))
+                query = query.filter(
+                    func.lower(Element.element_text).like(
+                        func.lower(f"%{search_term}%")
+                    )
+                )
 
             if series_ids:
                 query = query.filter(Series.series_id.in_(series_ids))
@@ -608,7 +740,9 @@ class DatabaseManager:
             elements = (
                 query.options(
                     joinedload(Element.segment).joinedload(Segment.series),
-                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                    joinedload(Element.annotations)
+                    .joinedload(Annotation.code)
+                    .joinedload(Code.code_type),
                 )
                 .offset(skip)
                 .limit(limit)
@@ -621,13 +755,28 @@ class DatabaseManager:
         finally:
             session.close()
 
-    def count_elements(self, search_term: str, series_ids: list[int] = [], segment_ids: list[int] = [], code_ids: list[int] = []) -> int:
+    def count_elements(
+        self,
+        search_term: str,
+        series_ids: list[int] = [],
+        segment_ids: list[int] = [],
+        code_ids: list[int] = [],
+    ) -> int:
         session = self.Session()
         try:
-            query = session.query(func.count(Element.element_id)).join(Element.segment).join(Segment.series).outerjoin(Element.annotations)
+            query = (
+                session.query(func.count(Element.element_id))
+                .join(Element.segment)
+                .join(Segment.series)
+                .outerjoin(Element.annotations)
+            )
 
             if search_term:
-                query = query.filter(func.lower(Element.element_text).like(func.lower(f"%{search_term}%")))
+                query = query.filter(
+                    func.lower(Element.element_text).like(
+                        func.lower(f"%{search_term}%")
+                    )
+                )
 
             if series_ids:
                 query = query.filter(Series.series_id.in_(series_ids))
