@@ -111,16 +111,16 @@ class DatabaseManager:
     
     def create_code_type(self, type_name: str, project_id: int) -> CodeType | None:
         session = self.Session()
-        new_code_type = CodeType(type_name=type_name, project_id=project_id)
         try:
+            existing_code_type = session.query(CodeType).filter_by(type_name=type_name, project_id=project_id).first()
+            if existing_code_type:
+                logger.info(f"CodeType with type_name={type_name} already exists.")
+                return existing_code_type
+            new_code_type = CodeType(type_name=type_name, project_id=project_id)
             session.add(new_code_type)
             session.commit()
             session.refresh(new_code_type)
             return new_code_type
-        except IntegrityError:
-            session.rollback()
-            logger.error(f"CodeType with type_name={type_name} already exists.")
-            return None
         except Exception as e:
             session.rollback()
             logger.error(f"Error creating CodeType: {str(e)}")

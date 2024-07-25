@@ -175,8 +175,9 @@ class SegmentUpdate(BaseModel):
 class SegmentResponse(BaseModel):
     segment_id: int
     segment_title: str
-    series: Optional[SeriesResponse] = None
+    series_id: int
     project_id: int
+    series: Optional[SeriesResponse] = None
 
     class Config:
         from_attributes = True
@@ -276,7 +277,7 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
 def create_code_type(code_type: CodeTypeCreate, db: Session = Depends(get_db)):
     new_code_type = db_manager.create_code_type(code_type.type_name, code_type.project_id)
     if new_code_type is None:
-        raise HTTPException(status_code=400, detail="Failed to create code type")
+        raise HTTPException(status_code=500, detail="Failed to create code type")
     return new_code_type
 
 @app.get("/code_types/", response_model=List[CodeTypeResponse])
