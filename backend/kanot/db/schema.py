@@ -67,6 +67,12 @@ class Segment(Base):
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project", back_populates="segments")
 
+class SegmentCreate(BaseModel):
+    segment_title: Optional[str]
+    series_id: int
+    project_id: int
+    segment_id: Optional[int] = None
+
 class Element(Base):
     __tablename__ = 'elements'
     element_id: Any = Column(Integer, primary_key=True, autoincrement=True)
