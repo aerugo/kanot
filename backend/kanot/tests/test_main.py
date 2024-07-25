@@ -25,11 +25,19 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def reset_database():
     # Drop and recreate tables before each test
-    DatabaseManager(engine).drop_database(engine)
-    DatabaseManager(engine)
+    db_manager = DatabaseManager(engine)
+    db_manager.drop_database(engine)
+    db_manager.create_database(engine)
     yield
     # Drop tables after each test
-    DatabaseManager(engine).drop_database(engine)
+    db_manager.drop_database(engine)
+
+    # Clear all data from tables
+    session = TestingSessionLocal()
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
+    session.close()
 
 # Clear the database before running tests
 DatabaseManager(engine).drop_database(engine)
