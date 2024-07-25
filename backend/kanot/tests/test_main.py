@@ -196,4 +196,8 @@ def test_search_elements(test_db):
     assert "X-Limit" in search_response.headers
     assert "X-Skip" in search_response.headers
 
+    # Ensure the session is closed after the test
+    from sqlalchemy.orm import close_all_sessions
+    close_all_sessions()
+
 # Add more complex test scenarios as needed
