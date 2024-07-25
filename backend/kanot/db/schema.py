@@ -35,7 +35,7 @@ class Code(Base):
     type_id: Any = Column(Integer, ForeignKey('code_types.type_id'))
     reference: Any = Column(Text)
     coordinates: Any = Column(Text)
-    code_type = relationship("CodeType")
+    code_type = relationship("CodeType", overlaps="codes")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project")
 
@@ -64,7 +64,7 @@ class Element(Base):
     element_id: Any = Column(Integer, primary_key=True, autoincrement=True)
     element_text: Any = Column(Text, nullable=False, default="")
     segment_id: Any = Column(Integer, ForeignKey('segments.segment_id'))
-    segment = relationship("Segment")
+    segment = relationship("Segment", overlaps="elements")
     annotations = relationship("Annotation", back_populates="element")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project")
