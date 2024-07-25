@@ -31,6 +31,10 @@ def reset_database():
     # Drop tables after each test
     DatabaseManager(engine).drop_database(engine)
 
+# Clear the database before running tests
+DatabaseManager(engine).drop_database(engine)
+DatabaseManager(engine)
+
 def test_create_project():
     response = client.post(
         "/projects/",
@@ -165,9 +169,11 @@ def test_search_elements():
     )
     series_id = series_response.json()["series_id"]
 
+    import uuid
+    unique_segment_title = f"Test Segment {uuid.uuid4()}"
     segment_response = client.post(
         "/segments/",
-        json={"segment_title": "Test Segment", "series_id": series_id, "project_id": project_id}
+        json={"segment_title": unique_segment_title, "series_id": series_id, "project_id": project_id}
     )
     assert segment_response.status_code == 200, f"Failed to create segment: {segment_response.json()}"
     segment_id = segment_response.json().get("segment_id")
