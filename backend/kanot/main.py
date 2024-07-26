@@ -669,27 +669,31 @@ def update_annotation(
     annotation: AnnotationUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> AnnotationResponse:
-    updated_annotation = db_manager.update_annotation(annotation_id, annotation.element_id, annotation.code_id)
-    if updated_annotation is None:
-        raise HTTPException(status_code=404, detail="Annotation not found")
-    
-    return AnnotationResponse(
-        id=updated_annotation.annotation_id,
-        element_id=updated_annotation.element_id,
-        code_id=updated_annotation.code_id,
-        project_id=updated_annotation.project_id,
-        code=CodeResponse(
-            id=updated_annotation.code.code_id,
-            code_id=updated_annotation.code.code_id,
-            term=updated_annotation.code.term,
-            description=updated_annotation.code.description,
-            type_id=updated_annotation.code.type_id,
-            reference=updated_annotation.code.reference,
-            coordinates=updated_annotation.code.coordinates,
-            project_id=updated_annotation.code.project_id,
-            code_type=None
-        ) if updated_annotation.code else None
-    )
+    with db_manager.get_session() as session:
+        updated_annotation = db_manager.update_annotation(annotation_id, annotation.element_id, annotation.code_id)
+        if updated_annotation is None:
+            raise HTTPException(status_code=404, detail="Annotation not found")
+        
+        # Refresh the updated_annotation to ensure it's bound to the session
+        session.refresh(updated_annotation)
+        
+        return AnnotationResponse(
+            id=updated_annotation.annotation_id,
+            element_id=updated_annotation.element_id,
+            code_id=updated_annotation.code_id,
+            project_id=updated_annotation.project_id,
+            code=CodeResponse(
+                id=updated_annotation.code.code_id,
+                code_id=updated_annotation.code.code_id,
+                term=updated_annotation.code.term,
+                description=updated_annotation.code.description,
+                type_id=updated_annotation.code.type_id,
+                reference=updated_annotation.code.reference,
+                coordinates=updated_annotation.code.coordinates,
+                project_id=updated_annotation.code.project_id,
+                code_type=None
+            ) if updated_annotation.code else None
+        )
 
 @router.delete("/annotations/{annotation_id}")
 def delete_annotation(
