@@ -231,6 +231,22 @@ def test_read_series(client: TestClient, create_project: Callable[..., Dict[str,
     assert len(data) > 0
     assert any(s.series_title == "Test Series" for s in data)
 
+def test_update_series(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    create_response = client.post("/series/", json=series_create.model_dump())
+    assert create_response.status_code == 200
+    created_series = SeriesResponse(**create_response.json())
+    
+    updated_title = "Updated Series"
+    series_update = SeriesUpdate(series_title=updated_title)
+    update_response = client.put(f"/series/{created_series.series_id}", json=series_update.model_dump())
+    assert update_response.status_code == 200
+    updated_series = SeriesResponse(**update_response.json())
+    assert updated_series.series_title == updated_title
+    assert updated_series.series_id == created_series.series_id
+    assert updated_series.project_id == created_series.project_id
+
 def test_create_segment(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
