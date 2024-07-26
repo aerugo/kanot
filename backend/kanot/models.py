@@ -1,4 +1,5 @@
-from typing import List, Optional, TypeVar, Generic
+from typing import Generic, List, Optional, TypeVar
+
 from pydantic import BaseModel, ConfigDict
 
 T = TypeVar('T')
@@ -25,7 +26,7 @@ class ProjectBase(BaseModel):
 class ProjectCreate(ProjectBase):
     pass
 
-class ProjectUpdate(ProjectBase):
+class ProjectUpdate(BaseModel):
     project_title: Optional[str] = None
     project_description: Optional[str] = None
 
@@ -96,6 +97,7 @@ class SegmentResponse(ResponseModel[SegmentBase], SegmentBase):
     series: Optional[SeriesResponse] = None
 
 class ElementBase(BaseModel):
+    element_id: int
     element_text: str
     segment_id: int
     project_id: int

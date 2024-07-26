@@ -201,9 +201,11 @@ def read_code_type(
 @router.put("/code_types/{type_id}", response_model=CodeTypeResponse)
 def update_code_type(
     type_id: int,
-    code_type: CodeTypeCreate,
+    code_type: CodeTypeUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> CodeTypeResponse:
+    if not code_type.type_name:
+        raise HTTPException(status_code=422, detail="Code type name cannot be empty")
     db_manager.update_code_type(type_id, code_type.type_name)
     updated_code_type = db_manager.read_code_type(type_id)
     if updated_code_type is None:
@@ -224,6 +226,12 @@ def create_code(
     code: CodeCreate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> CodeResponse:
+    if not code.term:
+        raise HTTPException(status_code=422, detail="Code term cannot be empty")
+    if not code.type_id:
+        raise HTTPException(status_code=422, detail="Code type ID cannot be empty")
+    if not code.project_id:
+        raise HTTPException(status_code=422, detail="Project ID cannot be empty")
     new_code = db_manager.create_code(
         code.term, code.description, code.type_id,
         code.reference, code.coordinates, code.project_id
