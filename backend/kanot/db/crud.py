@@ -108,7 +108,7 @@ class DatabaseManager:
         project_id: int,
         project_title: Optional[str] = None,
         project_description: Optional[str] = None,
-    ) -> None:
+    ) -> Optional[Project]:
         with self.get_session() as session:
             project = session.query(Project).filter_by(project_id=project_id).first()
             if project:
@@ -118,6 +118,8 @@ class DatabaseManager:
                     project.project_description = project_description
                 try:
                     session.commit()
+                    session.refresh(project)
+                    return project
                 except IntegrityError:
                     session.rollback()
                     logger.error(
