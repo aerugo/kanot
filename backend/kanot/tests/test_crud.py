@@ -278,6 +278,23 @@ def test_delete_element(db_manager: DatabaseManager) -> None:
     element = db_manager.read_element(1)
     assert element is None
 
+def test_update_element_text(db_manager: DatabaseManager) -> None:
+    project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
+    series = db_manager.create_series("Test Series", project.project_id)
+    assert series is not None
+    segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
+    assert segment is not None
+    db_manager.create_element("Test element 1", segment.segment_id, project.project_id)
+    
+    # Update the element text
+    db_manager.update_element(1, element_text="Updated element text")
+    
+    # Read the updated element
+    updated_element = db_manager.read_element(1)
+    assert updated_element is not None
+    assert updated_element.element_text == "Updated element text"
+
 # Annotation tests
 
 def test_create_annotation(db_manager: DatabaseManager) -> None:
