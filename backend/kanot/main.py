@@ -12,6 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import joinedload
 
 from .db.crud import DatabaseManager
+from .db.schema import Segment, Series
 from .models import (
     AnnotationCreate,
     AnnotationResponse,
@@ -455,9 +456,9 @@ def read_segment(
     db_manager: DatabaseManager = Depends(get_db)
 ) -> SegmentResponse:
     with db_manager.get_session() as session:
-        segment = session.query(db_manager.Segment).options(
-            joinedload(db_manager.Segment.series)
-        ).filter(db_manager.Segment.segment_id == segment_id).first()
+        segment = session.query(Segment).options(
+            joinedload(Segment.series)
+        ).filter(Segment.segment_id == segment_id).first()
         
         if segment is None:
             raise HTTPException(status_code=404, detail="Segment not found")
