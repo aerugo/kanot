@@ -699,15 +699,18 @@ def create_batch_annotations(
                 new_annotations.append(AnnotationResponse.model_validate(annotation_dict))
     return new_annotations
 
-@router.delete("/batch_annotations/", response_model=List[AnnotationResponse])
+from typing import List
+
+@router.delete("/batch_annotations/")
 def remove_batch_annotations(
-    batch_data: BatchAnnotationRemove,
+    element_ids: List[int] = Query(...),
+    code_ids: List[int] = Query(...),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[AnnotationResponse]:
     try:
         removed_annotations: List[AnnotationResponse] = []
-        for element_id in batch_data.element_ids:
-            for code_id in batch_data.code_ids:
+        for element_id in element_ids:
+            for code_id in code_ids:
                 annotations = db_manager.get_annotations_for_element_and_code(element_id, code_id)
                 for annotation in annotations:
                     db_manager.delete_annotation(annotation.annotation_id)

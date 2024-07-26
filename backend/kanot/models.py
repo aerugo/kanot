@@ -142,6 +142,8 @@ class BatchAnnotationCreate(BaseModel):
     code_ids: List[int]
     project_id: int
 
+from pydantic import Field
+
 class BatchAnnotationRemove(BaseModel):
-    element_ids: List[int]
-    code_ids: List[int]
+    element_ids: List[int] = Field(..., alias="element_ids")
+    code_ids: List[int] = Field(..., alias="code_ids")
