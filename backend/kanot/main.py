@@ -253,7 +253,22 @@ def read_codes(
 ) -> List[CodeResponse]:
     codes = db_manager.read_all_codes()
     assert codes is not None
-    return [CodeResponse.model_validate(code.__dict__) for code in codes]
+    return [CodeResponse.model_validate({
+        "id": code.code_id,
+        "code_id": code.code_id,
+        "term": code.term,
+        "description": code.description,
+        "type_id": code.type_id,
+        "reference": code.reference,
+        "coordinates": code.coordinates,
+        "project_id": code.project_id,
+        "code_type": CodeTypeResponse.model_validate({
+            "id": code.code_type.type_id,
+            "type_id": code.code_type.type_id,
+            "type_name": code.code_type.type_name,
+            "project_id": code.code_type.project_id
+        }) if code.code_type else None
+    }) for code in codes]
 
 @router.get("/codes/{code_id}", response_model=CodeResponse)
 def read_code(
@@ -263,7 +278,22 @@ def read_code(
     code = db_manager.read_code(code_id)
     if code is None:
         raise HTTPException(status_code=404, detail="Code not found")
-    return CodeResponse.model_validate(code.__dict__)
+    return CodeResponse.model_validate({
+        "id": code.code_id,
+        "code_id": code.code_id,
+        "term": code.term,
+        "description": code.description,
+        "type_id": code.type_id,
+        "reference": code.reference,
+        "coordinates": code.coordinates,
+        "project_id": code.project_id,
+        "code_type": CodeTypeResponse.model_validate({
+            "id": code.code_type.type_id,
+            "type_id": code.code_type.type_id,
+            "type_name": code.code_type.type_name,
+            "project_id": code.code_type.project_id
+        }) if code.code_type else None
+    })
 
 @router.put("/codes/{code_id}", response_model=CodeResponse)
 def update_code(
@@ -374,7 +404,19 @@ def read_segments(
 ) -> List[SegmentResponse]:
     segments = db_manager.read_all_segments()
     assert segments is not None
-    return [SegmentResponse.model_validate(segment.__dict__) for segment in segments]
+    return [SegmentResponse.model_validate({
+        "id": segment.segment_id,
+        "segment_id": segment.segment_id,
+        "segment_title": segment.segment_title,
+        "series_id": segment.series_id,
+        "project_id": segment.project_id,
+        "series": SeriesResponse.model_validate({
+            "id": segment.series.series_id,
+            "series_id": segment.series.series_id,
+            "series_title": segment.series.series_title,
+            "project_id": segment.series.project_id
+        }) if segment.series else None
+    }) for segment in segments]
 
 @router.get("/segments/{segment_id}", response_model=SegmentResponse)
 def read_segment(
@@ -424,7 +466,22 @@ def create_element(
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
         raise HTTPException(status_code=400, detail="Failed to create element")
-    return ElementResponse.model_validate(new_element.__dict__)
+    return ElementResponse.model_validate({
+        "id": new_element.element_id,
+        "element_id": new_element.element_id,
+        "element_text": new_element.element_text,
+        "segment_id": new_element.segment_id,
+        "project_id": new_element.project_id,
+        "segment": SegmentResponse.model_validate({
+            "id": new_element.segment.segment_id,
+            "segment_id": new_element.segment.segment_id,
+            "segment_title": new_element.segment.segment_title,
+            "series_id": new_element.segment.series_id,
+            "project_id": new_element.segment.project_id,
+            "series": None  # We're not loading the series here to avoid potential circular references
+        }) if new_element.segment else None,
+        "annotations": []  # New elements won't have annotations yet
+    })
 
 @router.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
