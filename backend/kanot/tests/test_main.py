@@ -584,7 +584,7 @@ def test_remove_batch_annotations(client: TestClient, create_project: Callable[.
     query_params = urlencode(batch_annotation_remove.model_dump(by_alias=True), doseq=True)
     response = client.delete(f"/batch_annotations/?{query_params}")
     
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Unexpected status code: {response.status_code}. Response: {response.text}"
     removed_annotations = response.json()
     assert len(removed_annotations) == 1  # 1 element * 1 code = 1 annotation removed
     

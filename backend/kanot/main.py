@@ -714,7 +714,23 @@ def remove_batch_annotations(
                 annotations = db_manager.get_annotations_for_element_and_code(element_id, code_id)
                 for annotation in annotations:
                     db_manager.delete_annotation(annotation.annotation_id)
-                    removed_annotations.append(AnnotationResponse.model_validate(annotation))
+                    removed_annotations.append(AnnotationResponse(
+                        id=annotation.annotation_id,
+                        element_id=annotation.element_id,
+                        code_id=annotation.code_id,
+                        project_id=annotation.project_id,
+                        code=CodeResponse(
+                            id=annotation.code.code_id,
+                            code_id=annotation.code.code_id,
+                            term=annotation.code.term,
+                            description=annotation.code.description,
+                            type_id=annotation.code.type_id,
+                            reference=annotation.code.reference,
+                            coordinates=annotation.code.coordinates,
+                            project_id=annotation.code.project_id,
+                            code_type=None
+                        ) if annotation.code else None
+                    ))
         return removed_annotations
     except Exception as e:
         logger.error(f"Error in batch annotation removal: {str(e)}")
