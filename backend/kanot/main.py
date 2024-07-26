@@ -399,7 +399,12 @@ def update_series(
     updated_series = db_manager.read_series(series_id)
     if updated_series is None:
         raise HTTPException(status_code=404, detail="Series not found")
-    return SeriesResponse.model_validate(updated_series)
+    return SeriesResponse(
+        id=updated_series.series_id,
+        series_id=updated_series.series_id,
+        series_title=updated_series.series_title,
+        project_id=updated_series.project_id
+    )
 
 @router.delete("/series/{series_id}")
 def delete_series(
