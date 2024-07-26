@@ -247,7 +247,8 @@ def configure_database(database_url: str | None = None):
     logger.info(f"Local sqlite database on : {Path(database_url).resolve()}")
     return DatabaseManager(engine)
 
-def get_db(db_manager: DatabaseManager = Depends(configure_database)) -> DatabaseManager:
+def get_db():
+    db_manager = configure_database()
     return db_manager
 
 # ROUTER

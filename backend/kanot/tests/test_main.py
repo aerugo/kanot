@@ -24,7 +24,8 @@ def override_get_db():
         db = TestingSessionLocal()
         yield db
     finally:
-        db.close()
+        if db:
+            db.close()
 
 app = create_app(SQLALCHEMY_DATABASE_URL)
 
