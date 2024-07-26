@@ -119,8 +119,7 @@ class DatabaseManager:
                 try:
                     session.commit()
                     session.refresh(project)
-                    # Explicitly load the project to ensure it's attached
-                    return session.query(Project).get(project_id)
+                    return project
                 except IntegrityError:
                     session.rollback()
                     logger.error(
@@ -401,7 +400,7 @@ class DatabaseManager:
 
     def update_segment(
         self, segment_id: int, segment_title: Optional[str] = None
-    ) -> None:
+    ) -> Optional[Segment]:
         with self.get_session() as session:
             segment: Optional[Segment] = (
                 session.query(Segment).filter_by(segment_id=segment_id).first()
@@ -411,12 +410,14 @@ class DatabaseManager:
                     if segment_title:
                         segment.segment_title = segment_title
                     session.commit()
+                    session.refresh(segment)
+                    return segment
                 except IntegrityError:
                     session.rollback()
                     logger.error(
                         "Failed to update Segment due to a unique constraint violation."
                     )
-            session.close()
+            return None
 
     def delete_segment(self, segment_id: int) -> None:
         with self.get_session() as session:
@@ -513,10 +514,14 @@ class DatabaseManager:
         element_id: int,
         element_text: Optional[str] = None,
         segment_id: Optional[int] = None,
-    ) -> None:
+    ) -> Optional[Element]:
         with self.get_session() as session:
             element: Optional[Element] = (
-                session.query(Element).filter_by(element_id=element_id).first()
+                session.query(Element)
+                .options(joinedload(Element.segment).joinedload(Segment.series))
+                .options(joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type))
+                .filter_by(element_id=element_id)
+                .first()
             )
             if element:
                 try:
@@ -525,12 +530,14 @@ class DatabaseManager:
                     if segment_id:
                         element.segment_id = segment_id
                     session.commit()
+                    session.refresh(element)
+                    return element
                 except IntegrityError:
                     session.rollback()
                     logger.error(
                         "Failed to update Element due to a unique constraint violation."
                     )
-            session.close()
+            return None
 
     def delete_element(self, element_id: int) -> None:
         with self.get_session() as session:

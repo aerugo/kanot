@@ -126,7 +126,7 @@ def test_update_element(client, create_element):
     assert data["element_text"] == updated_text
     assert data["element_id"] == element_id
 
-def test_update_annotation(client, create_annotation):
+def test_update_annotation(client, create_annotation, create_code):
     annotation = create_annotation()
     annotation_id = annotation["annotation_id"]
 

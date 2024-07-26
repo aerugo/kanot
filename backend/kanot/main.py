@@ -508,8 +508,7 @@ def update_segment(
     segment: SegmentUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> SegmentResponse:
-    db_manager.update_segment(segment_id, segment.segment_title)
-    updated_segment = db_manager.read_segment(segment_id)
+    updated_segment = db_manager.update_segment(segment_id, segment.segment_title)
     if updated_segment is None:
         raise HTTPException(status_code=404, detail="Segment not found")
     return SegmentResponse.model_validate(updated_segment)
@@ -570,8 +569,7 @@ def update_element(
     element: ElementUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ElementResponse:
-    db_manager.update_element(element_id, element.element_text, element.segment_id)
-    updated_element = db_manager.read_element(element_id)
+    updated_element = db_manager.update_element(element_id, element.element_text, element.segment_id)
     if updated_element is None:
         raise HTTPException(status_code=404, detail="Element not found")
     return ElementResponse.model_validate(updated_element)
