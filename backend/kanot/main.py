@@ -357,42 +357,14 @@ def delete_code_type(
 def create_code(
     code: CodeCreate,
     db_manager: DatabaseManager = Depends(get_db)
-):
-    try:
-        with db_manager.get_session() as session:
-            new_code = db_manager.create_code(
-                code.term, code.description, code.type_id, 
-                code.reference, code.coordinates, code.project_id
-            )
-            if new_code is None:
-                return JSONResponse(
-                    status_code=400,
-                    content={"message": "Code with this term already exists"}
-                )
-            
-            # Explicitly load the code_type relationship
-            session.refresh(new_code, ['code_type'])
-            
-            logger.info(f"New code created: {new_code}")
-            
-            code_response = CodeResponse.model_validate(new_code)
-            json_compatible_item_data = jsonable_encoder(code_response)
-            logger.info(f"Serialized code: {json_compatible_item_data}")
-            
-            return JSONResponse(content=json_compatible_item_data)
-    except IntegrityError as e:
-        logger.error(f"IntegrityError when creating code: {str(e)}")
-        return JSONResponse(
-            status_code=400,
-            content={"message": "Code with this term already exists"}
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error when creating code: {str(e)}")
-        logger.error(traceback.format_exc())
-        return JSONResponse(
-            status_code=500,
-            content={"message": "An unexpected error occurred"}
-        )
+) -> CodeResponse:
+    new_code = db_manager.create_code(
+        code.term, code.description, code.type_id,
+        code.reference, code.coordinates, code.project_id
+    )
+    if new_code is None:
+        raise HTTPException(status_code=400, detail="Failed to create code")
+    return CodeResponse.model_validate(new_code)
 
 @router.get("/codes/", response_model=List[CodeResponse])
 def read_codes(
