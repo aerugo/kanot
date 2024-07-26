@@ -2,18 +2,14 @@ from __future__ import annotations
 
 import logging
 import os
-import traceback
 from logging.config import dictConfig
 from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
-from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
-from sqlalchemy.exc import IntegrityError
 
 from .db.crud import DatabaseManager
 
