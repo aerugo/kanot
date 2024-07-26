@@ -223,6 +223,21 @@ def test_delete_segment(db_manager: DatabaseManager) -> None:
     segment = db_manager.read_segment(1)
     assert segment is None
 
+def test_update_segment(db_manager: DatabaseManager) -> None:
+    project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
+    series = db_manager.create_series("Test Series", project.project_id)
+    assert series is not None
+    db_manager.create_segment("Test Segment", series.series_id, project.project_id)
+    
+    # Update the segment title
+    db_manager.update_segment(1, "Updated Segment Title")
+    
+    # Read the updated segment
+    updated_segment = db_manager.read_segment(1)
+    assert updated_segment is not None
+    assert updated_segment.segment_title == "Updated Segment Title"
+
 # Element tests
 
 def test_create_element(db_manager: DatabaseManager) -> None:
