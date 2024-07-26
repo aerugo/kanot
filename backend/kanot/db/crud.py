@@ -527,8 +527,8 @@ class DatabaseManager:
                     )
             session.close()
 
-        def delete_element(self, element_id: int) -> None:
-            with self.get_session() as session:
+    def delete_element(self, element_id: int) -> None:
+        with self.get_session() as session:
             element: Optional[Element] = (
                 session.query(Element).filter_by(element_id=element_id).first()
             )
