@@ -43,7 +43,7 @@ class CodeTypeUpdate(BaseModel):
     type_name: Optional[str] = None
 
 class CodeTypeResponse(ResponseModel[CodeTypeBase], CodeTypeBase):
-    pass
+    type_id: int
 
 class CodeBase(BaseModel):
     term: str
@@ -77,7 +77,7 @@ class SeriesUpdate(BaseModel):
     series_title: Optional[str] = None
 
 class SeriesResponse(ResponseModel[SeriesBase], SeriesBase):
-    pass
+    series_id: int
 
 class SegmentBase(BaseModel):
     segment_title: str
