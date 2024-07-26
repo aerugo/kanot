@@ -550,6 +550,9 @@ def read_element(
         if element is None:
             raise HTTPException(status_code=404, detail="Element not found")
         
+        # Merge the element into the current session
+        element = session.merge(element)
+        
         # Explicitly load the segment relationship
         session.refresh(element, ['segment'])
         
