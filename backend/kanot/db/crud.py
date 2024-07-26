@@ -548,6 +548,10 @@ class DatabaseManager:
                 session.add(new_annotation)
                 session.commit()
                 session.refresh(new_annotation)
+                # Eagerly load the related code object
+                session.query(Annotation).options(
+                    joinedload(Annotation.code).joinedload(Code.code_type)
+                ).filter(Annotation.annotation_id == new_annotation.annotation_id).first()
                 return new_annotation
             except IntegrityError:
                 session.rollback()
