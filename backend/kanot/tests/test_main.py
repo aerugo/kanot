@@ -510,3 +510,39 @@ def test_search_elements(client: TestClient, create_project: Callable[..., Dict[
     assert "X-Total-Count" in response.headers
     assert "X-Limit" in response.headers
     assert "X-Skip" in response.headers
+
+def test_update_element(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create series and segment
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.model_dump())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.model_dump())
+    segment_id = segment_response.json()["segment_id"]
+    
+    # Create an element
+    element_create = ElementCreate(element_text="Initial Text", segment_id=segment_id, project_id=project["project_id"])
+    element_response = client.post("/elements/", json=element_create.model_dump())
+    assert element_response.status_code == 200
+    element_id = element_response.json()["element_id"]
+
+    # Update the element
+    element_update = ElementUpdate(element_text="Updated Text")
+    update_response = client.put(f"/elements/{element_id}", json=element_update.model_dump())
+    assert update_response.status_code == 200
+    updated_element = ElementResponse(**update_response.json())
+
+    # Check if the element was updated correctly
+    assert updated_element.element_id == element_id
+    assert updated_element.element_text == "Updated Text"
+    assert updated_element.segment_id == segment_id
+    assert updated_element.project_id == project["project_id"]
+
+    # Verify the update by getting the element
+    get_response = client.get(f"/elements/{element_id}")
+    assert get_response.status_code == 200
+    get_element = ElementResponse(**get_response.json())
+    assert get_element == updated_element
