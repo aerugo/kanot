@@ -630,6 +630,9 @@ class DatabaseManager:
     def read_all_annotations(self) -> Optional[list[Annotation]]:
         with self.get_session() as session:
             annotations = session.query(Annotation).options(joinedload(Annotation.code)).all()
+            # Explicitly load the attributes we need
+            for annotation in annotations:
+                session.refresh(annotation)
             return annotations
 
     def update_annotation(

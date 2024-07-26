@@ -630,7 +630,7 @@ def read_annotations(
             project_id=annotation.code.project_id,
             code_type=None
         ) if annotation.code else None
-    ) for annotation in annotations]
+    ) for annotation in annotations if hasattr(annotation, 'annotation_id')]
 
 @router.get("/annotations/{annotation_id}", response_model=AnnotationResponse)
 def read_annotation(
