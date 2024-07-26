@@ -474,7 +474,7 @@ def create_element(
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
         raise HTTPException(status_code=400, detail="Failed to create element")
-    return ElementResponse(
+    response = ElementResponse(
         id=new_element.element_id,
         element_id=new_element.element_id,
         element_text=new_element.element_text,
@@ -490,6 +490,7 @@ def create_element(
         ) if new_element.segment else None,
         annotations=[]
     )
+    return response
 
 @router.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
