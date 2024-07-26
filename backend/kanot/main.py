@@ -558,7 +558,21 @@ def update_element(
     updated_element = db_manager.update_element(element_id, element.element_text, element.segment_id)
     if updated_element is None:
         raise HTTPException(status_code=404, detail="Element not found")
-    return ElementResponse.model_validate(updated_element)
+    return ElementResponse(
+        id=updated_element.element_id,
+        element_text=updated_element.element_text,
+        segment_id=updated_element.segment_id,
+        project_id=updated_element.project_id,
+        segment=SegmentResponse(
+            id=updated_element.segment.segment_id,
+            segment_id=updated_element.segment.segment_id,
+            segment_title=updated_element.segment.segment_title,
+            series_id=updated_element.segment.series_id,
+            project_id=updated_element.segment.project_id,
+            series=None
+        ) if updated_element.segment else None,
+        annotations=[]
+    )
 
 @router.delete("/elements/{element_id}")
 def delete_element(
