@@ -64,6 +64,7 @@ class CodeUpdate(BaseModel):
     coordinates: Optional[str] = None
 
 class CodeResponse(ResponseModel[CodeBase], CodeBase):
+    code_id: int
     code_type: Optional[CodeTypeResponse] = None
 
 class SeriesBase(BaseModel):
@@ -91,6 +92,7 @@ class SegmentUpdate(BaseModel):
     segment_title: Optional[str] = None
 
 class SegmentResponse(ResponseModel[SegmentBase], SegmentBase):
+    segment_id: int
     series: Optional[SeriesResponse] = None
 
 class ElementBase(BaseModel):
