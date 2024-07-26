@@ -453,22 +453,27 @@ def read_segment(
     segment_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> SegmentResponse:
-    segment = db_manager.read_segment(segment_id)
-    if segment is None:
-        raise HTTPException(status_code=404, detail="Segment not found")
-    return SegmentResponse(
-        id=segment.segment_id,
-        segment_id=segment.segment_id,
-        segment_title=segment.segment_title,
-        series_id=segment.series_id,
-        project_id=segment.project_id,
-        series=SeriesResponse(
-            id=segment.series.series_id,
-            series_id=segment.series.series_id,
-            series_title=segment.series.series_title,
-            project_id=segment.series.project_id
-        ) if segment.series else None
-    )
+    with db_manager.get_session() as session:
+        segment = session.query(db_manager.Segment).options(
+            joinedload(db_manager.Segment.series)
+        ).filter(db_manager.Segment.segment_id == segment_id).first()
+        
+        if segment is None:
+            raise HTTPException(status_code=404, detail="Segment not found")
+        
+        return SegmentResponse(
+            id=segment.segment_id,
+            segment_id=segment.segment_id,
+            segment_title=segment.segment_title,
+            series_id=segment.series_id,
+            project_id=segment.project_id,
+            series=SeriesResponse(
+                id=segment.series.series_id,
+                series_id=segment.series.series_id,
+                series_title=segment.series.series_title,
+                project_id=segment.series.project_id
+            ) if segment.series else None
+        )
 
 @router.put("/segments/{segment_id}", response_model=SegmentResponse)
 def update_segment(
