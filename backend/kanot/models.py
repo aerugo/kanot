@@ -1,26 +1,22 @@
 from typing import List, Optional, TypeVar, Generic
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 T = TypeVar('T')
-
-class Config:
-    from_attributes = True
-    populate_by_name = True
 
 class ProjectRelatedModel(BaseModel):
     project_id: int
 
-    class Config(Config):
-        pass
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-class CreateModel(Generic[T]):
+class CreateModel(BaseModel, Generic[T]):
     pass
 
-class UpdateModel(Generic[T]):
+class UpdateModel(BaseModel, Generic[T]):
     pass
 
-class ResponseModel(Generic[T], ProjectRelatedModel):
+class ResponseModel(BaseModel, Generic[T]):
     id: int
+    project_id: int
 
 class ProjectBase(BaseModel):
     project_title: str
@@ -33,11 +29,12 @@ class ProjectUpdate(ProjectBase):
     project_title: Optional[str] = None
     project_description: Optional[str] = None
 
-class ProjectResponse(ProjectBase, ResponseModel[ProjectBase]):
+class ProjectResponse(ResponseModel[ProjectBase], ProjectBase):
     pass
 
-class CodeTypeBase(ProjectRelatedModel):
+class CodeTypeBase(BaseModel):
     type_name: str
+    project_id: int
 
 class CodeTypeCreate(CodeTypeBase):
     pass
@@ -45,15 +42,16 @@ class CodeTypeCreate(CodeTypeBase):
 class CodeTypeUpdate(BaseModel):
     type_name: Optional[str] = None
 
-class CodeTypeResponse(CodeTypeBase, ResponseModel[CodeTypeBase]):
+class CodeTypeResponse(ResponseModel[CodeTypeBase], CodeTypeBase):
     pass
 
-class CodeBase(ProjectRelatedModel):
+class CodeBase(BaseModel):
     term: str
     description: Optional[str] = None
     type_id: int
     reference: Optional[str] = None
     coordinates: Optional[str] = None
+    project_id: int
 
 class CodeCreate(CodeBase):
     pass
@@ -65,11 +63,12 @@ class CodeUpdate(BaseModel):
     reference: Optional[str] = None
     coordinates: Optional[str] = None
 
-class CodeResponse(CodeBase, ResponseModel[CodeBase]):
+class CodeResponse(ResponseModel[CodeBase], CodeBase):
     code_type: Optional[CodeTypeResponse] = None
 
-class SeriesBase(ProjectRelatedModel):
+class SeriesBase(BaseModel):
     series_title: str
+    project_id: int
 
 class SeriesCreate(SeriesBase):
     pass
@@ -77,12 +76,13 @@ class SeriesCreate(SeriesBase):
 class SeriesUpdate(BaseModel):
     series_title: Optional[str] = None
 
-class SeriesResponse(SeriesBase, ResponseModel[SeriesBase]):
+class SeriesResponse(ResponseModel[SeriesBase], SeriesBase):
     pass
 
-class SegmentBase(ProjectRelatedModel):
+class SegmentBase(BaseModel):
     segment_title: str
     series_id: int
+    project_id: int
 
 class SegmentCreate(SegmentBase):
     pass
@@ -90,12 +90,13 @@ class SegmentCreate(SegmentBase):
 class SegmentUpdate(BaseModel):
     segment_title: Optional[str] = None
 
-class SegmentResponse(SegmentBase, ResponseModel[SegmentBase]):
+class SegmentResponse(ResponseModel[SegmentBase], SegmentBase):
     series: Optional[SeriesResponse] = None
 
-class ElementBase(ProjectRelatedModel):
+class ElementBase(BaseModel):
     element_text: str
     segment_id: int
+    project_id: int
 
 class ElementCreate(ElementBase):
     pass
@@ -108,16 +109,16 @@ class AnnotationResponseMinimal(BaseModel):
     annotation_id: int
     code: Optional[CodeResponse] = None
 
-    class Config(Config):
-        pass
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-class ElementResponse(ElementBase, ResponseModel[ElementBase]):
+class ElementResponse(ResponseModel[ElementBase], ElementBase):
     segment: Optional[SegmentResponse] = None
     annotations: List[AnnotationResponseMinimal] = []
 
-class AnnotationBase(ProjectRelatedModel):
+class AnnotationBase(BaseModel):
     element_id: int
     code_id: int
+    project_id: int
 
 class AnnotationCreate(AnnotationBase):
     pass
@@ -126,12 +127,13 @@ class AnnotationUpdate(BaseModel):
     element_id: Optional[int] = None
     code_id: Optional[int] = None
 
-class AnnotationResponse(AnnotationBase, ResponseModel[AnnotationBase]):
+class AnnotationResponse(ResponseModel[AnnotationBase], AnnotationBase):
     code: Optional[CodeResponse] = None
 
-class BatchAnnotationCreate(ProjectRelatedModel):
+class BatchAnnotationCreate(BaseModel):
     element_ids: List[int]
     code_ids: List[int]
+    project_id: int
 
 class BatchAnnotationRemove(BaseModel):
     element_ids: List[int]

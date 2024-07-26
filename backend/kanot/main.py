@@ -156,7 +156,11 @@ def create_code_type(
     new_code_type = db_manager.create_code_type(code_type.type_name, code_type.project_id)
     if new_code_type is None:
         raise HTTPException(status_code=400, detail=f"Code type '{code_type.type_name}' already exists in this project")
-    return CodeTypeResponse.model_validate(new_code_type)
+    return CodeTypeResponse(
+        id=new_code_type.type_id,
+        project_id=new_code_type.project_id,
+        type_name=new_code_type.type_name
+    )
 
 @router.get("/code_types/", response_model=List[CodeTypeResponse])
 def read_code_types(
