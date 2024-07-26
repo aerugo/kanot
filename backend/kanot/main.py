@@ -9,6 +9,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine
+from sqlalchemy.orm import joinedload
 
 from .db.crud import DatabaseManager
 from .models import (
