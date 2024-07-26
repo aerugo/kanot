@@ -648,7 +648,7 @@ def merge_codes(
     merged_code = db_manager.merge_codes(code_a_id, code_b_id)
     if merged_code is None:
         raise HTTPException(status_code=400, detail="Failed to merge codes")
-    return {"message": f"Successfully merged Code {code_a_id} into Code {code_b_id}: \n {merged_code}"}
+    return {"message": f"Successfully merged Code {code_a_id} into Code {code_b_id}"}
 
 @router.get("/annotations_for_code/{code_id}", response_model=List[AnnotationResponse])
 def get_annotations_for_code(

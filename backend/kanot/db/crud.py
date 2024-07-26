@@ -366,6 +366,10 @@ class DatabaseManager:
                 session.add(new_segment)
                 session.commit()
                 session.refresh(new_segment)
+                # Explicitly load the related series
+                session.query(Segment).options(
+                    joinedload(Segment.series)
+                ).filter(Segment.segment_id == new_segment.segment_id).first()
                 return new_segment
             except IntegrityError:
                 session.rollback()
@@ -670,6 +674,12 @@ class DatabaseManager:
 
                 session.commit()
                 logger.info(f"Successfully merged Code {code_a_id} into Code {code_b_id}")
+
+                # Refresh code_b and load its related objects
+                session.refresh(code_b)
+                session.query(Code).options(
+                    joinedload(Code.code_type)
+                ).filter(Code.code_id == code_b.code_id).first()
 
                 return code_b
             except Exception as e:
