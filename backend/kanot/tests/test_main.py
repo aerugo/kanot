@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
-from kanot.db.crud import DatabaseManager
+from kanot.db.crud import DatabaseManager, SQLAlchemyManager
 from kanot.db.schema import Base
 from kanot.main import create_app, get_db
 
@@ -20,21 +20,21 @@ def test_client(test_app):
     return TestClient(test_app)
 
 @pytest.fixture(scope="function")
-def db_manager():
+def db_manager() -> DatabaseManager:
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    db_manager = DatabaseManager(engine)
+    db_manager = SQLAlchemyManager(engine)
     Base.metadata.create_all(bind=engine)
-    yield db_manager
+    yield DatabaseManager(db_manager)
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
-def override_get_db(db_manager: DatabaseManager):
-    def _override_get_db():
-        return db_manager
+def override_get_db(db_manager: DatabaseManager) -> SQLAlchemyManager:
+    def _override_get_db() -> SQLAlchemyManager:
+        return db_manager.db_manager
     return _override_get_db
 
 @pytest.fixture(autouse=True)
