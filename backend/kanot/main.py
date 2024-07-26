@@ -247,8 +247,8 @@ def configure_database(database_url: str | None = None):
     logger.info(f"Local sqlite database on : {Path(database_url).resolve()}")
     return DatabaseManager(engine)
 
-def get_db():
-    db_manager = configure_database()
+def get_db(database_url: str | None = None):
+    db_manager = configure_database(database_url)
     return db_manager
 
 # ROUTER
@@ -716,12 +716,10 @@ def create_app(database_url: str | None = None):
         allow_headers=["*"],
     )
 
-    db_manager = configure_database(database_url)
-    
-    def get_db():
-        return db_manager
+    def get_db_for_request():
+        return get_db(database_url)
 
-    app.dependency_overrides[get_db] = get_db
+    app.dependency_overrides[get_db] = get_db_for_request
         
     app.include_router(router)
 
@@ -729,9 +727,9 @@ def create_app(database_url: str | None = None):
 
 app = create_app()
 
-# This function is for testing purposes
-def create_test_app(database_url: str):
-    return create_app(database_url)
+# This function is no longer needed as create_app can handle both cases
+# def create_test_app(database_url: str):
+#     return create_app(database_url)
 
 if __name__ == "__main__":
     import uvicorn  # type: ignore
