@@ -616,3 +616,61 @@ def test_update_segment(client: TestClient, create_project: Callable[..., Dict[s
     assert get_segment.series is not None
     assert get_segment.series.series_id == series_id
     assert get_segment.series.series_title == "Test Series"
+
+def test_create_batch_annotations(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create a code type and codes
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.model_dump())
+    assert code_type_response.status_code == 200
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create_1 = CodeCreate(term="Code 1", description="Description 1", type_id=code_type_id, project_id=project["project_id"])
+    code_create_2 = CodeCreate(term="Code 2", description="Description 2", type_id=code_type_id, project_id=project["project_id"])
+    code_response_1 = client.post("/codes/", json=code_create_1.model_dump())
+    code_response_2 = client.post("/codes/", json=code_create_2.model_dump())
+    assert code_response_1.status_code == 200 and code_response_2.status_code == 200
+    code_id_1 = code_response_1.json()["code_id"]
+    code_id_2 = code_response_2.json()["code_id"]
+    
+    # Create a series, segment, and elements
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.model_dump())
+    assert series_response.status_code == 200
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.model_dump())
+    assert segment_response.status_code == 200
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create_1 = ElementCreate(element_text="Element 1", segment_id=segment_id, project_id=project["project_id"])
+    element_create_2 = ElementCreate(element_text="Element 2", segment_id=segment_id, project_id=project["project_id"])
+    element_response_1 = client.post("/elements/", json=element_create_1.model_dump())
+    element_response_2 = client.post("/elements/", json=element_create_2.model_dump())
+    assert element_response_1.status_code == 200 and element_response_2.status_code == 200
+    element_id_1 = element_response_1.json()["element_id"]
+    element_id_2 = element_response_2.json()["element_id"]
+    
+    # Create batch annotations
+    batch_annotation_create = BatchAnnotationCreate(
+        element_ids=[element_id_1, element_id_2],
+        code_ids=[code_id_1, code_id_2],
+        project_id=project["project_id"]
+    )
+    response = client.post("/batch_annotations/", json=batch_annotation_create.model_dump())
+    
+    # Check the response
+    assert response.status_code == 200
+    created_annotations = response.json()
+    assert len(created_annotations) == 4  # 2 elements * 2 codes = 4 annotations
+    
+    # Verify each created annotation
+    for annotation in created_annotations:
+        assert annotation["element_id"] in [element_id_1, element_id_2]
+        assert annotation["code_id"] in [code_id_1, code_id_2]
+        assert annotation["project_id"] == project["project_id"]
+        assert "id" in annotation
+        assert annotation["code"] is not None
+        assert annotation["code"]["term"] in ["Code 1", "Code 2"]
