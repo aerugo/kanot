@@ -54,6 +54,95 @@ def test_update_project(client, create_project):
     assert data["project_description"] == updated_description
     assert data["project_id"] == project_id
 
+def test_update_code_type(client, create_code_type):
+    code_type = create_code_type()
+    type_id = code_type["type_id"]
+
+    updated_name = "Updated Code Type"
+    response = client.put(
+        f"/code_types/{type_id}",
+        json={"type_name": updated_name, "project_id": code_type["project_id"]}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["type_name"] == updated_name
+    assert data["type_id"] == type_id
+
+def test_update_code(client, create_code):
+    code = create_code()
+    code_id = code["code_id"]
+
+    updated_term = "Updated Code"
+    updated_description = "This code has been updated"
+    response = client.put(
+        f"/codes/{code_id}",
+        json={"term": updated_term, "description": updated_description}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["term"] == updated_term
+    assert data["description"] == updated_description
+    assert data["code_id"] == code_id
+
+def test_update_series(client, create_series):
+    series = create_series()
+    series_id = series["series_id"]
+
+    updated_title = "Updated Series"
+    response = client.put(
+        f"/series/{series_id}",
+        json={"series_title": updated_title}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["series_title"] == updated_title
+    assert data["series_id"] == series_id
+
+def test_update_segment(client, create_segment):
+    segment = create_segment()
+    segment_id = segment["segment_id"]
+
+    updated_title = "Updated Segment"
+    response = client.put(
+        f"/segments/{segment_id}",
+        json={"segment_title": updated_title}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["segment_title"] == updated_title
+    assert data["segment_id"] == segment_id
+
+def test_update_element(client, create_element):
+    element = create_element()
+    element_id = element["element_id"]
+
+    updated_text = "Updated Element Text"
+    response = client.put(
+        f"/elements/{element_id}",
+        json={"element_text": updated_text}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["element_text"] == updated_text
+    assert data["element_id"] == element_id
+
+def test_update_annotation(client, create_annotation):
+    annotation = create_annotation()
+    annotation_id = annotation["annotation_id"]
+
+    # Create a new code to update the annotation with
+    new_code = create_code()
+    new_code_id = new_code["code_id"]
+
+    response = client.put(
+        f"/annotations/{annotation_id}",
+        json={"code_id": new_code_id}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["code_id"] == new_code_id
+    assert data["annotation_id"] == annotation_id
+
 def test_delete_project(client, create_project):
     project = create_project()
     project_id = project["project_id"]
