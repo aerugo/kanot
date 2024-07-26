@@ -503,15 +503,15 @@ def read_elements(
     return [ElementResponse.model_validate({
         "id": element.element_id,
         "element_id": element.element_id,
-        "element_text": element.element_text or "",
+        "element_text": element.element_text,
         "segment_id": element.segment_id,
         "project_id": element.project_id,
         "segment": SegmentResponse.model_validate({
-            "id": element.segment.segment_id if element.segment else None,
-            "segment_id": element.segment.segment_id if element.segment else None,
-            "segment_title": element.segment.segment_title if element.segment else "",
-            "series_id": element.segment.series_id if element.segment else None,
-            "project_id": element.segment.project_id if element.segment else None,
+            "id": element.segment.segment_id,
+            "segment_id": element.segment.segment_id,
+            "segment_title": element.segment.segment_title,
+            "series_id": element.segment.series_id,
+            "project_id": element.segment.project_id,
             "series": None
         }) if element.segment else None,
         "annotations": []
@@ -641,26 +641,26 @@ def read_annotation(
     if annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     return AnnotationResponse(
-        id=annotation["annotation_id"],
-        element_id=annotation["element_id"],
-        code_id=annotation["code_id"],
-        project_id=annotation["project_id"],
+        id=annotation.annotation_id,
+        element_id=annotation.element_id,
+        code_id=annotation.code_id,
+        project_id=annotation.project_id,
         code=CodeResponse(
-            id=annotation["code"]["code_id"],
-            code_id=annotation["code"]["code_id"],
-            term=annotation["code"]["term"],
-            description=annotation["code"]["description"],
-            type_id=annotation["code"]["type_id"],
-            reference=annotation["code"]["reference"],
-            coordinates=annotation["code"]["coordinates"],
-            project_id=annotation["code"]["project_id"],
+            id=annotation.code.code_id,
+            code_id=annotation.code.code_id,
+            term=annotation.code.term,
+            description=annotation.code.description,
+            type_id=annotation.code.type_id,
+            reference=annotation.code.reference,
+            coordinates=annotation.code.coordinates,
+            project_id=annotation.code.project_id,
             code_type=CodeTypeResponse(
-                id=annotation["code"]["code_type"]["type_id"],
-                type_id=annotation["code"]["code_type"]["type_id"],
-                type_name=annotation["code"]["code_type"]["type_name"],
-                project_id=annotation["code"]["code_type"]["project_id"]
-            ) if annotation["code"]["code_type"] else None
-        ) if annotation["code"] else None
+                id=annotation.code.code_type.type_id,
+                type_id=annotation.code.code_type.type_id,
+                type_name=annotation.code.code_type.type_name,
+                project_id=annotation.code.code_type.project_id
+            ) if annotation.code.code_type else None
+        ) if annotation.code else None
     )
 
 @router.put("/annotations/{annotation_id}", response_model=AnnotationResponse)
