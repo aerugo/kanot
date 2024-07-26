@@ -1,5 +1,6 @@
+from typing import Any, Callable, Dict
+
 import pytest
-from typing import Callable, Dict, Any
 from fastapi.testclient import TestClient
 
 
@@ -300,7 +301,7 @@ def test_search_elements(client: TestClient, create_element: Callable[..., Dict[
     create_element("Test Element for Search")
     response = client.get("/search_elements/?search_term=Test")
     assert response.status_code == 200
-    data = response.json()
+    data: list[Any] = response.json()
     assert isinstance(data, list)
     assert len(data) > 0
     assert "element_id" in data[0]

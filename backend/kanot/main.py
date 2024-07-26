@@ -294,7 +294,7 @@ def update_project(
     updated_project = db_manager.update_project(project_id, project.project_title, project.project_description)
     if updated_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    return updated_project
+    return ProjectResponse.model_validate(updated_project)
 
 @router.delete("/projects/{project_id}")
 def delete_project(
