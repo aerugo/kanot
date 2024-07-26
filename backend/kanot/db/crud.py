@@ -119,13 +119,13 @@ class DatabaseManager:
                 try:
                     session.commit()
                     session.refresh(project)
-                    return project
+                    return session.query(Project).get(project_id)
                 except IntegrityError:
                     session.rollback()
                     logger.error(
                         f"Failed to update Project with ID {project_id} due to a unique constraint violation."
                     )
-            session.close()
+            return None
 
     def delete_project(self, project_id: int) -> None:
         with self.get_session() as session:
