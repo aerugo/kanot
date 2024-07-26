@@ -321,7 +321,24 @@ def update_code(
     updated_code = db_manager.read_code(code_id)
     if updated_code is None:
         raise HTTPException(status_code=404, detail="Code not found")
-    return CodeResponse.model_validate(updated_code)
+    # Convert SQLAlchemy model to dictionary
+    code_dict = {
+        "id": updated_code.code_id,
+        "code_id": updated_code.code_id,
+        "term": updated_code.term,
+        "description": updated_code.description,
+        "type_id": updated_code.type_id,
+        "reference": updated_code.reference,
+        "coordinates": updated_code.coordinates,
+        "project_id": updated_code.project_id,
+        "code_type": {
+            "id": updated_code.code_type.type_id,
+            "type_id": updated_code.code_type.type_id,
+            "type_name": updated_code.code_type.type_name,
+            "project_id": updated_code.code_type.project_id
+        } if updated_code.code_type else None
+    }
+    return CodeResponse.model_validate(code_dict)
 
 @router.delete("/codes/{code_id}")
 def delete_code(
