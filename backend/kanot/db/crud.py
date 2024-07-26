@@ -217,7 +217,7 @@ class DatabaseManager:
                 )
                 session.add(new_code)
                 session.commit()
-                session.refresh(new_code)
+                session.refresh(new_code, ['code_type'])
                 return new_code
             except IntegrityError:
                 session.rollback()
