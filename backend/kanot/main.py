@@ -566,7 +566,10 @@ def create_annotation(
     new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
     if new_annotation is None:
         raise HTTPException(status_code=400, detail="Failed to create annotation")
-    return AnnotationResponse.model_validate(new_annotation)
+    try:
+        return AnnotationResponse.model_validate(new_annotation)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error validating annotation: {str(e)}")
 
 @router.post("/batch_annotations/", response_model=List[AnnotationResponse])
 def create_batch_annotations(

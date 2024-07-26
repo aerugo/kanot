@@ -359,28 +359,30 @@ class DatabaseManager:
         self, segment_title: Optional[str], series_id: int, project_id: int
     ) -> Segment | None:
         with self.get_session() as session:
-            new_segment = Segment(
-                segment_title=segment_title, series_id=series_id, project_id=project_id
-            )
             try:
+                existing_segment = session.query(Segment).filter_by(
+                    segment_title=segment_title,
+                    series_id=series_id,
+                    project_id=project_id
+                ).first()
+                if existing_segment:
+                    logger.info(f"Segment with segment_title={segment_title} already exists. Returning existing segment.")
+                    return existing_segment
+
+                new_segment = Segment(
+                    segment_title=segment_title, series_id=series_id, project_id=project_id
+                )
                 session.add(new_segment)
                 session.commit()
                 session.refresh(new_segment)
                 # Explicitly load the related series
-                session.query(Segment).options(
+                return session.query(Segment).options(
                     joinedload(Segment.series)
                 ).filter(Segment.segment_id == new_segment.segment_id).first()
-                return new_segment
-            except IntegrityError:
-                session.rollback()
-                logger.error(f"Segment with segment_title={segment_title} already exists.")
-                return None
             except Exception as e:
                 session.rollback()
                 logger.error(f"Error creating Segment: {str(e)}")
                 raise
-            finally:
-                session.close()
 
     def read_segment(self, segment_id: int) -> Optional[Segment]:
         with self.get_session() as session:
@@ -557,18 +559,22 @@ class DatabaseManager:
                 # Fetch the annotation with its related code and code_type
                 result = (
                     session.query(Annotation)
-                    .options(joinedload(Annotation.code).joinedload(Code.code_type))
+                    .options(
+                        joinedload(Annotation.code).joinedload(Code.code_type),
+                        joinedload(Annotation.element)
+                    )
                     .filter(Annotation.annotation_id == new_annotation.annotation_id)
                     .first()
                 )
 
-                # Explicitly access the code and code_type to ensure they're loaded
                 if result:
+                    session.refresh(result)
+                    # Ensure all related objects are loaded
                     _ = result.code
                     if result.code:
                         _ = result.code.code_type
+                    _ = result.element
 
-                session.refresh(result)
                 return result
             except IntegrityError:
                 session.rollback()
@@ -580,8 +586,6 @@ class DatabaseManager:
                 session.rollback()
                 logger.error(f"Error creating annotation: {str(e)}")
                 return None
-            finally:
-                session.close()
 
     def read_annotation(self, annotation_id: int) -> Optional[Annotation]:
         with self.get_session() as session:
