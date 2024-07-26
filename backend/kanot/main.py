@@ -210,7 +210,12 @@ def update_code_type(
     updated_code_type = db_manager.read_code_type(type_id)
     if updated_code_type is None:
         raise HTTPException(status_code=404, detail="Code type not found")
-    return CodeTypeResponse.model_validate(updated_code_type)
+    return CodeTypeResponse(
+        id=updated_code_type.type_id,
+        type_id=updated_code_type.type_id,
+        type_name=updated_code_type.type_name,
+        project_id=updated_code_type.project_id
+    )
 
 @router.delete("/code_types/{type_id}")
 def delete_code_type(
