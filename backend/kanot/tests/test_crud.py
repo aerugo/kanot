@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 import pytest
 from sqlalchemy import create_engine
@@ -335,7 +335,7 @@ def test_read_all_annotations(db_manager: DatabaseManager) -> None:
     db_manager.create_annotation(2, 1, project.project_id)
     db_manager.create_annotation(2, 2, project.project_id)
     db_manager.create_annotation(3, 1, project.project_id)
-    annotations = db_manager.read_all_annotations()
+    annotations: Optional[list[Any]] = db_manager.read_all_annotations()
     assert annotations is not None
     assert len(annotations) == 5
     assert annotations[0]['element_id'] == 1
