@@ -119,8 +119,8 @@ class DatabaseManager:
                 try:
                     session.commit()
                     session.refresh(project)
-                    # Use merge to ensure we're returning an attached instance
-                    return session.merge(project)
+                    # Explicitly load the project to ensure it's attached
+                    return session.query(Project).get(project_id)
                 except IntegrityError:
                     session.rollback()
                     logger.error(
