@@ -498,6 +498,7 @@ def create_element(
         raise HTTPException(status_code=400, detail="Failed to create element")
     response = ElementResponse(
         id=new_element.element_id,
+        element_id=new_element.element_id,
         element_text=new_element.element_text,
         segment_id=new_element.segment_id,
         project_id=new_element.project_id,
@@ -803,6 +804,7 @@ def search_elements(
     # Convert SQLAlchemy model instances to Pydantic models
     return [ElementResponse(
         id=element.element_id,
+        element_id=element.element_id,
         element_text=element.element_text,
         segment_id=element.segment_id,
         project_id=element.project_id,
