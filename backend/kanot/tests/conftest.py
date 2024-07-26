@@ -36,9 +36,9 @@ def test_db():
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
-def test_client():
+def client():
     # Create a new test client for each test function
-    with app.test_client() as client:
+    with TestClient(app) as client:
         yield client
 
 @pytest.fixture(autouse=True)
