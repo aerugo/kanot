@@ -49,3 +49,13 @@ def setup_and_teardown(test_db):
     for table in reversed(Base.metadata.sorted_tables):
         test_db.execute(table.delete())
     test_db.commit()
+
+def test_database_setup(test_db):
+    """Test that the database is set up correctly."""
+    # Check if the database is empty
+    for table in Base.metadata.sorted_tables:
+        result = test_db.execute(table.select()).fetchall()
+        assert len(result) == 0, f"Table {table.name} is not empty"
+
+    # You can add more specific checks here if needed
+    assert test_db is not None, "Database session is None"
