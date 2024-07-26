@@ -301,7 +301,11 @@ def update_project(
     updated_project = db_manager.update_project(project_id, project.project_title, project.project_description)
     if updated_project is None:
         raise HTTPException(status_code=500, detail="Failed to update project")
-    return ProjectResponse.model_validate(updated_project)
+    # Fetch a fresh instance of the project to ensure it's attached to the session
+    fresh_project = db_manager.read_project(project_id)
+    if fresh_project is None:
+        raise HTTPException(status_code=500, detail="Failed to retrieve updated project")
+    return ProjectResponse.model_validate(fresh_project)
 
 @router.delete("/projects/{project_id}")
 def delete_project(
