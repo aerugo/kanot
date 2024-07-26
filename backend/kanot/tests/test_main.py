@@ -527,7 +527,7 @@ def test_update_element(client: TestClient, create_project: Callable[..., Dict[s
     element_create = ElementCreate(element_text="Initial Text", segment_id=segment_id, project_id=project["project_id"])
     element_response = client.post("/elements/", json=element_create.model_dump())
     assert element_response.status_code == 200
-    element_id = element_response.json()["element_id"]
+    element_id = element_response.json()["id"]
 
     # Update the element
     element_update = ElementUpdate(element_text="Updated Text")
