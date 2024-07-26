@@ -12,8 +12,9 @@ def test_create_project(client: TestClient, test_db: DatabaseManager):
     assert response.json()["project_description"] == "Test Description"
 
 def test_read_projects(client: TestClient, test_db: DatabaseManager):
-    test_db.create_project("Test Project 1", "Test Description 1")
-    test_db.create_project("Test Project 2", "Test Description 2")
+    with test_db.get_session() as session:
+        test_db.create_project(session, "Test Project 1", "Test Description 1")
+        test_db.create_project(session, "Test Project 2", "Test Description 2")
     
     response = client.get("/projects/")
     assert response.status_code == 200
@@ -23,8 +24,9 @@ def test_read_projects(client: TestClient, test_db: DatabaseManager):
     assert projects[1]["project_title"] == "Test Project 2"
 
 def test_read_project(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
 
     response = client.get(f"/projects/{project_id}")
     assert response.status_code == 200
@@ -32,8 +34,9 @@ def test_read_project(client: TestClient, test_db: DatabaseManager):
     assert response.json()["project_description"] == "Test Description"
 
 def test_update_project(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Old Title", "Old Description")
-    project_id = project.project_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Old Title", "Old Description")
+        project_id = project.project_id
 
     response = client.put(f"/projects/{project_id}", json={"project_title": "New Title", "project_description": "New Description"})
     assert response.status_code == 200
@@ -41,8 +44,9 @@ def test_update_project(client: TestClient, test_db: DatabaseManager):
     assert response.json()["project_description"] == "New Description"
 
 def test_delete_project(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
 
     response = client.delete(f"/projects/{project_id}")
     assert response.status_code == 200
@@ -52,8 +56,9 @@ def test_delete_project(client: TestClient, test_db: DatabaseManager):
     assert response.status_code == 404
 
 def test_create_code_type(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
 
     response = client.post("/code_types/", json={"type_name": "Test CodeType", "project_id": project_id})
     assert response.status_code == 200
@@ -61,10 +66,11 @@ def test_create_code_type(client: TestClient, test_db: DatabaseManager):
     assert response.json()["project_id"] == project_id
 
 def test_read_code_types(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
-    test_db.create_code_type("Test CodeType 1", project_id)
-    test_db.create_code_type("Test CodeType 2", project_id)
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
+        test_db.create_code_type(session, "Test CodeType 1", project_id)
+        test_db.create_code_type(session, "Test CodeType 2", project_id)
 
     response = client.get("/code_types/")
     assert response.status_code == 200
@@ -74,10 +80,11 @@ def test_read_code_types(client: TestClient, test_db: DatabaseManager):
     assert code_types[1]["type_name"] == "Test CodeType 2"
 
 def test_read_code_type(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
-    code_type = test_db.create_code_type("Test CodeType", project_id)
-    type_id = code_type.type_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
+        code_type = test_db.create_code_type(session, "Test CodeType", project_id)
+        type_id = code_type.type_id
 
     response = client.get(f"/code_types/{type_id}")
     assert response.status_code == 200
@@ -85,20 +92,22 @@ def test_read_code_type(client: TestClient, test_db: DatabaseManager):
     assert response.json()["project_id"] == project_id
 
 def test_update_code_type(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
-    code_type = test_db.create_code_type("Old CodeType", project_id)
-    type_id = code_type.type_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
+        code_type = test_db.create_code_type(session, "Old CodeType", project_id)
+        type_id = code_type.type_id
 
     response = client.put(f"/code_types/{type_id}", json={"type_name": "New CodeType", "project_id": project_id})
     assert response.status_code == 200
     assert response.json()["type_name"] == "New CodeType"
 
 def test_delete_code_type(client: TestClient, test_db: DatabaseManager):
-    project = test_db.create_project("Test Project", "Test Description")
-    project_id = project.project_id
-    code_type = test_db.create_code_type("Test CodeType", project_id)
-    type_id = code_type.type_id
+    with test_db.get_session() as session:
+        project = test_db.create_project(session, "Test Project", "Test Description")
+        project_id = project.project_id
+        code_type = test_db.create_code_type(session, "Test CodeType", project_id)
+        type_id = code_type.type_id
 
     response = client.delete(f"/code_types/{type_id}")
     assert response.status_code == 200

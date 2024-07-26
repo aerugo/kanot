@@ -5,6 +5,7 @@ from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from ..db.schema import Base
+from ..db.crud import DatabaseManager
 from ..main import app, get_db
 
 # Setup test database
@@ -17,11 +18,7 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    return DatabaseManager(engine)
 
 @pytest.fixture(scope="function")
 def test_db():
@@ -31,7 +28,8 @@ def test_db():
     # Override the dependency
     app.dependency_overrides[get_db] = override_get_db
     
-    yield TestingSessionLocal()
+    db_manager = DatabaseManager(engine)
+    yield db_manager
     
     # Drop the test database after the test
     Base.metadata.drop_all(bind=engine)
@@ -47,6 +45,7 @@ def setup_and_teardown(test_db):
     # This fixture will run automatically before and after each test function
     yield
     # After the test, clear all data from tables
-    for table in reversed(Base.metadata.sorted_tables):
-        test_db.execute(table.delete())
-    test_db.commit()
+    with test_db.get_session() as session:
+        for table in reversed(Base.metadata.sorted_tables):
+            session.execute(table.delete())
+        session.commit()

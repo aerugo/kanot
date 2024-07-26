@@ -251,6 +251,11 @@ def get_db(database_url: str | None = None):
     db_manager = configure_database(database_url)
     return db_manager
 
+def get_db_session():
+    db_manager = get_db()
+    with db_manager.get_session() as session:
+        yield session
+
 # ROUTER
 
 router = APIRouter()
