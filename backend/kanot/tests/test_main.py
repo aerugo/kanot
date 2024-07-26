@@ -5,39 +5,45 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from kanot.db.schema import Base
-from kanot.main import create_app
+from kanot.main import create_app, get_db
+from kanot.db.crud import DatabaseManager
 
 # Setup in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+@pytest.fixture(scope="module")
+def test_app():
+    app = create_app(SQLALCHEMY_DATABASE_URL)
+    return app
 
-Base.metadata.create_all(bind=engine)
+@pytest.fixture(scope="module")
+def test_client(test_app):
+    return TestClient(test_app)
 
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app = create_app(SQLALCHEMY_DATABASE_URL)
-
-client = TestClient(app)
-
-@pytest.fixture(autouse=True)
-def setup_database():
+@pytest.fixture(scope="function")
+def db_manager():
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    db_manager = DatabaseManager(engine)
     Base.metadata.create_all(bind=engine)
-    yield
+    yield db_manager
     Base.metadata.drop_all(bind=engine)
 
-def test_create_project():
-    response = client.post(
+@pytest.fixture(scope="function")
+def override_get_db(db_manager):
+    def _override_get_db():
+        return db_manager
+    return _override_get_db
+
+@pytest.fixture(autouse=True)
+def app_with_db(test_app, override_get_db):
+    test_app.dependency_overrides[get_db] = override_get_db
+
+def test_create_project(test_client):
+    response = test_client.post(
         "/projects/",
         json={"project_title": "Test Project", "project_description": "This is a test project"}
     )
