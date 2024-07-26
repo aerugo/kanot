@@ -559,7 +559,7 @@ def update_element(
     if updated_element is None:
         raise HTTPException(status_code=404, detail="Element not found")
     return ElementResponse(
-        id=updated_element.element_id,
+        element_id=updated_element.element_id,
         element_text=updated_element.element_text,
         segment_id=updated_element.segment_id,
         project_id=updated_element.project_id,
