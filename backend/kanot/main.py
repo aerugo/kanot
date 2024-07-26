@@ -556,7 +556,23 @@ def create_annotation(
         new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
         if new_annotation is None:
             raise HTTPException(status_code=400, detail="Failed to create annotation")
-        return AnnotationResponse.model_validate(new_annotation.__dict__)
+        return AnnotationResponse(
+            id=new_annotation.annotation_id,
+            element_id=new_annotation.element_id,
+            code_id=new_annotation.code_id,
+            project_id=new_annotation.project_id,
+            code=CodeResponse(
+                id=new_annotation.code.code_id,
+                code_id=new_annotation.code.code_id,
+                term=new_annotation.code.term,
+                description=new_annotation.code.description,
+                type_id=new_annotation.code.type_id,
+                reference=new_annotation.code.reference,
+                coordinates=new_annotation.code.coordinates,
+                project_id=new_annotation.code.project_id,
+                code_type=None
+            ) if new_annotation.code else None
+        )
     except Exception as e:
         logger.error(f"Error creating annotation: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating annotation: {str(e)}")
@@ -598,7 +614,23 @@ def read_annotations(
 ) -> List[AnnotationResponse]:
     annotations = db_manager.read_all_annotations()
     assert annotations is not None
-    return [AnnotationResponse.model_validate(annotation.__dict__) for annotation in annotations]
+    return [AnnotationResponse(
+        id=annotation.annotation_id,
+        element_id=annotation.element_id,
+        code_id=annotation.code_id,
+        project_id=annotation.project_id,
+        code=CodeResponse(
+            id=annotation.code.code_id,
+            code_id=annotation.code.code_id,
+            term=annotation.code.term,
+            description=annotation.code.description,
+            type_id=annotation.code.type_id,
+            reference=annotation.code.reference,
+            coordinates=annotation.code.coordinates,
+            project_id=annotation.code.project_id,
+            code_type=None
+        ) if annotation.code else None
+    ) for annotation in annotations]
 
 @router.get("/annotations/{annotation_id}", response_model=AnnotationResponse)
 def read_annotation(
