@@ -715,7 +715,12 @@ def create_app(database_url: str | None = None):
         allow_headers=["*"],
     )
 
-    configure_database(database_url)
+    db_manager = configure_database(database_url)
+    
+    def get_db():
+        return db_manager
+
+    app.dependency_overrides[get_db] = get_db
         
     app.include_router(router)
 
