@@ -8,10 +8,19 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from sqlalchemy import create_engine
 
 from .db.crud import DatabaseManager
+from .models import (
+    ProjectCreate, ProjectUpdate, ProjectResponse,
+    CodeTypeCreate, CodeTypeUpdate, CodeTypeResponse,
+    CodeCreate, CodeUpdate, CodeResponse,
+    SeriesCreate, SeriesUpdate, SeriesResponse,
+    SegmentCreate, SegmentUpdate, SegmentResponse,
+    ElementCreate, ElementUpdate, ElementResponse,
+    AnnotationCreate, AnnotationUpdate, AnnotationResponse,
+    BatchAnnotationCreate, BatchAnnotationRemove
+)
 
 # LOGGING
 
@@ -42,195 +51,6 @@ dictConfig(log_config)
 
 # Initialize logger
 logger = logging.getLogger("kanot")
-
-# PYDANTIC MODELS
-
-# Pydantic models
-class ProjectBase(BaseModel):
-    project_title: str
-    project_description: str | None = None
-
-class ProjectCreate(ProjectBase):
-    pass
-
-class ProjectUpdate(BaseModel):
-    project_title: str | None = None
-    project_description: str | None = None
-
-class ProjectResponse(ProjectBase):
-    project_id: int
-
-    model_config = {
-        "from_attributes": True
-    }
-
-class CodeTypeBase(BaseModel):
-    type_id: int
-    project_id: int
-
-class CodeTypeCreate(BaseModel):
-    type_name: str
-    project_id: int
-
-class CodeTypeUpdate(BaseModel):
-    type_name: Optional[str] = None
-
-class CodeBase(BaseModel):
-    term: str
-    description: str
-    type_id: int
-    reference: str
-    coordinates: str
-    project_id: int
-
-class CodeCreate(CodeBase):
-    pass
-
-class CodeUpdate(BaseModel):
-    term: Optional[str] = None
-    description: Optional[str] = None
-    type_id: Optional[int] = None
-    reference: Optional[str] = None
-    coordinates: Optional[str] = None
-
-class SeriesBase(BaseModel):
-    series_id: int
-    series_title: str
-    project_id: int
-
-class SeriesCreate(BaseModel):
-    series_title: str
-    project_id: int
-
-class SeriesUpdate(BaseModel):
-    series_title: Optional[str] = ""
-
-class SegmentBase(BaseModel):
-    segment_id: int
-    segment_title: str
-    series_id: int
-    project_id: int
-
-class SegmentCreate(BaseModel):
-    segment_title: str
-    series_id: int
-    project_id: int
-
-class SegmentUpdate(BaseModel):
-    segment_title: Optional[str] = None
-
-class ElementBase(BaseModel):
-    element_text: str
-    segment_id: int
-    project_id: int
-
-class ElementCreate(ElementBase):
-    pass
-
-class ElementUpdate(BaseModel):
-    element_text: Optional[str] = None
-    segment_id: Optional[int] = None
-
-class ElementResponse(BaseModel):
-    element_id: int
-    element_text: Optional[str] = None
-    segment_id: int
-    project_id: int
-    segment: Optional[SegmentResponse] = None
-    annotations: List[AnnotationResponseNoElement] = []
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class SegmentResponse(BaseModel):
-    segment_id: int
-    segment_title: str
-    series_id: int
-    project_id: int
-    series: Optional[SeriesResponse] = None
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class SeriesResponse(BaseModel):
-    series_id: int
-    series_title: str
-    project_id: int
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class CodeTypeResponse(BaseModel):
-    type_id: int
-    type_name: str
-    project_id: int
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class CodeResponse(BaseModel):
-    code_id: int
-    term: str
-    description: Optional[str] = None
-    type_id: Optional[int] = None
-    code_type: Optional[CodeTypeResponse] = None
-    reference: Optional[str] = None
-    coordinates: Optional[str] = None
-    project_id: int
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class AnnotationResponseNoElement(BaseModel):
-    annotation_id: int
-    code: Optional[CodeResponse] = None
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True
-    }
-
-class AnnotationBase(BaseModel):
-    element_id: int
-    code_id: int
-    project_id: int
-
-class AnnotationCreate(AnnotationBase):
-    pass
-
-class BatchAnnotationCreate(BaseModel):
-    project_id: int
-    element_ids: List[int]
-    code_ids: List[int]
-
-class BatchAnnotationRemove(BaseModel):
-    element_ids: List[int]
-    code_ids: List[int]
-
-class AnnotationUpdate(BaseModel):
-    element_id: Optional[int] = None
-    code_id: Optional[int] = None
-
-class AnnotationResponse(BaseModel):
-    annotation_id: int
-    element_id: int
-    code_id: int
-    code: Optional[CodeResponse]
-
-    model_config = {
-        "from_attributes": True
-    }
-
 
 # DATABASE
 
