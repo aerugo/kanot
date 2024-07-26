@@ -98,6 +98,8 @@ def create_project(
     project: ProjectCreate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ProjectResponse:
+    if not project.project_title:
+        raise HTTPException(status_code=422, detail="Project title cannot be empty")
     new_project = db_manager.create_project(project.project_title, project.project_description)
     if new_project is None:
         raise HTTPException(status_code=400, detail="Failed to create project")
@@ -123,7 +125,12 @@ def read_project(
     project = db_manager.read_project(project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    return ProjectResponse.model_validate(project)
+    return ProjectResponse(
+        id=project.project_id,
+        project_id=project.project_id,
+        project_title=project.project_title,
+        project_description=project.project_description
+    )
 
 @router.put("/projects/{project_id}", response_model=ProjectResponse)
 def update_project(
@@ -159,7 +166,8 @@ def create_code_type(
     return CodeTypeResponse(
         id=new_code_type.type_id,
         project_id=new_code_type.project_id,
-        type_name=new_code_type.type_name
+        type_name=new_code_type.type_name,
+        type_id=new_code_type.type_id
     )
 
 @router.get("/code_types/", response_model=List[CodeTypeResponse])
@@ -264,7 +272,11 @@ def create_series(
     new_series = db_manager.create_series(series.series_title, series.project_id)
     if new_series is None:
         raise HTTPException(status_code=400, detail="Failed to create series")
-    return SeriesResponse.model_validate(new_series)
+    return SeriesResponse(
+        id=new_series.series_id,
+        project_id=new_series.project_id,
+        series_title=new_series.series_title
+    )
 
 @router.get("/series/", response_model=List[SeriesResponse])
 def read_all_series(
