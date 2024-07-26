@@ -1,12 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from kanot.db.crud import DatabaseManager
 from kanot.db.schema import Base
 from kanot.main import create_app, get_db
-from kanot.db.crud import DatabaseManager
 
 # Setup in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -33,13 +32,13 @@ def db_manager():
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
-def override_get_db(db_manager):
+def override_get_db(db_manager: DatabaseManager):
     def _override_get_db():
         return db_manager
     return _override_get_db
 
 @pytest.fixture(autouse=True)
-def app_with_db(test_app, override_get_db):
+def app_with_db(test_app: TestClient, override_get_db):
     test_app.dependency_overrides[get_db] = override_get_db
 
 def test_create_project(test_client):
