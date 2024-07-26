@@ -622,9 +622,13 @@ class DatabaseManager:
     def read_annotation(self, annotation_id: int) -> Optional[Annotation]:
         with self.get_session() as session:
             annotation: Optional[Annotation] = (
-                session.query(Annotation).filter_by(annotation_id=annotation_id).first()
+                session.query(Annotation)
+                .options(joinedload(Annotation.code))
+                .filter_by(annotation_id=annotation_id)
+                .first()
             )
-            session.close()
+            if annotation:
+                session.expunge(annotation)
             return annotation
 
     def read_all_annotations(self) -> Optional[list[Annotation]]:
