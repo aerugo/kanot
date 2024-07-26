@@ -9,62 +9,6 @@ SQLALCHEMY_DATABASE_URL = "sqlite://"
 app = create_app(SQLALCHEMY_DATABASE_URL)
 client = TestClient(app)
 
-def create_project(client, title="Test Project", description="This is a test project"):
-    response = client.post(
-        "/projects/",
-        json={"project_title": title, "project_description": description}
-    )
-    return response.json()
-
-def create_code_type(client, type_name, project_id):
-    response = client.post(
-        "/code_types/",
-        json={"type_name": type_name, "project_id": project_id}
-    )
-    return response.json()
-
-def create_code(client, term, description, type_id, reference, coordinates, project_id):
-    response = client.post(
-        "/codes/",
-        json={
-            "term": term,
-            "description": description,
-            "type_id": type_id,
-            "reference": reference,
-            "coordinates": coordinates,
-            "project_id": project_id
-        }
-    )
-    return response.json()
-
-def create_series(client, title, project_id):
-    response = client.post(
-        "/series/",
-        json={"series_title": title, "project_id": project_id}
-    )
-    return response.json()
-
-def create_segment(client, title, series_id, project_id):
-    response = client.post(
-        "/segments/",
-        json={"segment_title": title, "series_id": series_id, "project_id": project_id}
-    )
-    return response.json()
-
-def create_element(client, text, segment_id, project_id):
-    response = client.post(
-        "/elements/",
-        json={"element_text": text,  "segment_id": segment_id, "project_id": project_id}
-    )
-    return response.json()
-
-def create_annotation(client, element_id, code_id, project_id):
-    response = client.post(
-        "/annotations/",
-        json={"element_id": element_id, "code_id": code_id, "project_id": project_id}
-    )
-    return response.json()
-
 def test_create_project():
     response = client.post(
         "/projects/",
@@ -77,45 +21,70 @@ def test_create_project():
     assert "project_id" in data
 
 def test_read_project():
-    project = create_project(client, "Test Project 2", "This is another test project")
-    project_id = project["project_id"]
+    # First, create a project
+    create_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 2", "project_description": "This is another test project"}
+    )
+    create_data = create_response.json()
+    project_id = create_data["project_id"]
 
-    response = client.get(f"/projects/{project_id}")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["project_title"] == "Test Project 2"
-    assert data["project_description"] == "This is another test project"
-    assert data["project_id"] == project_id
+    # Then, read the project
+    read_response = client.get(f"/projects/{project_id}")
+    assert read_response.status_code == 200
+    read_data = read_response.json()
+    assert read_data["project_title"] == "Test Project 2"
+    assert read_data["project_description"] == "This is another test project"
+    assert read_data["project_id"] == project_id
 
 def test_update_project():
-    project = create_project(client, "Test Project 3", "This is yet another test project")
-    project_id = project["project_id"]
+    # First, create a project
+    create_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 3", "project_description": "This is yet another test project"}
+    )
+    create_data = create_response.json()
+    project_id = create_data["project_id"]
 
-    response = client.put(
+    # Then, update the project
+    update_response = client.put(
         f"/projects/{project_id}",
         json={"project_title": "Updated Test Project 3", "project_description": "This project has been updated"}
     )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["project_title"] == "Updated Test Project 3"
-    assert data["project_description"] == "This project has been updated"
-    assert data["project_id"] == project_id
+    assert update_response.status_code == 200
+    update_data = update_response.json()
+    assert update_data["project_title"] == "Updated Test Project 3"
+    assert update_data["project_description"] == "This project has been updated"
+    assert update_data["project_id"] == project_id
 
 def test_delete_project():
-    project = create_project(client, "Test Project 4", "This project will be deleted")
-    project_id = project["project_id"]
+    # First, create a project
+    create_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 4", "project_description": "This project will be deleted"}
+    )
+    create_data = create_response.json()
+    project_id = create_data["project_id"]
 
-    response = client.delete(f"/projects/{project_id}")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Project deleted successfully"}
+    # Then, delete the project
+    delete_response = client.delete(f"/projects/{project_id}")
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {"message": "Project deleted successfully"}
 
-    response = client.get(f"/projects/{project_id}")
-    assert response.status_code == 404
+    # Verify that the project no longer exists
+    read_response = client.get(f"/projects/{project_id}")
+    assert read_response.status_code == 404
 
 def test_create_code_type():
-    project = create_project(client, "Test Project 5", "Project for code type test")
-    project_id = project["project_id"]
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 5", "project_description": "Project for code type test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
+    # Then, create a code type
     response = client.post(
         "/code_types/",
         json={"type_name": "Test Code Type", "project_id": project_id}
@@ -127,12 +96,23 @@ def test_create_code_type():
     assert "type_id" in data
 
 def test_create_code():
-    project = create_project(client, "Test Project 6", "Project for code test")
-    project_id = project["project_id"]
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 6", "project_description": "Project for code test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
-    code_type = create_code_type(client, "Test Code Type 2", project_id)
-    type_id = code_type["type_id"]
+    # Then, create a code type
+    code_type_response = client.post(
+        "/code_types/",
+        json={"type_name": "Test Code Type 2", "project_id": project_id}
+    )
+    code_type_data = code_type_response.json()
+    type_id = code_type_data["type_id"]
 
+    # Finally, create a code
     response = client.post(
         "/codes/",
         json={
@@ -154,6 +134,8 @@ def test_create_code():
     assert data["project_id"] == project_id
     assert "code_id" in data
 
+# Add more tests for other endpoints as needed
+
 def test_read_code_types():
     response = client.get("/code_types/")
     assert response.status_code == 200
@@ -165,9 +147,15 @@ def test_read_codes():
     assert isinstance(response.json(), list)
 
 def test_create_series():
-    project = create_project(client, "Test Project 7", "Project for series test")
-    project_id = project["project_id"]
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 7", "project_description": "Project for series test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
+    # Then, create a series
     response = client.post(
         "/series/",
         json={"series_title": "Test Series", "project_id": project_id}
@@ -179,12 +167,26 @@ def test_create_series():
     assert "series_id" in data
 
 def test_create_segment():
-    project = create_project(client, "Test Project 8", "Project for segment test")
-    project_id = project["project_id"]
+    print("!!!!!!!!!Creating segment")
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 8", "project_description": "Project for segment test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
-    series = create_series(client, "Test Series 2", project_id)
-    series_id = series["series_id"]
+    print(f"Project ID: {project_id}")
 
+    # Then, create a series
+    series_response = client.post(
+        "/series/",
+        json={"series_title": "Test Series 2", "project_id": project_id}
+    )
+    series_data = series_response.json()
+    series_id = series_data["series_id"]
+
+    # Finally, create a segment
     response = client.post(
         "/segments/",
         json={"segment_title": "Test Segment", "series_id": series_id, "project_id": project_id}
@@ -197,15 +199,31 @@ def test_create_segment():
     assert "segment_id" in data
 
 def test_create_element():
-    project = create_project(client, "Test Project 9", "Project for element test")
-    project_id = project["project_id"]
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 9", "project_description": "Project for element test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
-    series = create_series(client, "Test Series 3", project_id)
-    series_id = series["series_id"]
+    # Then, create a series
+    series_response = client.post(
+        "/series/",
+        json={"series_title": "Test Series 3", "project_id": project_id}
+    )
+    series_data = series_response.json()
+    series_id = series_data["series_id"]
 
-    segment = create_segment(client, "Test Segment 2", series_id, project_id)
-    segment_id = segment["segment_id"]
+    # Create a segment
+    segment_response = client.post(
+        "/segments/",
+        json={"segment_title": "Test Segment 2", "series_id": series_id, "project_id": project_id}
+    )
+    segment_data = segment_response.json()
+    segment_id = segment_data["segment_id"]
 
+    # Finally, create an element
     response = client.post(
         "/elements/",
         json={"element_text": "Test Element", "segment_id": segment_id, "project_id": project_id}
@@ -218,24 +236,46 @@ def test_create_element():
     assert "element_id" in data
 
 def test_create_annotation():
-    project = create_project(client, "Test Project 10", "Project for annotation test")
-    project_id = project["project_id"]
+    # First, create a project
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 10", "project_description": "Project for annotation test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
-    code_type = create_code_type(client, "Test Code Type 3", project_id)
-    type_id = code_type["type_id"]
+    # Create a code type
+    code_type_response = client.post(
+        "/code_types/",
+        json={"type_name": "Test Code Type 3", "project_id": project_id}
+    )
+    code_type_data = code_type_response.json()
+    type_id = code_type_data["type_id"]
 
-    code = create_code(client, "Test Code 2", "This is another test code", type_id, "Test reference 2", "Test coordinates 2", project_id)
-    code_id = code["code_id"]
+    # Create a code
+    code_response = client.post(
+        "/codes/",
+        json={
+            "term": "Test Code 2",
+            "description": "This is another test code",
+            "type_id": type_id,
+            "reference": "Test reference 2",
+            "coordinates": "Test coordinates 2",
+            "project_id": project_id
+        }
+    )
+    code_data = code_response.json()
+    code_id = code_data["code_id"]
 
-    series = create_series(client, "Test Series 4", project_id)
-    series_id = series["series_id"]
+    # Create an element
+    element_response = client.post(
+        "/elements/",
+        json={"element_text": "Test Element 2", "segment_id": 1, "project_id": project_id}
+    )
+    element_data = element_response.json()
+    element_id = element_data["element_id"]
 
-    segment = create_segment(client, "Test Segment 3", series_id, project_id)
-    segment_id = segment["segment_id"]
-
-    element = create_element(client, "Test Element 2", segment_id, project_id)
-    element_id = element["element_id"]
-
+    # Finally, create an annotation
     response = client.post(
         "/annotations/",
         json={"element_id": element_id, "code_id": code_id, "project_id": project_id}
@@ -247,17 +287,6 @@ def test_create_annotation():
     assert "annotation_id" in data
 
 def test_search_elements():
-    project = create_project(client, "Test Project 11", "Project for search test")
-    project_id = project["project_id"]
-
-    series = create_series(client, "Test Series 5", project_id)
-    series_id = series["series_id"]
-
-    segment = create_segment(client, "Test Segment 4", series_id, project_id)
-    segment_id = segment["segment_id"]
-
-    create_element(client, "Test Element for Search", segment_id, project_id)
-
     response = client.get("/search_elements/?search_term=Test")
     assert response.status_code == 200
     data = response.json()
@@ -267,26 +296,60 @@ def test_search_elements():
     assert "element_text" in data[0]
 
 def test_merge_codes():
-    project = create_project(client, "Test Project 12", "Project for merge codes test")
-    project_id = project["project_id"]
+    # First, create two codes
+    project_response = client.post(
+        "/projects/",
+        json={"project_title": "Test Project 11", "project_description": "Project for merge codes test"}
+    )
+    project_data = project_response.json()
+    project_id = project_data["project_id"]
 
-    code_type = create_code_type(client, "Test Code Type 4", project_id)
-    type_id = code_type["type_id"]
+    code_type_response = client.post(
+        "/code_types/",
+        json={"type_name": "Test Code Type 4", "project_id": project_id}
+    )
+    code_type_data = code_type_response.json()
+    type_id = code_type_data["type_id"]
 
-    code1 = create_code(client, "Test Code 3", "This is a test code for merging", type_id, "Test reference 3", "Test coordinates 3", project_id)
-    code1_id = code1["code_id"]
+    code1_response = client.post(
+        "/codes/",
+        json={
+            "term": "Test Code 3",
+            "description": "This is a test code for merging",
+            "type_id": type_id,
+            "reference": "Test reference 3",
+            "coordinates": "Test coordinates 3",
+            "project_id": project_id
+        }
+    )
+    code1_data = code1_response.json()
+    code1_id = code1_data["code_id"]
 
-    code2 = create_code(client, "Test Code 4", "This is another test code for merging", type_id, "Test reference 4", "Test coordinates 4", project_id)
-    code2_id = code2["code_id"]
+    code2_response = client.post(
+        "/codes/",
+        json={
+            "term": "Test Code 4",
+            "description": "This is another test code for merging",
+            "type_id": type_id,
+            "reference": "Test reference 4",
+            "coordinates": "Test coordinates 4",
+            "project_id": project_id
+        }
+    )
+    code2_data = code2_response.json()
+    code2_id = code2_data["code_id"]
 
+    # Then, merge the codes
     response = client.post(f"/merge_codes/?code_a_id={code1_id}&code_b_id={code2_id}")
     assert response.status_code == 200
     data = response.json()
     assert "message" in data
     assert f"Successfully merged Code {code1_id} into Code {code2_id}" in data["message"]
 
-    response = client.get(f"/codes/{code1_id}")
-    assert response.status_code == 404
+    # Verify that code1 no longer exists
+    code1_get_response = client.get(f"/codes/{code1_id}")
+    assert code1_get_response.status_code == 404
 
-    response = client.get(f"/codes/{code2_id}")
-    assert response.status_code == 200
+    # Verify that code2 still exists
+    code2_get_response = client.get(f"/codes/{code2_id}")
+    assert code2_get_response.status_code == 200
