@@ -729,6 +729,10 @@ def create_app(database_url: str | None = None):
 
 app = create_app()
 
+# This function is for testing purposes
+def create_test_app(database_url: str):
+    return create_app(database_url)
+
 if __name__ == "__main__":
     import uvicorn  # type: ignore
     uvicorn.run(app, host="0.0.0.0", port=8000)
