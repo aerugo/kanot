@@ -619,17 +619,36 @@ class DatabaseManager:
             finally:
                 session.close()
 
-    def read_annotation(self, annotation_id: int) -> Optional[Annotation]:
+    def read_annotation(self, annotation_id: int) -> Optional[dict]:
         with self.get_session() as session:
             annotation: Optional[Annotation] = (
                 session.query(Annotation)
-                .options(joinedload(Annotation.code))
+                .options(joinedload(Annotation.code).joinedload(Code.code_type))
                 .filter_by(annotation_id=annotation_id)
                 .first()
             )
             if annotation:
-                session.expunge(annotation)
-            return annotation
+                return {
+                    "annotation_id": annotation.annotation_id,
+                    "element_id": annotation.element_id,
+                    "code_id": annotation.code_id,
+                    "project_id": annotation.project_id,
+                    "code": {
+                        "code_id": annotation.code.code_id,
+                        "term": annotation.code.term,
+                        "description": annotation.code.description,
+                        "type_id": annotation.code.type_id,
+                        "reference": annotation.code.reference,
+                        "coordinates": annotation.code.coordinates,
+                        "project_id": annotation.code.project_id,
+                        "code_type": {
+                            "type_id": annotation.code.code_type.type_id,
+                            "type_name": annotation.code.code_type.type_name,
+                            "project_id": annotation.code.code_type.project_id
+                        } if annotation.code.code_type else None
+                    } if annotation.code else None
+                }
+            return None
 
     def read_all_annotations(self) -> Optional[list[dict]]:
         with self.get_session() as session:

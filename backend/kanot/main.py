@@ -641,21 +641,26 @@ def read_annotation(
     if annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     return AnnotationResponse(
-        id=annotation.annotation_id,
-        element_id=annotation.element_id,
-        code_id=annotation.code_id,
-        project_id=annotation.project_id,
+        id=annotation["annotation_id"],
+        element_id=annotation["element_id"],
+        code_id=annotation["code_id"],
+        project_id=annotation["project_id"],
         code=CodeResponse(
-            id=annotation.code.code_id,
-            code_id=annotation.code.code_id,
-            term=annotation.code.term,
-            description=annotation.code.description,
-            type_id=annotation.code.type_id,
-            reference=annotation.code.reference,
-            coordinates=annotation.code.coordinates,
-            project_id=annotation.code.project_id,
-            code_type=None
-        ) if annotation.code else None
+            id=annotation["code"]["code_id"],
+            code_id=annotation["code"]["code_id"],
+            term=annotation["code"]["term"],
+            description=annotation["code"]["description"],
+            type_id=annotation["code"]["type_id"],
+            reference=annotation["code"]["reference"],
+            coordinates=annotation["code"]["coordinates"],
+            project_id=annotation["code"]["project_id"],
+            code_type=CodeTypeResponse(
+                id=annotation["code"]["code_type"]["type_id"],
+                type_id=annotation["code"]["code_type"]["type_id"],
+                type_name=annotation["code"]["code_type"]["type_name"],
+                project_id=annotation["code"]["code_type"]["project_id"]
+            ) if annotation["code"]["code_type"] else None
+        ) if annotation["code"] else None
     )
 
 @router.put("/annotations/{annotation_id}", response_model=AnnotationResponse)
