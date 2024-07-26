@@ -202,10 +202,10 @@ class DatabaseManager:
     def create_code(
         self,
         term: str,
-        description: str,
+        description: Optional[str],
         type_id: int,
-        reference: str,
-        coordinates: str,
+        reference: Optional[str],
+        coordinates: Optional[str],
         project_id: int,
     ) -> Code | None:
         with self.get_session() as session:
