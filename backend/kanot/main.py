@@ -101,7 +101,11 @@ def create_project(
     new_project = db_manager.create_project(project.project_title, project.project_description)
     if new_project is None:
         raise HTTPException(status_code=400, detail="Failed to create project")
-    return ProjectResponse.model_validate(new_project)
+    return ProjectResponse(
+        project_id=new_project.project_id,
+        project_title=new_project.project_title,
+        project_description=new_project.project_description
+    )
 
 @router.get("/projects/", response_model=List[ProjectResponse])
 def read_projects(

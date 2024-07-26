@@ -34,7 +34,7 @@ class ProjectUpdate(ProjectBase):
     project_description: Optional[str] = None
 
 class ProjectResponse(ProjectBase, ResponseModel[ProjectBase]):
-    pass
+    project_id: int
 
 class CodeTypeBase(ProjectRelatedModel):
     type_name: str
