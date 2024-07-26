@@ -669,6 +669,8 @@ def search_elements(
         element_response = ElementResponse(
             element_id=element.element_id,
             element_text=element.element_text,
+            segment_id=element.segment_id,
+            project_id=element.project_id,
             segment=SegmentResponse(
                 segment_id=element.segment.segment_id,
                 segment_title=element.segment.segment_title,
