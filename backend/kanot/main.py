@@ -89,8 +89,9 @@ class ProjectUpdate(BaseModel):
 class ProjectResponse(ProjectBase):
     project_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
 class CodeTypeBase(BaseModel):
     type_id: int
@@ -167,9 +168,10 @@ class ElementResponse(BaseModel):
     segment: Optional[SegmentResponse] = None
     annotations: List[AnnotationResponseNoElement] = []
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class SegmentResponse(BaseModel):
     segment_id: int
@@ -178,27 +180,30 @@ class SegmentResponse(BaseModel):
     project_id: int
     series: Optional[SeriesResponse] = None
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class SeriesResponse(BaseModel):
     series_id: int
     series_title: str
     project_id: int
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class CodeTypeResponse(BaseModel):
     type_id: int
     type_name: str
     project_id: int
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class CodeResponse(BaseModel):
     code_id: int
@@ -210,17 +215,19 @@ class CodeResponse(BaseModel):
     coordinates: Optional[str] = None
     project_id: int
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class AnnotationResponseNoElement(BaseModel):
     annotation_id: int
     code: Optional[CodeResponse] = None
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 class AnnotationBase(BaseModel):
     element_id: int
@@ -249,8 +256,9 @@ class AnnotationResponse(BaseModel):
     code_id: int
     code: Optional[CodeResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
         
 # API endpoints
 
