@@ -629,8 +629,7 @@ class DatabaseManager:
 
     def read_all_annotations(self) -> Optional[list[Annotation]]:
         with self.get_session() as session:
-            annotations = session.query(Annotation).all()
-            session.close()
+            annotations = session.query(Annotation).options(joinedload(Annotation.code)).all()
             return annotations
 
     def update_annotation(
