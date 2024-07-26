@@ -546,7 +546,7 @@ def read_element(
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ElementResponse:
     with db_manager.get_session() as session:
-        element = db_manager.read_element(element_id)
+        element = session.get(db_manager.Element, element_id)
         if element is None:
             raise HTTPException(status_code=404, detail="Element not found")
         
