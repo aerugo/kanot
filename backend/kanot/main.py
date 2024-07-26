@@ -467,7 +467,14 @@ def update_segment(
     updated_segment = db_manager.update_segment(segment_id, segment.segment_title)
     if updated_segment is None:
         raise HTTPException(status_code=404, detail="Segment not found")
-    return SegmentResponse.model_validate(updated_segment)
+    return SegmentResponse(
+        id=updated_segment.segment_id,
+        segment_id=updated_segment.segment_id,
+        segment_title=updated_segment.segment_title,
+        series_id=updated_segment.series_id,
+        project_id=updated_segment.project_id,
+        series=None  # We're not loading the series here to avoid potential issues
+    )
 
 @router.delete("/segments/{segment_id}")
 def delete_segment(
