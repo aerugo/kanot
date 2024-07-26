@@ -456,7 +456,19 @@ def read_segment(
     segment = db_manager.read_segment(segment_id)
     if segment is None:
         raise HTTPException(status_code=404, detail="Segment not found")
-    return SegmentResponse.model_validate(segment)
+    return SegmentResponse(
+        id=segment.segment_id,
+        segment_id=segment.segment_id,
+        segment_title=segment.segment_title,
+        series_id=segment.series_id,
+        project_id=segment.project_id,
+        series=SeriesResponse(
+            id=segment.series.series_id,
+            series_id=segment.series.series_id,
+            series_title=segment.series.series_title,
+            project_id=segment.series.project_id
+        ) if segment.series else None
+    )
 
 @router.put("/segments/{segment_id}", response_model=SegmentResponse)
 def update_segment(
