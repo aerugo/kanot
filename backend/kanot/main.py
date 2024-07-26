@@ -640,7 +640,23 @@ def read_annotation(
     annotation = db_manager.read_annotation(annotation_id)
     if annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
-    return AnnotationResponse.model_validate(annotation)
+    return AnnotationResponse(
+        id=annotation.annotation_id,
+        element_id=annotation.element_id,
+        code_id=annotation.code_id,
+        project_id=annotation.project_id,
+        code=CodeResponse(
+            id=annotation.code.code_id,
+            code_id=annotation.code.code_id,
+            term=annotation.code.term,
+            description=annotation.code.description,
+            type_id=annotation.code.type_id,
+            reference=annotation.code.reference,
+            coordinates=annotation.code.coordinates,
+            project_id=annotation.code.project_id,
+            code_type=None
+        ) if annotation.code else None
+    )
 
 @router.put("/annotations/{annotation_id}", response_model=AnnotationResponse)
 def update_annotation(
