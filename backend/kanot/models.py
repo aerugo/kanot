@@ -118,6 +118,7 @@ class AnnotationResponseMinimal(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class ElementResponse(ResponseModel[ElementBase], ElementBase):
+    element_id: int
     segment: Optional[SegmentResponse] = None
     annotations: List[AnnotationResponseMinimal] = []
 
