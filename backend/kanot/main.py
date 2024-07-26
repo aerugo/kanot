@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -103,13 +103,6 @@ class CodeTypeCreate(BaseModel):
 class CodeTypeUpdate(BaseModel):
     type_name: Optional[str] = None
 
-class CodeTypeResponse(CodeTypeBase):
-    type_id: int
-    type_name: str
-
-    class Config:
-        from_attributes = True
-
 class CodeBase(BaseModel):
     term: str
     description: str
@@ -128,18 +121,6 @@ class CodeUpdate(BaseModel):
     reference: Optional[str] = None
     coordinates: Optional[str] = None
 
-class CodeResponse(BaseModel):
-    code_id: int
-    term: str
-    description: Optional[str] = None
-    type_id: Optional[int] = None
-    code_type: Optional[CodeTypeResponse]
-    reference: Optional[str] = None
-    coordinates: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
 class SeriesBase(BaseModel):
     series_id: int
     series_title: str
@@ -151,14 +132,6 @@ class SeriesCreate(BaseModel):
 
 class SeriesUpdate(BaseModel):
     series_title: Optional[str] = ""
-
-class SeriesResponse(BaseModel):
-    series_id: int
-    series_title: str
-    project_id: int
-
-    class Config:
-        from_attributes = True
 
 class SegmentBase(BaseModel):
     segment_id: int
@@ -173,16 +146,6 @@ class SegmentCreate(BaseModel):
 
 class SegmentUpdate(BaseModel):
     segment_title: Optional[str] = None
-
-class SegmentResponse(BaseModel):
-    segment_id: int
-    segment_title: str
-    series_id: int
-    project_id: int
-    series: Optional[SeriesResponse] = None
-
-    class Config:
-        from_attributes = True
 
 class ElementBase(BaseModel):
     element_text: str
@@ -259,13 +222,6 @@ class AnnotationResponseNoElement(BaseModel):
         from_attributes = True
         populate_by_name = True
 
-class AnnotationResponseNoElement(BaseModel):
-    annotation_id: int
-    code: Optional[CodeResponse] = None
-
-    class Config:
-        from_attributes = True
-
 class AnnotationBase(BaseModel):
     element_id: int
     code_id: int
@@ -275,6 +231,7 @@ class AnnotationCreate(AnnotationBase):
     pass
 
 class BatchAnnotationCreate(BaseModel):
+    project_id: int
     element_ids: List[int]
     code_ids: List[int]
 
@@ -498,6 +455,7 @@ def delete_segment(segment_id: int, db: Session = Depends(get_db)):
 @app.post("/elements/", response_model=ElementResponse)
 def create_element(element: ElementCreate, db: Session = Depends(get_db)):
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
+    assert new_element is not None
     return ElementResponse(
         element_id=new_element.element_id,
         element_text=new_element.element_text,
@@ -519,6 +477,7 @@ def read_elements(
     db: Session = Depends(get_db)
 ):
     elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
+    assert elements is not None
     return [
         ElementResponse(
             element_id=element.element_id,
@@ -568,7 +527,7 @@ def create_batch_annotations(batch_data: BatchAnnotationCreate, db: Session = De
     new_annotations: List[AnnotationResponse] = []
     for element_id in batch_data.element_ids:
         for code_id in batch_data.code_ids:
-            annotation = db_manager.create_annotation(element_id, code_id)
+            annotation = db_manager.create_annotation(element_id, code_id, project_id=batch_data.project_id)
             if annotation:
                 new_annotations.append(annotation)
     
@@ -644,7 +603,7 @@ def search_elements(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db)
-):
+) -> List[ElementResponse]:
     series_id_list = [int(id) for id in series_ids.split(",")] if series_ids else []
     segment_id_list = [int(id) for id in segment_ids.split(",")] if segment_ids else []
     code_id_list = [int(id) for id in code_ids.split(",")] if code_ids else []
@@ -664,7 +623,7 @@ def search_elements(
     response.headers["X-Skip"] = str(skip)
     
     # Convert SQLAlchemy model instances to Pydantic models
-    elements_response = []
+    elements_responses: List[ElementResponse] = []
     for element in elements:
         element_response = ElementResponse(
             element_id=element.element_id,
@@ -702,9 +661,9 @@ def search_elements(
                 ) for annotation in element.annotations
             ]
         )
-        elements_response.append(element_response)
+        elements_responses.append(element_response)
     
-    return elements_response
+    return elements_responses
 
 
 if __name__ == "__main__":
