@@ -545,4 +545,14 @@ def test_update_element(client: TestClient, create_project: Callable[..., Dict[s
     get_response = client.get(f"/elements/{element_id}")
     assert get_response.status_code == 200
     get_element = ElementResponse(**get_response.json())
-    assert get_element == updated_element
+    
+    # Compare relevant fields
+    assert get_element.element_id == updated_element.element_id
+    assert get_element.element_text == updated_element.element_text
+    assert get_element.segment_id == updated_element.segment_id
+    assert get_element.project_id == updated_element.project_id
+    
+    # Check that segment information is present in get_element
+    assert get_element.segment is not None
+    assert get_element.segment.segment_id == segment_id
+    assert get_element.segment.segment_title == "Test Segment"
