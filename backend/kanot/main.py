@@ -539,7 +539,12 @@ def create_element(
             segment_title=new_element.segment.segment_title,
             series_id=new_element.segment.series_id,
             project_id=new_element.segment.project_id,
-            series=None
+            series=SeriesResponse(
+                id=new_element.segment.series.series_id,
+                series_id=new_element.segment.series.series_id,
+                series_title=new_element.segment.series.series_title,
+                project_id=new_element.segment.series.project_id
+            ) if new_element.segment.series else None
         ) if new_element.segment else None,
         annotations=[]
     )
@@ -566,7 +571,12 @@ def read_elements(
             "segment_title": element.segment.segment_title,
             "series_id": element.segment.series_id,
             "project_id": element.segment.project_id,
-            "series": None
+            "series": SeriesResponse.model_validate({
+                "id": element.segment.series.series_id,
+                "series_id": element.segment.series.series_id,
+                "series_title": element.segment.series.series_title,
+                "project_id": element.segment.series.project_id
+            }) if element.segment.series else None
         }) if element.segment else None,
         "annotations": []
     }) for element in elements]
@@ -700,6 +710,7 @@ def create_batch_annotations(
     return new_annotations
 
 from typing import List
+
 
 @router.delete("/batch_annotations/")
 def remove_batch_annotations(
@@ -907,7 +918,29 @@ def search_elements(
             project_id=element.segment.project_id,
             series=None
         ) if element.segment else None,
-        annotations=[]
+        series=SeriesResponse(
+            id=element.segment.series.series_id,
+            series_id=element.segment.series.series_id,
+            series_title=element.segment.series.series_title,
+            project_id=element.segment.series.project_id
+        ) if element.segment and element.segment.series else None,
+        annotations = AnnotationResponse(
+            id=annotation.annotation_id,
+            element_id=annotation.element_id,
+            code_id=annotation.code_id,
+            project_id=annotation.project_id,
+            code=CodeResponse(
+                id=annotation.code.code_id,
+                code_id=annotation.code.code_id,
+                term=annotation.code.term,
+                description=annotation.code.description,
+                type_id=annotation.code.type_id,
+                reference=annotation.code.reference,
+                coordinates=annotation.code.coordinates,
+                project_id=annotation.code.project_id,
+                code_type=None
+            ) if annotation.code else None
+        ) for annotation in element.annotations
     ) for element in elements]
 
 # APP SETUP
