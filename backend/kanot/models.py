@@ -97,13 +97,15 @@ class SegmentResponse(ResponseModel[SegmentBase], SegmentBase):
     series: Optional[SeriesResponse] = None
 
 class ElementBase(BaseModel):
-    element_id: int
     element_text: str
     segment_id: int
     project_id: int
 
 class ElementCreate(ElementBase):
     pass
+
+class ElementInDB(ElementBase):
+    element_id: int
 
 class ElementUpdate(BaseModel):
     element_text: Optional[str] = None
