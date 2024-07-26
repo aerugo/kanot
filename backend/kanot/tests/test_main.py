@@ -324,6 +324,65 @@ def test_read_annotations(client: TestClient, create_project: Callable[..., Dict
     assert len(data) > 0
     assert any(a.element_id == element_id and a.code_id == code_id for a in data)
 
+def test_update_annotation(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create code type and code
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.model_dump())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    code_response = client.post("/codes/", json=code_create.model_dump())
+    code_id = code_response.json()["code_id"]
+    
+    # Create another code for updating
+    another_code_create = CodeCreate(
+        term="Another Code",
+        description="Another Description",
+        type_id=code_type_id,
+        reference="Another Reference",
+        coordinates="Another Coordinates",
+        project_id=project["project_id"]
+    )
+    another_code_response = client.post("/codes/", json=another_code_create.model_dump())
+    another_code_id = another_code_response.json()["code_id"]
+    
+    # Create series, segment, and element
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.model_dump())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.model_dump())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
+    element_response = client.post("/elements/", json=element_create.model_dump())
+    element_id = element_response.json()["id"]
+    
+    # Create annotation
+    annotation_create = AnnotationCreate(element_id=element_id, code_id=code_id, project_id=project["project_id"])
+    annotation_response = client.post("/annotations/", json=annotation_create.model_dump())
+    annotation_id = annotation_response.json()["id"]
+    
+    # Update annotation
+    annotation_update = AnnotationUpdate(element_id=element_id, code_id=another_code_id)
+    response = client.put(f"/annotations/{annotation_id}", json=annotation_update.model_dump())
+    
+    assert response.status_code == 200
+    updated_annotation = AnnotationResponse(**response.json())
+    assert updated_annotation.element_id == element_id
+    assert updated_annotation.code_id == another_code_id
+    assert updated_annotation.code.term == "Another Code"
+
 def test_merge_codes(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     
