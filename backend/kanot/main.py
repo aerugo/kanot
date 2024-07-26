@@ -679,7 +679,24 @@ def create_batch_annotations(
         for code_id in batch_data.code_ids:
             annotation = db_manager.create_annotation(element_id, code_id, project_id=batch_data.project_id)
             if annotation:
-                new_annotations.append(AnnotationResponse.model_validate(annotation))
+                annotation_dict = {
+                    "id": annotation.annotation_id,
+                    "element_id": annotation.element_id,
+                    "code_id": annotation.code_id,
+                    "project_id": annotation.project_id,
+                    "code": {
+                        "id": annotation.code.code_id,
+                        "code_id": annotation.code.code_id,
+                        "term": annotation.code.term,
+                        "description": annotation.code.description,
+                        "type_id": annotation.code.type_id,
+                        "reference": annotation.code.reference,
+                        "coordinates": annotation.code.coordinates,
+                        "project_id": annotation.code.project_id,
+                        "code_type": None
+                    } if annotation.code else None
+                }
+                new_annotations.append(AnnotationResponse.model_validate(annotation_dict))
     return new_annotations
 
 @router.delete("/batch_annotations/", response_model=List[AnnotationResponse])
