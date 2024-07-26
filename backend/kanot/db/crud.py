@@ -673,13 +673,8 @@ class DatabaseManager:
                         annotation.code_id = code_id
                     session.commit()
                     session.refresh(annotation)
-                    # Explicitly load the attributes we need
-                    annotation_data = {
-                        "annotation_id": annotation.annotation_id,
-                        "element_id": annotation.element_id,
-                        "code_id": annotation.code_id
-                    }
-                    return Annotation(**annotation_data)
+                    session.refresh(annotation.code)  # Refresh the related code object
+                    return annotation
                 except IntegrityError:
                     session.rollback()
                     logger.error(

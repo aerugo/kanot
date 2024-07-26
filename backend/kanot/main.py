@@ -673,26 +673,23 @@ def update_annotation(
     if updated_annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     
-    # Convert the Annotation object to a dictionary
-    annotation_dict = {
-        "id": updated_annotation.annotation_id,
-        "element_id": updated_annotation.element_id,
-        "code_id": updated_annotation.code_id,
-        "project_id": updated_annotation.project_id,
-        "code": {
-            "id": updated_annotation.code.code_id,
-            "code_id": updated_annotation.code.code_id,
-            "term": updated_annotation.code.term,
-            "description": updated_annotation.code.description,
-            "type_id": updated_annotation.code.type_id,
-            "reference": updated_annotation.code.reference,
-            "coordinates": updated_annotation.code.coordinates,
-            "project_id": updated_annotation.code.project_id,
-            "code_type": None  # Assuming code_type is not needed in this context
-        } if updated_annotation.code else None
-    }
-    
-    return AnnotationResponse.model_validate(annotation_dict)
+    return AnnotationResponse(
+        id=updated_annotation.annotation_id,
+        element_id=updated_annotation.element_id,
+        code_id=updated_annotation.code_id,
+        project_id=updated_annotation.project_id,
+        code=CodeResponse(
+            id=updated_annotation.code.code_id,
+            code_id=updated_annotation.code.code_id,
+            term=updated_annotation.code.term,
+            description=updated_annotation.code.description,
+            type_id=updated_annotation.code.type_id,
+            reference=updated_annotation.code.reference,
+            coordinates=updated_annotation.code.coordinates,
+            project_id=updated_annotation.code.project_id,
+            code_type=None
+        ) if updated_annotation.code else None
+    )
 
 @router.delete("/annotations/{annotation_id}")
 def delete_annotation(
