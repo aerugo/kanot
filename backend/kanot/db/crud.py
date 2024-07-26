@@ -430,7 +430,14 @@ class DatabaseManager:
                         segment.segment_title = segment_title
                     session.commit()
                     session.refresh(segment)
-                    return segment
+                    # Explicitly load the attributes we need
+                    segment_data = {
+                        "segment_id": segment.segment_id,
+                        "segment_title": segment.segment_title,
+                        "series_id": segment.series_id,
+                        "project_id": segment.project_id
+                    }
+                    return Segment(**segment_data)
                 except IntegrityError:
                     session.rollback()
                     logger.error(
@@ -558,7 +565,14 @@ class DatabaseManager:
                         element.segment_id = segment_id
                     session.commit()
                     session.refresh(element)
-                    return element
+                    # Explicitly load the attributes we need
+                    element_data = {
+                        "element_id": element.element_id,
+                        "element_text": element.element_text,
+                        "segment_id": element.segment_id,
+                        "project_id": element.project_id
+                    }
+                    return Element(**element_data)
                 except IntegrityError:
                     session.rollback()
                     logger.error(
@@ -624,7 +638,7 @@ class DatabaseManager:
         annotation_id: int,
         element_id: Optional[int] = None,
         code_id: Optional[int] = None,
-    ) -> None:
+    ) -> Optional[Annotation]:
         with self.get_session() as session:
             annotation: Optional[Annotation] = (
                 session.query(Annotation).filter_by(annotation_id=annotation_id).first()
@@ -636,12 +650,20 @@ class DatabaseManager:
                     if code_id:
                         annotation.code_id = code_id
                     session.commit()
+                    session.refresh(annotation)
+                    # Explicitly load the attributes we need
+                    annotation_data = {
+                        "annotation_id": annotation.annotation_id,
+                        "element_id": annotation.element_id,
+                        "code_id": annotation.code_id
+                    }
+                    return Annotation(**annotation_data)
                 except IntegrityError:
                     session.rollback()
                     logger.error(
                         "Failed to update Annotation due to a unique constraint violation."
                     )
-            session.close()
+            return None
 
     def delete_annotation(self, annotation_id: int) -> None:
         with self.get_session() as session:

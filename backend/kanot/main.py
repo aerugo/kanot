@@ -652,8 +652,7 @@ def update_annotation(
     annotation: AnnotationUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> AnnotationResponse:
-    db_manager.update_annotation(annotation_id, annotation.element_id, annotation.code_id)
-    updated_annotation = db_manager.read_annotation(annotation_id)
+    updated_annotation = db_manager.update_annotation(annotation_id, annotation.element_id, annotation.code_id)
     if updated_annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     return AnnotationResponse.model_validate(updated_annotation)

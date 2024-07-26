@@ -111,6 +111,8 @@ def test_update_segment(client, create_segment):
     data = response.json()
     assert data["segment_title"] == updated_title
     assert data["segment_id"] == segment_id
+    assert "series_id" in data
+    assert "project_id" in data
 
 def test_update_element(client, create_element):
     element = create_element()
@@ -125,6 +127,8 @@ def test_update_element(client, create_element):
     data = response.json()
     assert data["element_text"] == updated_text
     assert data["element_id"] == element_id
+    assert "segment_id" in data
+    assert "project_id" in data
 
 def test_update_annotation(client, create_annotation, create_code):
     annotation = create_annotation()
@@ -142,6 +146,7 @@ def test_update_annotation(client, create_annotation, create_code):
     data = response.json()
     assert data["code_id"] == new_code_id
     assert data["annotation_id"] == annotation_id
+    assert "element_id" in data
 
 def test_delete_project(client, create_project):
     project = create_project()
