@@ -457,31 +457,31 @@ def create_element(
     segment = db_manager.read_segment(element.segment_id)
     if segment is None:
         raise HTTPException(status_code=404, detail="Segment not found")
-    
+        
     # Check if the project exists
     project = db_manager.read_project(element.project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+        
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
         raise HTTPException(status_code=400, detail="Failed to create element")
-    return ElementResponse.model_validate({
-        "id": new_element.element_id,
-        "element_id": new_element.element_id,
-        "element_text": new_element.element_text,
-        "segment_id": new_element.segment_id,
-        "project_id": new_element.project_id,
-        "segment": SegmentResponse.model_validate({
-            "id": new_element.segment.segment_id,
-            "segment_id": new_element.segment.segment_id,
-            "segment_title": new_element.segment.segment_title,
-            "series_id": new_element.segment.series_id,
-            "project_id": new_element.segment.project_id,
-            "series": None  # We're not loading the series here to avoid potential circular references
-        }) if new_element.segment else None,
-        "annotations": []  # New elements won't have annotations yet
-    })
+    return ElementResponse(
+        id=new_element.element_id,
+        element_id=new_element.element_id,
+        element_text=new_element.element_text,
+        segment_id=new_element.segment_id,
+        project_id=new_element.project_id,
+        segment=SegmentResponse(
+            id=new_element.segment.segment_id,
+            segment_id=new_element.segment.segment_id,
+            segment_title=new_element.segment.segment_title,
+            series_id=new_element.segment.series_id,
+            project_id=new_element.segment.project_id,
+            series=None
+        ) if new_element.segment else None,
+        annotations=[]
+    )
 
 @router.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
@@ -492,7 +492,22 @@ def read_elements(
     elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
     if elements is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve elements")
-    return [ElementResponse.model_validate(element.__dict__) for element in elements]
+    return [ElementResponse.model_validate({
+        "id": element.element_id,
+        "element_id": element.element_id,
+        "element_text": element.element_text,
+        "segment_id": element.segment_id,
+        "project_id": element.project_id,
+        "segment": SegmentResponse.model_validate({
+            "id": element.segment.segment_id,
+            "segment_id": element.segment.segment_id,
+            "segment_title": element.segment.segment_title,
+            "series_id": element.segment.series_id,
+            "project_id": element.segment.project_id,
+            "series": None
+        }) if element.segment else None,
+        "annotations": []
+    }) for element in elements]
 
 @router.get("/elements/{element_id}", response_model=ElementResponse)
 def read_element(
@@ -655,17 +670,32 @@ def search_elements(
     )
     if elements is None:
         raise HTTPException(status_code=500, detail="Error searching elements")
-    
+        
     # Get total count for pagination
     total_count = db_manager.count_elements(search_term, series_id_list, segment_id_list, code_id_list)
-    
+        
     # Add pagination headers
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Skip"] = str(skip)
-    
+        
     # Convert SQLAlchemy model instances to Pydantic models
-    return [ElementResponse.model_validate(element) for element in elements]
+    return [ElementResponse(
+        id=element.element_id,
+        element_id=element.element_id,
+        element_text=element.element_text,
+        segment_id=element.segment_id,
+        project_id=element.project_id,
+        segment=SegmentResponse(
+            id=element.segment.segment_id,
+            segment_id=element.segment.segment_id,
+            segment_title=element.segment.segment_title,
+            series_id=element.segment.series_id,
+            project_id=element.segment.project_id,
+            series=None
+        ) if element.segment else None,
+        annotations=[]
+    ) for element in elements]
 
 # APP SETUP
 
