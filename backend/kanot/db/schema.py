@@ -66,12 +66,14 @@ class Series(Base):
 class Segment(Base):
     __tablename__ = 'segments'
     segment_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    segment_title: Any = Column(Text, unique=True, nullable=False)
+    segment_title: Any = Column(Text, nullable=False)
     series_id: Any = Column(Integer, ForeignKey('series.series_id'))
     series = relationship("Series", back_populates="segments")
     elements = relationship("Element", back_populates="segment")
     project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
     project = relationship("Project", back_populates="segments")
+
+    __table_args__ = (UniqueConstraint('segment_title', 'series_id', 'project_id', name='_segment_title_series_project_uc'),)
 
 class SegmentCreate(BaseModel):
     segment_title: Optional[str]
