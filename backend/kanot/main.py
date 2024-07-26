@@ -5,7 +5,7 @@ import os
 import traceback
 from logging.config import dictConfig
 from pathlib import Path
-from typing import Generator, List, Optional, Tuple
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response
 from fastapi.encoders import jsonable_encoder
@@ -14,7 +14,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from .db.crud import DatabaseManager
 
