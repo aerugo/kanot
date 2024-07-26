@@ -545,25 +545,30 @@ def read_element(
     element_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ElementResponse:
-    element = db_manager.read_element(element_id)
-    if element is None:
-        raise HTTPException(status_code=404, detail="Element not found")
-    return ElementResponse(
-        id=element.element_id,
-        element_id=element.element_id,
-        element_text=element.element_text,
-        segment_id=element.segment_id,
-        project_id=element.project_id,
-        segment=SegmentResponse(
-            id=element.segment.segment_id,
-            segment_id=element.segment.segment_id,
-            segment_title=element.segment.segment_title,
-            series_id=element.segment.series_id,
-            project_id=element.segment.project_id,
-            series=None
-        ) if element.segment else None,
-        annotations=[]
-    )
+    with db_manager.get_session() as session:
+        element = db_manager.read_element(element_id)
+        if element is None:
+            raise HTTPException(status_code=404, detail="Element not found")
+        
+        # Ensure the segment is loaded within this session
+        session.refresh(element, ['segment'])
+        
+        return ElementResponse(
+            id=element.element_id,
+            element_id=element.element_id,
+            element_text=element.element_text,
+            segment_id=element.segment_id,
+            project_id=element.project_id,
+            segment=SegmentResponse(
+                id=element.segment.segment_id,
+                segment_id=element.segment.segment_id,
+                segment_title=element.segment.segment_title,
+                series_id=element.segment.series_id,
+                project_id=element.segment.project_id,
+                series=None
+            ) if element.segment else None,
+            annotations=[]
+        )
 
 @router.put("/elements/{element_id}", response_model=ElementResponse)
 def update_element(
