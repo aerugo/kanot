@@ -556,3 +556,37 @@ def test_update_element(client: TestClient, create_project: Callable[..., Dict[s
     assert get_element.segment is not None
     assert get_element.segment.segment_id == segment_id
     assert get_element.segment.segment_title == "Test Segment"
+
+def test_update_segment(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create a series
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.model_dump())
+    assert series_response.status_code == 200
+    series_id = series_response.json()["series_id"]
+    
+    # Create a segment
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.model_dump())
+    assert segment_response.status_code == 200
+    segment_id = segment_response.json()["segment_id"]
+    
+    # Update the segment
+    updated_title = "Updated Segment"
+    segment_update = SegmentUpdate(segment_title=updated_title)
+    update_response = client.put(f"/segments/{segment_id}", json=segment_update.model_dump())
+    assert update_response.status_code == 200
+    updated_segment = SegmentResponse(**update_response.json())
+    
+    # Check if the segment was updated correctly
+    assert updated_segment.segment_id == segment_id
+    assert updated_segment.segment_title == updated_title
+    assert updated_segment.series_id == series_id
+    assert updated_segment.project_id == project["project_id"]
+    
+    # Verify the update by getting the segment
+    get_response = client.get(f"/segments/{segment_id}")
+    assert get_response.status_code == 200
+    get_segment = SegmentResponse(**get_response.json())
+    assert get_segment == updated_segment
