@@ -378,6 +378,16 @@ class DatabaseManager:
             session.close()
             return segment
 
+    def read_segment_by_title(self, segment_title: str, series_id: int) -> Optional[Segment]:
+        with self.get_session() as session:
+            segment: Optional[Segment] = (
+                session.query(Segment)
+                .filter_by(segment_title=segment_title, series_id=series_id)
+                .first()
+            )
+            session.close()
+            return segment
+
     def read_all_segments(self) -> Optional[list[Segment]]:
         with self.get_session() as session:
             try:

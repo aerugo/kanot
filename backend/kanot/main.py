@@ -464,6 +464,9 @@ def create_segment(
 ) -> SegmentResponse:
     new_segment = db_manager.create_segment(segment.segment_title, segment.series_id, segment.project_id)
     if new_segment is None:
+        existing_segment = db_manager.read_segment_by_title(segment.segment_title, segment.series_id)
+        if existing_segment:
+            return SegmentResponse.model_validate(existing_segment)
         raise HTTPException(status_code=400, detail="Failed to create segment")
     return SegmentResponse.model_validate(new_segment)
 
@@ -511,6 +514,11 @@ def create_element(
     element: ElementCreate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ElementResponse:
+    # Check if the segment exists
+    segment = db_manager.read_segment(element.segment_id)
+    if segment is None:
+        raise HTTPException(status_code=404, detail="Segment not found")
+    
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
         raise HTTPException(status_code=400, detail="Failed to create element")
@@ -563,13 +571,14 @@ def create_annotation(
     annotation: AnnotationCreate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> AnnotationResponse:
-    new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
-    if new_annotation is None:
-        raise HTTPException(status_code=400, detail="Failed to create annotation")
     try:
+        new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
+        if new_annotation is None:
+            raise HTTPException(status_code=400, detail="Failed to create annotation")
         return AnnotationResponse.model_validate(new_annotation)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error validating annotation: {str(e)}")
+        logger.error(f"Error creating annotation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating annotation: {str(e)}")
 
 @router.post("/batch_annotations/", response_model=List[AnnotationResponse])
 def create_batch_annotations(
