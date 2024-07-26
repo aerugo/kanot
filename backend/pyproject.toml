@@ -55,5 +55,10 @@ linters = "mypy,pycodestyle,pyflakes"
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.pytest.ini_options]
+testpaths = ["kanot/tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
+
 [tool.poetry.scripts]
 start = "start:main"
