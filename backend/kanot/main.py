@@ -230,7 +230,22 @@ def create_code(
     )
     if new_code is None:
         raise HTTPException(status_code=400, detail="Failed to create code")
-    return CodeResponse.model_validate(new_code)
+    return CodeResponse(
+        id=new_code.code_id,
+        code_id=new_code.code_id,
+        term=new_code.term,
+        description=new_code.description,
+        type_id=new_code.type_id,
+        reference=new_code.reference,
+        coordinates=new_code.coordinates,
+        project_id=new_code.project_id,
+        code_type=CodeTypeResponse(
+            id=new_code.code_type.type_id,
+            type_id=new_code.code_type.type_id,
+            type_name=new_code.code_type.type_name,
+            project_id=new_code.code_type.project_id
+        ) if new_code.code_type else None
+    )
 
 @router.get("/codes/", response_model=List[CodeResponse])
 def read_codes(
@@ -344,6 +359,7 @@ def create_segment(
             return SegmentResponse.model_validate(existing_segment)
         raise HTTPException(status_code=400, detail="Failed to create segment")
     return SegmentResponse(
+        id=new_segment.segment_id,
         segment_id=new_segment.segment_id,
         segment_title=new_segment.segment_title,
         series_id=new_segment.series_id,
