@@ -503,15 +503,15 @@ def read_elements(
     return [ElementResponse.model_validate({
         "id": element.element_id,
         "element_id": element.element_id,
-        "element_text": element.element_text,
+        "element_text": element.element_text or "",
         "segment_id": element.segment_id,
         "project_id": element.project_id,
         "segment": SegmentResponse.model_validate({
-            "id": element.segment.segment_id,
-            "segment_id": element.segment.segment_id,
-            "segment_title": element.segment.segment_title,
-            "series_id": element.segment.series_id,
-            "project_id": element.segment.project_id,
+            "id": element.segment.segment_id if element.segment else None,
+            "segment_id": element.segment.segment_id if element.segment else None,
+            "segment_title": element.segment.segment_title if element.segment else "",
+            "series_id": element.segment.series_id if element.segment else None,
+            "project_id": element.segment.project_id if element.segment else None,
             "series": None
         }) if element.segment else None,
         "annotations": []
