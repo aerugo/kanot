@@ -579,7 +579,7 @@ def test_remove_batch_annotations(client: TestClient, create_project: Callable[.
         element_ids=[element_id_1],
         code_ids=[code_id_1]
     )
-    response = client.delete("/batch_annotations/", json=batch_annotation_remove.model_dump())
+    response = client.delete("/batch_annotations/", data=batch_annotation_remove.model_dump_json())
     assert response.status_code == 200
     removed_annotations = response.json()
     assert len(removed_annotations) == 1  # 1 element * 1 code = 1 annotation removed
