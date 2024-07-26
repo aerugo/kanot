@@ -1,9 +1,12 @@
+from typing import Any, Callable, Dict
+
 import pytest
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
-def create_project(client):
-    def _create_project(title="Test Project", description="This is a test project"):
+def create_project(client: TestClient) -> Callable[[str, str], Dict[str, Any]]:
+    def _create_project(title: str = "Test Project", description: str = "This is a test project") -> Dict[str, Any]:
         response = client.post(
             "/projects/",
             json={"project_title": title, "project_description": description}
@@ -16,7 +19,7 @@ def create_project(client):
     ("Test Project", "This is a test project"),
     ("Another Project", "This is another test project"),
 ])
-def test_create_project(client, title, description):
+def test_create_project(client: TestClient, title: str, description: str) -> None:
     response = client.post(
         "/projects/",
         json={"project_title": title, "project_description": description}
@@ -27,7 +30,7 @@ def test_create_project(client, title, description):
     assert data["project_description"] == description
     assert "project_id" in data
 
-def test_read_project(client, create_project):
+def test_read_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     project_id = project["project_id"]
 
@@ -38,7 +41,7 @@ def test_read_project(client, create_project):
     assert data["project_description"] == project["project_description"]
     assert data["project_id"] == project_id
 
-def test_update_project(client, create_project):
+def test_update_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     project_id = project["project_id"]
 
@@ -54,7 +57,7 @@ def test_update_project(client, create_project):
     assert data["project_description"] == updated_description
     assert data["project_id"] == project_id
 
-def test_update_code_type(client, create_code_type):
+def test_update_code_type(client: TestClient, create_code_type: Callable[..., Dict[str, Any]]) -> None:
     code_type = create_code_type()
     type_id = code_type["type_id"]
 
@@ -68,7 +71,7 @@ def test_update_code_type(client, create_code_type):
     assert data["type_name"] == updated_name
     assert data["type_id"] == type_id
 
-def test_update_code(client, create_code):
+def test_update_code(client: TestClient, create_code: Callable[..., Dict[str, Any]]) -> None:
     code = create_code()
     code_id = code["code_id"]
 
@@ -84,7 +87,7 @@ def test_update_code(client, create_code):
     assert data["description"] == updated_description
     assert data["code_id"] == code_id
 
-def test_update_series(client, create_series):
+def test_update_series(client: TestClient, create_series: Callable[..., Dict[str, Any]]) -> None:
     series = create_series()
     series_id = series["series_id"]
 
@@ -98,7 +101,7 @@ def test_update_series(client, create_series):
     assert data["series_title"] == updated_title
     assert data["series_id"] == series_id
 
-def test_update_segment(client, create_segment):
+def test_update_segment(client: TestClient, create_segment: Callable[..., Dict[str, Any]]) -> None:
     segment = create_segment()
     segment_id = segment["segment_id"]
 
@@ -114,7 +117,7 @@ def test_update_segment(client, create_segment):
     assert "series_id" in data
     assert "project_id" in data
 
-def test_update_element(client, create_element):
+def test_update_element(client: TestClient, create_element: Callable[..., Dict[str, Any]]) -> None:
     element = create_element()
     element_id = element["element_id"]
 
@@ -130,7 +133,7 @@ def test_update_element(client, create_element):
     assert "segment_id" in data
     assert "project_id" in data
 
-def test_update_annotation(client, create_annotation, create_code):
+def test_update_annotation(client: TestClient, create_annotation: Callable[..., Dict[str, Any]], create_code: Callable[..., Dict[str, Any]]) -> None:
     annotation = create_annotation()
     annotation_id = annotation["annotation_id"]
 
@@ -148,7 +151,7 @@ def test_update_annotation(client, create_annotation, create_code):
     assert data["annotation_id"] == annotation_id
     assert "element_id" in data
 
-def test_delete_project(client, create_project):
+def test_delete_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     project_id = project["project_id"]
 
@@ -161,8 +164,8 @@ def test_delete_project(client, create_project):
     assert response.status_code == 404
 
 @pytest.fixture
-def create_code_type(client, create_project):
-    def _create_code_type(type_name="Test Code Type"):
+def create_code_type(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> Callable[[str], Dict[str, Any]]:
+    def _create_code_type(type_name: str = "Test Code Type") -> Dict[str, Any]:
         project = create_project()
         response = client.post(
             "/code_types/",
@@ -172,15 +175,15 @@ def create_code_type(client, create_project):
         return response.json()
     return _create_code_type
 
-def test_create_code_type(create_code_type):
+def test_create_code_type(create_code_type: Callable[..., Dict[str, Any]]) -> None:
     code_type = create_code_type()
     assert code_type["type_name"] == "Test Code Type"
     assert "type_id" in code_type
     assert "project_id" in code_type
 
 @pytest.fixture
-def create_code(client, create_project, create_code_type):
-    def _create_code(term="Test Code", description="This is a test code"):
+def create_code(client: TestClient, create_project: Callable[..., Dict[str, Any]], create_code_type: Callable[..., Dict[str, Any]]) -> Callable[[str, str], Dict[str, Any]]:
+    def _create_code(term: str = "Test Code", description: str = "This is a test code") -> Dict[str, Any]:
         project = create_project()
         code_type = create_code_type()
         response = client.post(
@@ -198,7 +201,7 @@ def create_code(client, create_project, create_code_type):
         return response.json()
     return _create_code
 
-def test_create_code(create_code):
+def test_create_code(create_code: Callable[..., Dict[str, Any]]) -> None:
     code = create_code()
     assert code["term"] == "Test Code"
     assert code["description"] == "This is a test code"
@@ -206,19 +209,19 @@ def test_create_code(create_code):
     assert "type_id" in code
     assert "project_id" in code
 
-def test_read_code_types(client):
+def test_read_code_types(client: TestClient) -> None:
     response = client.get("/code_types/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_read_codes(client):
+def test_read_codes(client: TestClient) -> None:
     response = client.get("/codes/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 @pytest.fixture
-def create_series(client, create_project):
-    def _create_series(title="Test Series"):
+def create_series(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> Callable[[str], Dict[str, Any]]:
+    def _create_series(title: str = "Test Series") -> Dict[str, Any]:
         project = create_project()
         response = client.post(
             "/series/",
@@ -228,15 +231,15 @@ def create_series(client, create_project):
         return response.json()
     return _create_series
 
-def test_create_series(create_series):
+def test_create_series(create_series: Callable[..., Dict[str, Any]]) -> None:
     series = create_series()
     assert series["series_title"] == "Test Series"
     assert "series_id" in series
     assert "project_id" in series
 
 @pytest.fixture
-def create_segment(client, create_project, create_series):
-    def _create_segment(title="Test Segment"):
+def create_segment(client: TestClient, create_project: Callable[..., Dict[str, Any]], create_series: Callable[..., Dict[str, Any]]) -> Callable[[str], Dict[str, Any]]:
+    def _create_segment(title: str = "Test Segment") -> Dict[str, Any]:
         project = create_project()
         series = create_series()
         response = client.post(
@@ -247,7 +250,7 @@ def create_segment(client, create_project, create_series):
         return response.json()
     return _create_segment
 
-def test_create_segment(create_segment):
+def test_create_segment(create_segment: Callable[..., Dict[str, Any]]) -> None:
     segment = create_segment()
     assert segment["segment_title"] == "Test Segment"
     assert "segment_id" in segment
@@ -255,8 +258,8 @@ def test_create_segment(create_segment):
     assert "project_id" in segment
 
 @pytest.fixture
-def create_element(client, create_project, create_segment):
-    def _create_element(text="Test Element"):
+def create_element(client: TestClient, create_project: Callable[..., Dict[str, Any]], create_segment: Callable[..., Dict[str, Any]]) -> Callable[[str], Dict[str, Any]]:
+    def _create_element(text: str = "Test Element") -> Dict[str, Any]:
         project = create_project()
         segment = create_segment()
         response = client.post(
@@ -267,7 +270,7 @@ def create_element(client, create_project, create_segment):
         return response.json()
     return _create_element
 
-def test_create_element(create_element):
+def test_create_element(create_element: Callable[..., Dict[str, Any]]) -> None:
     element = create_element()
     assert element["element_text"] == "Test Element"
     assert "element_id" in element
@@ -275,8 +278,8 @@ def test_create_element(create_element):
     assert "project_id" in element
 
 @pytest.fixture
-def create_annotation(client, create_project, create_code, create_element):
-    def _create_annotation():
+def create_annotation(client: TestClient, create_project: Callable[..., Dict[str, Any]], create_code: Callable[..., Dict[str, Any]], create_element: Callable[..., Dict[str, Any]]) -> Callable[[], Dict[str, Any]]:
+    def _create_annotation() -> Dict[str, Any]:
         project = create_project()
         code = create_code()
         element = create_element()
@@ -288,24 +291,24 @@ def create_annotation(client, create_project, create_code, create_element):
         return response.json()
     return _create_annotation
 
-def test_create_annotation(create_annotation):
+def test_create_annotation(create_annotation: Callable[..., Dict[str, Any]]) -> None:
     annotation = create_annotation()
     assert "annotation_id" in annotation
     assert "element_id" in annotation
     assert "code_id" in annotation
 
-def test_search_elements(client, create_element):
+def test_search_elements(client: TestClient, create_element: Callable[..., Dict[str, Any]]) -> None:
     create_element("Test Element for Search")
     response = client.get("/search_elements/?search_term=Test")
     assert response.status_code == 200
-    data = response.json()
+    data: list[Any] = response.json()
     assert isinstance(data, list)
     assert len(data) > 0
     assert "element_id" in data[0]
     assert "element_text" in data[0]
     assert any("Test Element for Search" in element["element_text"] for element in data)
 
-def test_merge_codes(client, create_code):
+def test_merge_codes(client: TestClient, create_code: Callable[..., Dict[str, Any]]) -> None:
     code1 = create_code("Test Code 1", "This is a test code for merging")
     code2 = create_code("Test Code 2", "This is another test code for merging")
 
@@ -323,7 +326,7 @@ def test_merge_codes(client, create_code):
     response = client.get(f"/codes/{code2['code_id']}")
     assert response.status_code == 200
 
-def test_error_handling(client):
+def test_error_handling(client: TestClient) -> None:
     # Test non-existent project
     response = client.get("/projects/9999")
     assert response.status_code == 404

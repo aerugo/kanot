@@ -1,114 +1,132 @@
-from typing import Any, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel
-from sqlalchemy import Column, Engine, ForeignKey, Integer, Text, UniqueConstraint
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-# Define the base class for declarative models
-Base = declarative_base()
 
-# Define Project class
+class Base(DeclarativeBase):
+    pass
+
 class Project(Base):
     __tablename__ = 'projects'
-    project_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    project_title: Any = Column(Text, nullable=False)
-    project_description: Any = Column(Text)
-    code_types = relationship("CodeType", back_populates="project")
-    codes = relationship("Code", back_populates="project")
-    series = relationship("Series", back_populates="project")
-    segments = relationship("Segment", back_populates="project")
-    elements = relationship("Element", back_populates="project")
-    annotations = relationship("Annotation", back_populates="project")
+    
+    project_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_title: Mapped[str] = mapped_column(nullable=False)
+    project_description: Mapped[Optional[str]] = mapped_column()
 
-    def __repr__(self):
+    code_types: Mapped[List["CodeType"]] = relationship(back_populates="project")
+    codes: Mapped[List["Code"]] = relationship(back_populates="project")
+    series: Mapped[List["Series"]] = relationship(back_populates="project")
+    segments: Mapped[List["Segment"]] = relationship(back_populates="project")
+    elements: Mapped[List["Element"]] = relationship(back_populates="project")
+    annotations: Mapped[List["Annotation"]] = relationship(back_populates="project")
+
+    def __repr__(self) -> str:
         return f"Project(project_id={self.project_id}, project_title={self.project_title}, project_description={self.project_description})"
 
-# Define the CodeTypes class
 class CodeType(Base):
     __tablename__ = 'code_types'
-    type_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    type_name: Any = Column(Text, nullable=False)
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project", back_populates="code_types")
-    codes = relationship("Code", back_populates="code_type")
+    
+    type_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    type_name: Mapped[str] = mapped_column(nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
+
+    project: Mapped["Project"] = relationship(back_populates="code_types")
+    codes: Mapped[List["Code"]] = relationship(back_populates="code_type")
     
     __table_args__ = (UniqueConstraint('type_name', 'project_id', name='_type_name_project_uc'),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"CodeType(type_id={self.type_id}, type_name={self.type_name}, project_id={self.project_id})"
 
-# Define the Codes class
 class Code(Base):
     __tablename__ = 'codes'
-    code_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    term: Any = Column(Text, nullable=False)
-    description: Any = Column(Text)
-    type_id: Any = Column(Integer, ForeignKey('code_types.type_id'))
-    reference: Any = Column(Text)
-    coordinates: Any = Column(Text)
-    code_type = relationship("CodeType", back_populates="codes")
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project")
+    
+    code_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    term: Mapped[str] = mapped_column(nullable=False)
+    description: Mapped[Optional[str]] = mapped_column()
+    type_id: Mapped[int] = mapped_column(ForeignKey('code_types.type_id'))
+    reference: Mapped[Optional[str]] = mapped_column()
+    coordinates: Mapped[Optional[str]] = mapped_column()
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
+
+    code_type: Mapped["CodeType"] = relationship(back_populates="codes")
+    project: Mapped["Project"] = relationship(back_populates="codes")
 
     __table_args__ = (UniqueConstraint('term', 'project_id', name='_term_project_uc'),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Code(code_id={self.code_id}, term={self.term}, description={self.description}, type_id={self.type_id}, reference={self.reference}, coordinates={self.coordinates}, project_id={self.project_id})"
 
 class Series(Base):
     __tablename__ = 'series'
-    series_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    series_title: Any = Column(Text, nullable=False)
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project", back_populates="series")
-    segments = relationship("Segment", back_populates="series")
+    
+    series_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    series_title: Mapped[str] = mapped_column(nullable=False)
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
+
+    project: Mapped["Project"] = relationship(back_populates="series")
+    segments: Mapped[List["Segment"]] = relationship(back_populates="series")
 
 class Segment(Base):
     __tablename__ = 'segments'
-    segment_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    segment_title: Any = Column(Text, nullable=False)
-    series_id: Any = Column(Integer, ForeignKey('series.series_id'))
-    series = relationship("Series", back_populates="segments")
-    elements = relationship("Element", back_populates="segment")
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project", back_populates="segments")
+    
+    segment_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    segment_title: Mapped[str] = mapped_column(unique=True, nullable=False)
+    series_id: Mapped[int] = mapped_column(ForeignKey('series.series_id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
 
-    __table_args__ = (UniqueConstraint('segment_title', 'series_id', 'project_id', name='_segment_title_series_project_uc'),)
-
-class SegmentCreate(BaseModel):
-    segment_title: Optional[str]
-    series_id: int
-    project_id: int
+    series: Mapped["Series"] = relationship(back_populates="segments")
+    elements: Mapped[List["Element"]] = relationship(back_populates="segment")
+    project: Mapped["Project"] = relationship(back_populates="segments")
 
 class Element(Base):
     __tablename__ = 'elements'
-    element_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    element_text: Any = Column(Text, nullable=False, default="")
-    segment_id: Any = Column(Integer, ForeignKey('segments.segment_id'))
-    segment = relationship("Segment", back_populates="elements")
-    annotations = relationship("Annotation", back_populates="element")
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project", back_populates="elements")
+    
+    element_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    element_text: Mapped[str] = mapped_column(nullable=False, default="")
+    segment_id: Mapped[int] = mapped_column(ForeignKey('segments.segment_id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
 
-    def __repr__(self):
+    segment: Mapped["Segment"] = relationship(back_populates="elements")
+    annotations: Mapped[List["Annotation"]] = relationship(back_populates="element")
+    project: Mapped["Project"] = relationship(back_populates="elements")
+
+    def __repr__(self) -> str:
         return f"Element(element_id={self.element_id}, element_text={self.element_text}, segment_id={self.segment_id})"
 
-class Annotation(Base): # type: ignore
+class Annotation(Base):
     __tablename__ = 'annotations'
-    annotation_id: Any = Column(Integer, primary_key=True, autoincrement=True)
-    element_id: Any = Column(Integer, ForeignKey('elements.element_id'))
-    code_id: Any = Column(Integer, ForeignKey('codes.code_id'))
-    element = relationship("Element", back_populates="annotations")
-    code = relationship("Code")
-    project_id: Any = Column(Integer, ForeignKey('projects.project_id'))
-    project = relationship("Project")
+    
+    annotation_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    element_id: Mapped[int] = mapped_column(ForeignKey('elements.element_id'))
+    code_id: Mapped[int] = mapped_column(ForeignKey('codes.code_id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.project_id'))
+
+    element: Mapped["Element"] = relationship(back_populates="annotations")
+    code: Mapped["Code"] = relationship()
+    project: Mapped["Project"] = relationship(back_populates="annotations")
+
     __table_args__ = (UniqueConstraint('element_id', 'code_id', name='_element_code_uc'),)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Annotation(annotation_id={self.annotation_id}, element_id={self.element_id}, code_id={self.code_id})"
+
+# The following functions remain unchanged
+from sqlalchemy import Engine
+
 
 def create_database(engine: Engine):
     Base.metadata.create_all(engine)
 
 def drop_database(engine: Engine):
     Base.metadata.drop_all(engine)
+
+# The SegmentCreate model remains unchanged as it's a Pydantic model, not an SQLAlchemy model
+from pydantic import BaseModel
+
+
+class SegmentCreate(BaseModel):
+    segment_title: Optional[str]
+    series_id: int
+    project_id: int

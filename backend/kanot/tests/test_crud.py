@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -15,7 +17,7 @@ def db_manager(db_engine: Engine) -> DatabaseManager:
     return DatabaseManager(db_engine)
 
 @pytest.fixture
-def project(db_manager: DatabaseManager) -> Project:
+def project(db_manager: DatabaseManager) -> Optional[Project]:
     return db_manager.create_project("Test Project", "Test Description")
 
 # Project tests
@@ -28,6 +30,7 @@ def test_create_project(db_manager: DatabaseManager) -> None:
 
 def test_read_project(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     read_project = db_manager.read_project(project.project_id)
     assert read_project is not None
     assert read_project.project_title == "Test Project"
@@ -35,6 +38,7 @@ def test_read_project(db_manager: DatabaseManager) -> None:
 
 def test_update_project(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.update_project(project.project_id, "Updated Project", "Updated Description")
     updated_project = db_manager.read_project(project.project_id)
     assert updated_project is not None
@@ -43,6 +47,7 @@ def test_update_project(db_manager: DatabaseManager) -> None:
 
 def test_delete_project(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.delete_project(project.project_id)
     deleted_project = db_manager.read_project(project.project_id)
     assert deleted_project is None
@@ -51,6 +56,7 @@ def test_delete_project(db_manager: DatabaseManager) -> None:
 
 def test_create_code_type(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     new_code_type = db_manager.create_code_type("Test Type", project.project_id)
     assert new_code_type is not None
     assert new_code_type.type_name == "Test Type"
@@ -62,6 +68,7 @@ def test_create_code_type(db_manager: DatabaseManager) -> None:
 
 def test_read_all_code_types(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type 1", project.project_id)
     db_manager.create_code_type("Test Type 2", project.project_id)
     code_types = db_manager.read_all_code_types()
@@ -72,6 +79,7 @@ def test_read_all_code_types(db_manager: DatabaseManager) -> None:
 
 def test_update_code_type(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.update_code_type(1, "Updated Type")
     code_type = db_manager.read_code_type(1)
@@ -80,6 +88,7 @@ def test_update_code_type(db_manager: DatabaseManager) -> None:
 
 def test_delete_code_type(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.delete_code_type(1)
     code_type = db_manager.read_code_type(1)
@@ -89,6 +98,7 @@ def test_delete_code_type(db_manager: DatabaseManager) -> None:
 
 def test_create_code(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     code = db_manager.read_code(1)
@@ -98,6 +108,7 @@ def test_create_code(db_manager: DatabaseManager) -> None:
 
 def test_read_all_codes(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code 1", "Description 1", 1, "Reference 1", "Coordinates 1", project.project_id)
     db_manager.create_code("Test Code 2", "Description 2", 1, "Reference 2", "Coordinates 2", project.project_id)
@@ -109,6 +120,7 @@ def test_read_all_codes(db_manager: DatabaseManager) -> None:
 
 def test_update_code(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     db_manager.update_code(1, term="Updated Code")
@@ -118,6 +130,7 @@ def test_update_code(db_manager: DatabaseManager) -> None:
 
 def test_delete_code(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     db_manager.delete_code(1)
@@ -128,6 +141,7 @@ def test_delete_code(db_manager: DatabaseManager) -> None:
 
 def test_create_series(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_series("Test Series", project.project_id)
     series = db_manager.read_series(1)
     assert series is not None
@@ -136,6 +150,7 @@ def test_create_series(db_manager: DatabaseManager) -> None:
 
 def test_read_all_series(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_series("Test Series 1", project.project_id)
     db_manager.create_series("Test Series 2", project.project_id)
     series = db_manager.read_all_series()
@@ -146,6 +161,7 @@ def test_read_all_series(db_manager: DatabaseManager) -> None:
 
 def test_update_series(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_series("Test Series", project.project_id)
     db_manager.update_series(1, "Updated Series")
     series = db_manager.read_series(1)
@@ -154,6 +170,7 @@ def test_update_series(db_manager: DatabaseManager) -> None:
 
 def test_delete_series(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_series("Test Series", project.project_id)
     db_manager.delete_series(1)
     series = db_manager.read_series(1)
@@ -163,6 +180,7 @@ def test_delete_series(db_manager: DatabaseManager) -> None:
 
 def test_create_segment(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -173,6 +191,7 @@ def test_create_segment(db_manager: DatabaseManager) -> None:
 
 def test_read_all_segments(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     db_manager.create_segment("Test Segment 1", series.series_id, project.project_id)
@@ -185,6 +204,7 @@ def test_read_all_segments(db_manager: DatabaseManager) -> None:
 
 def test_update_segment(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -195,6 +215,7 @@ def test_update_segment(db_manager: DatabaseManager) -> None:
 
 def test_delete_segment(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -206,6 +227,7 @@ def test_delete_segment(db_manager: DatabaseManager) -> None:
 
 def test_create_element(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -218,6 +240,7 @@ def test_create_element(db_manager: DatabaseManager) -> None:
 
 def test_read_all_elements(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -232,6 +255,7 @@ def test_read_all_elements(db_manager: DatabaseManager) -> None:
 
 def test_update_element(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -244,6 +268,7 @@ def test_update_element(db_manager: DatabaseManager) -> None:
 
 def test_delete_element(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -257,6 +282,7 @@ def test_delete_element(db_manager: DatabaseManager) -> None:
 
 def test_create_annotation(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -273,6 +299,7 @@ def test_create_annotation(db_manager: DatabaseManager) -> None:
 
 def test_read_annotation(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     series = db_manager.create_series("Test Series", project.project_id)
     assert series is not None
     segment = db_manager.create_segment("Test Segment", series.series_id, project.project_id)
@@ -288,6 +315,7 @@ def test_read_annotation(db_manager: DatabaseManager) -> None:
 
 def test_read_all_annotations(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     db_manager.create_code("Test Code 2", "Description 2", 1, "Reference 2", "Coordinates 2", project.project_id)
@@ -323,6 +351,7 @@ def test_read_all_annotations(db_manager: DatabaseManager) -> None:
 
 def test_update_annotation(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     db_manager.create_code("Test Code 2", "Description 2", 1, "Reference 2", "Coordinates 2", project.project_id)
@@ -339,6 +368,7 @@ def test_update_annotation(db_manager: DatabaseManager) -> None:
 
 def test_delete_annotation(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code("Test Code", "Description", 1, "Reference", "Coordinates", project.project_id)
     series = db_manager.create_series("Test Series", project.project_id)
@@ -355,6 +385,7 @@ def test_delete_annotation(db_manager: DatabaseManager) -> None:
 
 def test_merge_codes(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     # Create code types
     db_manager.create_code_type("Test Type", project.project_id)
     
@@ -400,6 +431,7 @@ def test_merge_codes(db_manager: DatabaseManager) -> None:
 
 def test_integrity_error_handling(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
+    assert project is not None
     db_manager.create_code_type("Test Type", project.project_id)
     db_manager.create_code_type("Test Type", project.project_id)  # Should not raise an exception, but print a message
     
