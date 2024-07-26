@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from fastapi.testclient import TestClient
 from kanot.db.crud import DatabaseManager
 from kanot.main import app, get_db
 
