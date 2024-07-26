@@ -589,4 +589,14 @@ def test_update_segment(client: TestClient, create_project: Callable[..., Dict[s
     get_response = client.get(f"/segments/{segment_id}")
     assert get_response.status_code == 200
     get_segment = SegmentResponse(**get_response.json())
-    assert get_segment == updated_segment
+    
+    # Compare relevant fields
+    assert get_segment.segment_id == updated_segment.segment_id
+    assert get_segment.segment_title == updated_segment.segment_title
+    assert get_segment.series_id == updated_segment.series_id
+    assert get_segment.project_id == updated_segment.project_id
+    
+    # Check that series information is present in get_segment
+    assert get_segment.series is not None
+    assert get_segment.series.series_id == series_id
+    assert get_segment.series.series_title == "Test Series"
