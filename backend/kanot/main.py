@@ -674,6 +674,9 @@ def update_annotation(
         if updated_annotation is None:
             raise HTTPException(status_code=404, detail="Annotation not found")
         
+        # Merge the updated_annotation into the current session
+        updated_annotation = session.merge(updated_annotation)
+        
         # Refresh the updated_annotation to ensure it's bound to the session
         session.refresh(updated_annotation)
         
