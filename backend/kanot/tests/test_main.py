@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from kanot.db.schema import Base
-from kanot.main import create_test_app
+from kanot.main import create_test_app, get_db
+from kanot.db.crud import DatabaseManager
 
 # Setup in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -20,14 +21,11 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 Base.metadata.create_all(bind=engine)
 
 def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        if db:
-            db.close()
+    db_manager = DatabaseManager(engine)
+    return db_manager
 
 app = create_test_app(SQLALCHEMY_DATABASE_URL)
+app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
 
