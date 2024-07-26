@@ -79,3 +79,305 @@ def test_error_handling(client: TestClient) -> None:
     response = client.delete("/projects/9999")
     assert response.status_code == 404
     assert "detail" in response.json()
+
+def test_create_code_type(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    response = client.post("/code_types/", json=code_type_create.dict())
+    assert response.status_code == 200
+    data = CodeTypeResponse(**response.json())
+    assert data.type_name == "Test Code Type"
+    assert data.project_id == project["project_id"]
+
+def test_read_code_types(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    client.post("/code_types/", json=code_type_create.dict())
+    response = client.get("/code_types/")
+    assert response.status_code == 200
+    data = [CodeTypeResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(ct.type_name == "Test Code Type" for ct in data)
+
+def test_create_code(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.dict())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    response = client.post("/codes/", json=code_create.dict())
+    assert response.status_code == 200
+    data = CodeResponse(**response.json())
+    assert data.term == "Test Code"
+    assert data.description == "Test Description"
+    assert data.type_id == code_type_id
+    assert data.project_id == project["project_id"]
+
+def test_read_codes(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.dict())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    client.post("/codes/", json=code_create.dict())
+    response = client.get("/codes/")
+    assert response.status_code == 200
+    data = [CodeResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(c.term == "Test Code" for c in data)
+
+def test_create_series(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    response = client.post("/series/", json=series_create.dict())
+    assert response.status_code == 200
+    data = SeriesResponse(**response.json())
+    assert data.series_title == "Test Series"
+    assert data.project_id == project["project_id"]
+
+def test_read_series(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    client.post("/series/", json=series_create.dict())
+    response = client.get("/series/")
+    assert response.status_code == 200
+    data = [SeriesResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(s.series_title == "Test Series" for s in data)
+
+def test_create_segment(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    response = client.post("/segments/", json=segment_create.dict())
+    assert response.status_code == 200
+    data = SegmentResponse(**response.json())
+    assert data.segment_title == "Test Segment"
+    assert data.series_id == series_id
+    assert data.project_id == project["project_id"]
+
+def test_read_segments(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    client.post("/segments/", json=segment_create.dict())
+    response = client.get("/segments/")
+    assert response.status_code == 200
+    data = [SegmentResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(s.segment_title == "Test Segment" for s in data)
+
+def test_create_element(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.dict())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
+    response = client.post("/elements/", json=element_create.dict())
+    assert response.status_code == 200
+    data = ElementResponse(**response.json())
+    assert data.element_text == "Test Element"
+    assert data.segment_id == segment_id
+    assert data.project_id == project["project_id"]
+
+def test_read_elements(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.dict())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
+    client.post("/elements/", json=element_create.dict())
+    response = client.get("/elements/")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(e.element_text == "Test Element" for e in data)
+
+def test_create_annotation(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create code type and code
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.dict())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    code_response = client.post("/codes/", json=code_create.dict())
+    code_id = code_response.json()["code_id"]
+    
+    # Create series, segment, and element
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.dict())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
+    element_response = client.post("/elements/", json=element_create.dict())
+    element_id = element_response.json()["element_id"]
+    
+    # Create annotation
+    annotation_create = AnnotationCreate(element_id=element_id, code_id=code_id, project_id=project["project_id"])
+    response = client.post("/annotations/", json=annotation_create.dict())
+    assert response.status_code == 200
+    data = AnnotationResponse(**response.json())
+    assert data.element_id == element_id
+    assert data.code_id == code_id
+    assert data.project_id == project["project_id"]
+
+def test_read_annotations(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create code type and code
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.dict())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    code_response = client.post("/codes/", json=code_create.dict())
+    code_id = code_response.json()["code_id"]
+    
+    # Create series, segment, and element
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.dict())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
+    element_response = client.post("/elements/", json=element_create.dict())
+    element_id = element_response.json()["element_id"]
+    
+    # Create annotation
+    annotation_create = AnnotationCreate(element_id=element_id, code_id=code_id, project_id=project["project_id"])
+    client.post("/annotations/", json=annotation_create.dict())
+    
+    response = client.get("/annotations/")
+    assert response.status_code == 200
+    data = [AnnotationResponse(**item) for item in response.json()]
+    assert len(data) > 0
+    assert any(a.element_id == element_id and a.code_id == code_id for a in data)
+
+def test_merge_codes(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create code type
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.dict())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    # Create two codes
+    code_create_1 = CodeCreate(
+        term="Test Code 1",
+        description="Test Description 1",
+        type_id=code_type_id,
+        reference="Test Reference 1",
+        coordinates="Test Coordinates 1",
+        project_id=project["project_id"]
+    )
+    code_response_1 = client.post("/codes/", json=code_create_1.dict())
+    code_id_1 = code_response_1.json()["code_id"]
+    
+    code_create_2 =CodeCreate(
+        term="Test Code 2",
+        description="Test Description 2",
+        type_id=code_type_id,
+        reference="Test Reference 2",
+        coordinates="Test Coordinates 2",
+        project_id=project["project_id"]
+    )
+    code_response_2 = client.post("/codes/", json=code_create_2.dict())
+    code_id_2 = code_response_2.json()["code_id"]
+    
+    # Merge codes
+    response = client.post(f"/merge_codes/?code_a_id={code_id_1}&code_b_id={code_id_2}")
+    assert response.status_code == 200
+    assert "Successfully merged" in response.json()["message"]
+    
+    # Check that code_id_1 no longer exists
+    response = client.get(f"/codes/{code_id_1}")
+    assert response.status_code == 404
+    
+    # Check that code_id_2 still exists
+    response = client.get(f"/codes/{code_id_2}")
+    assert response.status_code == 200
+
+def test_search_elements(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    
+    # Create series, segment, and elements
+    series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
+    series_response = client.post("/series/", json=series_create.dict())
+    series_id = series_response.json()["series_id"]
+    
+    segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
+    segment_response = client.post("/segments/", json=segment_create.dict())
+    segment_id = segment_response.json()["segment_id"]
+    
+    element_create_1 = ElementCreate(element_text="Test Element 1", segment_id=segment_id, project_id=project["project_id"])
+    client.post("/elements/", json=element_create_1.dict())
+    
+    element_create_2 = ElementCreate(element_text="Another Element", segment_id=segment_id, project_id=project["project_id"])
+    client.post("/elements/", json=element_create_2.dict())
+    
+    # Search for elements
+    response = client.get("/search_elements/?search_term=Test")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) == 1
+    assert data[0].element_text == "Test Element 1"
+    
+    # Check pagination headers
+    assert "X-Total-Count" in response.headers
+    assert "X-Limit" in response.headers
+    assert "X-Skip" in response.headers
