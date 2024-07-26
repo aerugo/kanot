@@ -141,7 +141,12 @@ def update_project(
     updated_project = db_manager.update_project(project_id, project.project_title, project.project_description)
     if updated_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    return ProjectResponse.model_validate(updated_project)
+    return ProjectResponse(
+        id=updated_project.project_id,
+        project_id=updated_project.project_id,
+        project_title=updated_project.project_title,
+        project_description=updated_project.project_description
+    )
 
 @router.delete("/projects/{project_id}")
 def delete_project(
@@ -176,7 +181,12 @@ def read_code_types(
 ) -> List[CodeTypeResponse]:
     code_types = db_manager.read_all_code_types()
     assert code_types is not None
-    return [CodeTypeResponse.model_validate(code_type) for code_type in code_types]
+    return [CodeTypeResponse(
+        id=code_type.type_id,
+        project_id=code_type.project_id,
+        type_id=code_type.type_id,
+        type_name=code_type.type_name
+    ) for code_type in code_types]
 
 @router.get("/code_types/{type_id}", response_model=CodeTypeResponse)
 def read_code_type(
@@ -275,6 +285,7 @@ def create_series(
     return SeriesResponse(
         id=new_series.series_id,
         project_id=new_series.project_id,
+        series_id=new_series.series_id,
         series_title=new_series.series_title
     )
 
@@ -284,7 +295,11 @@ def read_all_series(
 ) -> List[SeriesResponse]:
     series_list = db_manager.read_all_series()
     assert series_list is not None
-    return [SeriesResponse.model_validate(series) for series in series_list]
+    return [SeriesResponse(
+        id=series.series_id,
+        project_id=series.project_id,
+        series_title=series.series_title
+    ) for series in series_list]
 
 @router.get("/series/{series_id}", response_model=SeriesResponse)
 def read_series(
