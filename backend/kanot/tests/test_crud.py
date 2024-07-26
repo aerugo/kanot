@@ -338,16 +338,16 @@ def test_read_all_annotations(db_manager: DatabaseManager) -> None:
     annotations = db_manager.read_all_annotations()
     assert annotations is not None
     assert len(annotations) == 5
-    assert annotations[0].element_id == 1
-    assert annotations[0].code_id == 1
-    assert annotations[1].element_id == 1
-    assert annotations[1].code_id == 2
-    assert annotations[2].element_id == 2
-    assert annotations[2].code_id == 1
-    assert annotations[3].element_id == 2
-    assert annotations[3].code_id == 2
-    assert annotations[4].element_id == 3
-    assert annotations[4].code_id == 1
+    assert annotations[0]['element_id'] == 1
+    assert annotations[0]['code_id'] == 1
+    assert annotations[1]['element_id'] == 1
+    assert annotations[1]['code_id'] == 2
+    assert annotations[2]['element_id'] == 2
+    assert annotations[2]['code_id'] == 1
+    assert annotations[3]['element_id'] == 2
+    assert annotations[3]['code_id'] == 2
+    assert annotations[4]['element_id'] == 3
+    assert annotations[4]['code_id'] == 1
 
 def test_update_annotation(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
