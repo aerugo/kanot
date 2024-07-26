@@ -1,16 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from kanot.main import create_app
-
-# Setup in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-
-app = create_app(SQLALCHEMY_DATABASE_URL)
-client = TestClient(app)
-
 @pytest.fixture
-def create_project():
+def create_project(client):
     def _create_project(title="Test Project", description="This is a test project"):
         response = client.post(
             "/projects/",
@@ -24,7 +16,7 @@ def create_project():
     ("Test Project", "This is a test project"),
     ("Another Project", "This is another test project"),
 ])
-def test_create_project(title, description):
+def test_create_project(client, title, description):
     response = client.post(
         "/projects/",
         json={"project_title": title, "project_description": description}
@@ -35,7 +27,7 @@ def test_create_project(title, description):
     assert data["project_description"] == description
     assert "project_id" in data
 
-def test_read_project(create_project):
+def test_read_project(client, create_project):
     project = create_project()
     project_id = project["project_id"]
 
@@ -46,7 +38,7 @@ def test_read_project(create_project):
     assert data["project_description"] == project["project_description"]
     assert data["project_id"] == project_id
 
-def test_update_project(create_project):
+def test_update_project(client, create_project):
     project = create_project()
     project_id = project["project_id"]
 
@@ -62,7 +54,7 @@ def test_update_project(create_project):
     assert data["project_description"] == updated_description
     assert data["project_id"] == project_id
 
-def test_delete_project(create_project):
+def test_delete_project(client, create_project):
     project = create_project()
     project_id = project["project_id"]
 
@@ -75,7 +67,7 @@ def test_delete_project(create_project):
     assert response.status_code == 404
 
 @pytest.fixture
-def create_code_type(create_project):
+def create_code_type(client, create_project):
     def _create_code_type(type_name="Test Code Type"):
         project = create_project()
         response = client.post(
@@ -93,7 +85,7 @@ def test_create_code_type(create_code_type):
     assert "project_id" in code_type
 
 @pytest.fixture
-def create_code(create_project, create_code_type):
+def create_code(client, create_project, create_code_type):
     def _create_code(term="Test Code", description="This is a test code"):
         project = create_project()
         code_type = create_code_type()
@@ -120,18 +112,18 @@ def test_create_code(create_code):
     assert "type_id" in code
     assert "project_id" in code
 
-def test_read_code_types():
+def test_read_code_types(client):
     response = client.get("/code_types/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_read_codes():
+def test_read_codes(client):
     response = client.get("/codes/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 @pytest.fixture
-def create_series(create_project):
+def create_series(client, create_project):
     def _create_series(title="Test Series"):
         project = create_project()
         response = client.post(
@@ -149,7 +141,7 @@ def test_create_series(create_series):
     assert "project_id" in series
 
 @pytest.fixture
-def create_segment(create_project, create_series):
+def create_segment(client, create_project, create_series):
     def _create_segment(title="Test Segment"):
         project = create_project()
         series = create_series()
@@ -169,7 +161,7 @@ def test_create_segment(create_segment):
     assert "project_id" in segment
 
 @pytest.fixture
-def create_element(create_project, create_segment):
+def create_element(client, create_project, create_segment):
     def _create_element(text="Test Element"):
         project = create_project()
         segment = create_segment()
@@ -189,7 +181,7 @@ def test_create_element(create_element):
     assert "project_id" in element
 
 @pytest.fixture
-def create_annotation(create_project, create_code, create_element):
+def create_annotation(client, create_project, create_code, create_element):
     def _create_annotation():
         project = create_project()
         code = create_code()
@@ -208,7 +200,7 @@ def test_create_annotation(create_annotation):
     assert "element_id" in annotation
     assert "code_id" in annotation
 
-def test_search_elements(create_element):
+def test_search_elements(client, create_element):
     create_element("Test Element for Search")
     response = client.get("/search_elements/?search_term=Test")
     assert response.status_code == 200
@@ -219,7 +211,7 @@ def test_search_elements(create_element):
     assert "element_text" in data[0]
     assert any("Test Element for Search" in element["element_text"] for element in data)
 
-def test_merge_codes(create_code):
+def test_merge_codes(client, create_code):
     code1 = create_code("Test Code 1", "This is a test code for merging")
     code2 = create_code("Test Code 2", "This is another test code for merging")
 
@@ -237,7 +229,7 @@ def test_merge_codes(create_code):
     response = client.get(f"/codes/{code2['code_id']}")
     assert response.status_code == 200
 
-def test_error_handling():
+def test_error_handling(client):
     # Test non-existent project
     response = client.get("/projects/9999")
     assert response.status_code == 404
