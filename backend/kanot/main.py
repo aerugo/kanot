@@ -253,7 +253,7 @@ def read_codes(
 ) -> List[CodeResponse]:
     codes = db_manager.read_all_codes()
     assert codes is not None
-    return [CodeResponse.model_validate(code) for code in codes]
+    return [CodeResponse.model_validate(code.__dict__) for code in codes]
 
 @router.get("/codes/{code_id}", response_model=CodeResponse)
 def read_code(
@@ -263,7 +263,7 @@ def read_code(
     code = db_manager.read_code(code_id)
     if code is None:
         raise HTTPException(status_code=404, detail="Code not found")
-    return CodeResponse.model_validate(code)
+    return CodeResponse.model_validate(code.__dict__)
 
 @router.put("/codes/{code_id}", response_model=CodeResponse)
 def update_code(
@@ -313,6 +313,7 @@ def read_all_series(
     return [SeriesResponse(
         id=series.series_id,
         project_id=series.project_id,
+        series_id=series.series_id,
         series_title=series.series_title
     ) for series in series_list]
 
@@ -373,7 +374,7 @@ def read_segments(
 ) -> List[SegmentResponse]:
     segments = db_manager.read_all_segments()
     assert segments is not None
-    return [SegmentResponse.model_validate(segment) for segment in segments]
+    return [SegmentResponse.model_validate(segment.__dict__) for segment in segments]
 
 @router.get("/segments/{segment_id}", response_model=SegmentResponse)
 def read_segment(
@@ -423,7 +424,7 @@ def create_element(
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
         raise HTTPException(status_code=400, detail="Failed to create element")
-    return ElementResponse.model_validate(new_element)
+    return ElementResponse.model_validate(new_element.__dict__)
 
 @router.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
@@ -434,7 +435,7 @@ def read_elements(
     elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
     if elements is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve elements")
-    return [ElementResponse.model_validate(element) for element in elements]
+    return [ElementResponse.model_validate(element.__dict__) for element in elements]
 
 @router.get("/elements/{element_id}", response_model=ElementResponse)
 def read_element(
@@ -475,7 +476,7 @@ def create_annotation(
         new_annotation = db_manager.create_annotation(annotation.element_id, annotation.code_id, annotation.project_id)
         if new_annotation is None:
             raise HTTPException(status_code=400, detail="Failed to create annotation")
-        return AnnotationResponse.model_validate(new_annotation)
+        return AnnotationResponse.model_validate(new_annotation.__dict__)
     except Exception as e:
         logger.error(f"Error creating annotation: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating annotation: {str(e)}")
@@ -517,7 +518,7 @@ def read_annotations(
 ) -> List[AnnotationResponse]:
     annotations = db_manager.read_all_annotations()
     assert annotations is not None
-    return [AnnotationResponse.model_validate(annotation) for annotation in annotations]
+    return [AnnotationResponse.model_validate(annotation.__dict__) for annotation in annotations]
 
 @router.get("/annotations/{annotation_id}", response_model=AnnotationResponse)
 def read_annotation(
