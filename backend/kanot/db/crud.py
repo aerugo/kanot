@@ -631,24 +631,11 @@ class DatabaseManager:
         with self.get_session() as session:
             annotations = session.query(Annotation).options(joinedload(Annotation.code)).all()
             # Explicitly load the attributes we need and keep them in the session
-            result = []
+            result: list[Annotation] = []
             for annotation in annotations:
                 session.refresh(annotation)
-                result.append({
-                    'annotation_id': annotation.annotation_id,
-                    'element_id': annotation.element_id,
-                    'code_id': annotation.code_id,
-                    'project_id': annotation.project_id,
-                    'code': {
-                        'code_id': annotation.code.code_id,
-                        'term': annotation.code.term,
-                        'description': annotation.code.description,
-                        'type_id': annotation.code.type_id,
-                        'reference': annotation.code.reference,
-                        'coordinates': annotation.code.coordinates,
-                        'project_id': annotation.code.project_id
-                    } if annotation.code else None
-                })
+                assert annotation is not None
+                result.append(annotation)
             return result
 
     def update_annotation(
