@@ -174,6 +174,44 @@ def test_read_codes(client: TestClient, create_project: Callable[..., Dict[str, 
     assert len(data) > 0
     assert any(c.term == "Test Code" for c in data)
 
+def test_update_code(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    code_type_response = client.post("/code_types/", json=code_type_create.model_dump())
+    code_type_id = code_type_response.json()["type_id"]
+    
+    code_create = CodeCreate(
+        term="Test Code",
+        description="Test Description",
+        type_id=code_type_id,
+        reference="Test Reference",
+        coordinates="Test Coordinates",
+        project_id=project["project_id"]
+    )
+    create_response = client.post("/codes/", json=code_create.model_dump())
+    assert create_response.status_code == 200
+    created_code = CodeResponse(**create_response.json())
+    
+    updated_term = "Updated Code"
+    updated_description = "Updated Description"
+    code_update = CodeUpdate(
+        term=updated_term,
+        description=updated_description,
+        type_id=code_type_id,
+        reference="Updated Reference",
+        coordinates="Updated Coordinates"
+    )
+    update_response = client.put(f"/codes/{created_code.code_id}", json=code_update.model_dump())
+    assert update_response.status_code == 200
+    updated_code = CodeResponse(**update_response.json())
+    assert updated_code.term == updated_term
+    assert updated_code.description == updated_description
+    assert updated_code.reference == "Updated Reference"
+    assert updated_code.coordinates == "Updated Coordinates"
+    assert updated_code.code_id == created_code.code_id
+    assert updated_code.type_id == code_type_id
+    assert updated_code.project_id == project["project_id"]
+
 def test_create_series(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
