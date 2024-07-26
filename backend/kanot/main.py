@@ -295,10 +295,12 @@ def update_project(
     project: ProjectUpdate,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> ProjectResponse:
-    db_manager.update_project(project_id, project.project_title, project.project_description)
-    updated_project = db_manager.read_project(project_id)
-    if updated_project is None:
+    existing_project = db_manager.read_project(project_id)
+    if existing_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    updated_project = db_manager.update_project(project_id, project.project_title, project.project_description)
+    if updated_project is None:
+        raise HTTPException(status_code=500, detail="Failed to update project")
     return ProjectResponse.model_validate(updated_project)
 
 @router.delete("/projects/{project_id}")
@@ -306,6 +308,9 @@ def delete_project(
     project_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ):
+    project = db_manager.read_project(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
     db_manager.delete_project(project_id)
     return {"message": "Project deleted successfully"}
 
@@ -474,7 +479,13 @@ def create_segment(
         if existing_segment:
             return SegmentResponse.model_validate(existing_segment)
         raise HTTPException(status_code=400, detail="Failed to create segment")
-    return SegmentResponse.model_validate(new_segment)
+    return SegmentResponse(
+        segment_id=new_segment.segment_id,
+        segment_title=new_segment.segment_title,
+        series_id=new_segment.series_id,
+        project_id=new_segment.project_id,
+        series=None  # We're not loading the series here to avoid the DetachedInstanceError
+    )
 
 @router.get("/segments/", response_model=List[SegmentResponse])
 def read_segments(
@@ -524,6 +535,11 @@ def create_element(
     segment = db_manager.read_segment(element.segment_id)
     if segment is None:
         raise HTTPException(status_code=404, detail="Segment not found")
+    
+    # Check if the project exists
+    project = db_manager.read_project(element.project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
     
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
     if new_element is None:
@@ -663,10 +679,18 @@ def merge_codes(
     code_b_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ):
-    merged_code = db_manager.merge_codes(code_a_id, code_b_id)
-    if merged_code is None:
-        raise HTTPException(status_code=400, detail="Failed to merge codes")
-    return {"message": f"Successfully merged Code {code_a_id} into Code {code_b_id}"}
+    try:
+        code_a = db_manager.read_code(code_a_id)
+        code_b = db_manager.read_code(code_b_id)
+        if code_a is None or code_b is None:
+            raise HTTPException(status_code=404, detail="One or both codes not found")
+        
+        merged_code = db_manager.merge_codes(code_a_id, code_b_id)
+        if merged_code is None:
+            raise HTTPException(status_code=400, detail="Failed to merge codes")
+        return {"message": f"Successfully merged Code {code_a_id} into Code {code_b_id}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/annotations_for_code/{code_id}", response_model=List[AnnotationResponse])
 def get_annotations_for_code(
