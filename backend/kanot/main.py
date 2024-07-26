@@ -102,6 +102,7 @@ def create_project(
     if new_project is None:
         raise HTTPException(status_code=400, detail="Failed to create project")
     return ProjectResponse(
+        id=new_project.project_id,
         project_id=new_project.project_id,
         project_title=new_project.project_title,
         project_description=new_project.project_description
