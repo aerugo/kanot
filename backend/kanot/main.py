@@ -359,23 +359,27 @@ def create_code(
     db_manager: DatabaseManager = Depends(get_db)
 ):
     try:
-        new_code = db_manager.create_code(
-            code.term, code.description, code.type_id, 
-            code.reference, code.coordinates, code.project_id
-        )
-        if new_code is None:
-            return JSONResponse(
-                status_code=400,
-                content={"message": "Code with this term already exists"}
+        with db_manager.get_session() as session:
+            new_code = db_manager.create_code(
+                code.term, code.description, code.type_id, 
+                code.reference, code.coordinates, code.project_id
             )
-        
-        logger.info(f"New code created: {new_code}")
-        
-        code_response = CodeResponse.model_validate(new_code)
-        json_compatible_item_data = jsonable_encoder(code_response)
-        logger.info(f"Serialized code: {json_compatible_item_data}")
-        
-        return JSONResponse(content=json_compatible_item_data)
+            if new_code is None:
+                return JSONResponse(
+                    status_code=400,
+                    content={"message": "Code with this term already exists"}
+                )
+            
+            # Explicitly load the code_type relationship
+            session.refresh(new_code, ['code_type'])
+            
+            logger.info(f"New code created: {new_code}")
+            
+            code_response = CodeResponse.model_validate(new_code)
+            json_compatible_item_data = jsonable_encoder(code_response)
+            logger.info(f"Serialized code: {json_compatible_item_data}")
+            
+            return JSONResponse(content=json_compatible_item_data)
     except IntegrityError as e:
         logger.error(f"IntegrityError when creating code: {str(e)}")
         return JSONResponse(
