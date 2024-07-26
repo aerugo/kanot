@@ -103,12 +103,7 @@ class DatabaseManager:
             session.close()
             return projects
 
-    def update_project(
-        self,
-        project_id: int,
-        project_title: Optional[str] = None,
-        project_description: Optional[str] = None,
-    ) -> Optional[Project]:
+    def update_project(self, project_id: int, project_title: Optional[str] = None, project_description: Optional[str] = None) -> Optional[Project]:
         with self.get_session() as session:
             project = session.query(Project).filter_by(project_id=project_id).first()
             if project:
@@ -119,12 +114,16 @@ class DatabaseManager:
                 try:
                     session.commit()
                     session.refresh(project)
-                    return project
+                    # Explicitly load the attributes we need
+                    project_data = {
+                        "project_id": project.project_id,
+                        "project_title": project.project_title,
+                        "project_description": project.project_description
+                    }
+                    return Project(**project_data)
                 except IntegrityError:
                     session.rollback()
-                    logger.error(
-                        f"Failed to update Project with ID {project_id} due to a unique constraint violation."
-                    )
+                    logger.error(f"Failed to update Project with ID {project_id} due to a unique constraint violation.")
             return None
 
     def delete_project(self, project_id: int) -> None:
@@ -147,7 +146,9 @@ class DatabaseManager:
                 return new_code_type
             except IntegrityError:
                 session.rollback()
-                logger.info(f"CodeType with type_name={type_name} already exists in project {project_id}.")
+                logger.info(
+                    f"CodeType with type_name={type_name} already exists in project {project_id}."
+                )
                 return None
             except Exception as e:
                 session.rollback()
@@ -219,7 +220,7 @@ class DatabaseManager:
                 )
                 session.add(new_code)
                 session.commit()
-                session.refresh(new_code, ['code_type'])
+                session.refresh(new_code, ["code_type"])
                 return new_code
             except IntegrityError:
                 session.rollback()
@@ -229,10 +230,14 @@ class DatabaseManager:
                     .first()
                 )
                 if existing_code:
-                    logger.error(f"Code with term={term} already exists in project {project_id}.")
+                    logger.error(
+                        f"Code with term={term} already exists in project {project_id}."
+                    )
                     return existing_code
                 else:
-                    logger.error(f"Unexpected IntegrityError for Code with term={term} in project {project_id}.")
+                    logger.error(
+                        f"Unexpected IntegrityError for Code with term={term} in project {project_id}."
+                    )
                     raise
             except Exception as e:
                 session.rollback()
@@ -268,7 +273,9 @@ class DatabaseManager:
         coordinates: Optional[str] = None,
     ) -> None:
         with self.get_session() as session:
-            code: Optional[Code] = session.query(Code).filter_by(code_id=code_id).first()
+            code: Optional[Code] = (
+                session.query(Code).filter_by(code_id=code_id).first()
+            )
             if code:
                 try:
                     if term is not None:
@@ -291,7 +298,9 @@ class DatabaseManager:
 
     def delete_code(self, code_id: int) -> None:
         with self.get_session() as session:
-            code: Optional[Code] = session.query(Code).filter_by(code_id=code_id).first()
+            code: Optional[Code] = (
+                session.query(Code).filter_by(code_id=code_id).first()
+            )
             if code:
                 session.delete(code)
                 session.commit()
@@ -357,9 +366,13 @@ class DatabaseManager:
 
     # Segment CRUD
 
-    def create_segment(self, segment_title: str, series_id: int, project_id: int) -> Segment | None:
+    def create_segment(
+        self, segment_title: str, series_id: int, project_id: int
+    ) -> Segment | None:
         with self.get_session() as session:
-            new_segment = Segment(segment_title=segment_title, series_id=series_id, project_id=project_id)
+            new_segment = Segment(
+                segment_title=segment_title, series_id=series_id, project_id=project_id
+            )
             try:
                 session.add(new_segment)
                 session.commit()
@@ -367,7 +380,9 @@ class DatabaseManager:
                 return new_segment
             except IntegrityError:
                 session.rollback()
-                logger.error(f"Segment with segment_title={segment_title} already exists.")
+                logger.error(
+                    f"Segment with segment_title={segment_title} already exists."
+                )
                 return None
             finally:
                 session.close()
@@ -380,7 +395,9 @@ class DatabaseManager:
             session.close()
             return segment
 
-    def read_segment_by_title(self, segment_title: str, series_id: int) -> Optional[Segment]:
+    def read_segment_by_title(
+        self, segment_title: str, series_id: int
+    ) -> Optional[Segment]:
         with self.get_session() as session:
             segment: Optional[Segment] = (
                 session.query(Segment)
@@ -393,7 +410,9 @@ class DatabaseManager:
     def read_all_segments(self) -> Optional[list[Segment]]:
         with self.get_session() as session:
             try:
-                segments = session.query(Segment).options(joinedload(Segment.series)).all()
+                segments = (
+                    session.query(Segment).options(joinedload(Segment.series)).all()
+                )
                 return segments
             finally:
                 session.close()
@@ -437,18 +456,22 @@ class DatabaseManager:
         with self.get_session() as session:
             try:
                 new_element = Element(
-                    element_text=element_text, segment_id=segment_id, project_id=project_id
+                    element_text=element_text,
+                    segment_id=segment_id,
+                    project_id=project_id,
                 )
                 session.add(new_element)
                 session.commit()
-                
+
                 # Explicitly load related objects
                 session.refresh(new_element)
                 session.query(Element).options(
                     joinedload(Element.segment).joinedload(Segment.series),
-                    joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type)
+                    joinedload(Element.annotations)
+                    .joinedload(Annotation.code)
+                    .joinedload(Code.code_type),
                 ).filter(Element.element_id == new_element.element_id).first()
-                
+
                 return new_element
             except IntegrityError:
                 session.rollback()
@@ -519,7 +542,11 @@ class DatabaseManager:
             element: Optional[Element] = (
                 session.query(Element)
                 .options(joinedload(Element.segment).joinedload(Segment.series))
-                .options(joinedload(Element.annotations).joinedload(Annotation.code).joinedload(Code.code_type))
+                .options(
+                    joinedload(Element.annotations)
+                    .joinedload(Annotation.code)
+                    .joinedload(Code.code_type)
+                )
                 .filter_by(element_id=element_id)
                 .first()
             )
@@ -551,9 +578,13 @@ class DatabaseManager:
 
     # Annotation CRUD
 
-    def create_annotation(self, element_id: int, code_id: int, project_id: int) -> Annotation | None:
+    def create_annotation(
+        self, element_id: int, code_id: int, project_id: int
+    ) -> Annotation | None:
         with self.get_session() as session:
-            new_annotation = Annotation(element_id=element_id, code_id=code_id, project_id=project_id)
+            new_annotation = Annotation(
+                element_id=element_id, code_id=code_id, project_id=project_id
+            )
             try:
                 session.add(new_annotation)
                 session.commit()
@@ -561,11 +592,15 @@ class DatabaseManager:
                 # Eagerly load the related code object
                 session.query(Annotation).options(
                     joinedload(Annotation.code).joinedload(Code.code_type)
-                ).filter(Annotation.annotation_id == new_annotation.annotation_id).first()
+                ).filter(
+                    Annotation.annotation_id == new_annotation.annotation_id
+                ).first()
                 return new_annotation
             except IntegrityError:
                 session.rollback()
-                logger.error(f"Annotation with element_id={element_id} and code_id={code_id} already exists.")
+                logger.error(
+                    f"Annotation with element_id={element_id} and code_id={code_id} already exists."
+                )
                 return None
             finally:
                 session.close()
@@ -634,7 +669,9 @@ class DatabaseManager:
                     return None
 
                 # Get all annotations for code_a
-                annotations_a = session.query(Annotation).filter_by(code_id=code_a_id).all()
+                annotations_a = (
+                    session.query(Annotation).filter_by(code_id=code_a_id).all()
+                )
 
                 for annotation in annotations_a:
                     # Check if there's already an annotation for this element with code_b
@@ -660,13 +697,15 @@ class DatabaseManager:
                 session.delete(code_a)
 
                 session.commit()
-                logger.info(f"Successfully merged Code {code_a_id} into Code {code_b_id}")
+                logger.info(
+                    f"Successfully merged Code {code_a_id} into Code {code_b_id}"
+                )
 
                 # Refresh code_b and load its related objects
                 session.refresh(code_b)
-                session.query(Code).options(
-                    joinedload(Code.code_type)
-                ).filter(Code.code_id == code_b.code_id).first()
+                session.query(Code).options(joinedload(Code.code_type)).filter(
+                    Code.code_id == code_b.code_id
+                ).first()
 
                 return code_b
             except Exception as e:
@@ -710,7 +749,8 @@ class DatabaseManager:
                     session.query(Annotation)
                     .options(joinedload(Annotation.code).joinedload(Code.code_type))
                     .filter(
-                        Annotation.element_id == element_id, Annotation.code_id == code_id
+                        Annotation.element_id == element_id,
+                        Annotation.code_id == code_id,
                     )
                     .all()
                 )
