@@ -105,6 +105,22 @@ def test_create_code_type(client: TestClient, create_project: Callable[..., Dict
     assert data.type_name == "Test Code Type"
     assert data.project_id == project["project_id"]
 
+def test_update_code_type(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
+    create_response = client.post("/code_types/", json=code_type_create.model_dump())
+    assert create_response.status_code == 200
+    created_code_type = CodeTypeResponse(**create_response.json())
+    
+    updated_type_name = "Updated Code Type"
+    code_type_update = CodeTypeUpdate(type_name=updated_type_name)
+    update_response = client.put(f"/code_types/{created_code_type.type_id}", json=code_type_update.model_dump())
+    assert update_response.status_code == 200
+    updated_code_type = CodeTypeResponse(**update_response.json())
+    assert updated_code_type.type_name == updated_type_name
+    assert updated_code_type.type_id == created_code_type.type_id
+    assert updated_code_type.project_id == created_code_type.project_id
+
 def test_read_code_types(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
