@@ -199,6 +199,8 @@ class ElementUpdate(BaseModel):
 class ElementResponse(BaseModel):
     element_id: int
     element_text: Optional[str] = None
+    segment_id: int
+    project_id: int
     segment: Optional[SegmentResponse] = None
     annotations: List[AnnotationResponseNoElement] = []
 
@@ -496,7 +498,19 @@ def delete_segment(segment_id: int, db: Session = Depends(get_db)):
 @app.post("/elements/", response_model=ElementResponse)
 def create_element(element: ElementCreate, db: Session = Depends(get_db)):
     new_element = db_manager.create_element(element.element_text, element.segment_id, element.project_id)
-    return new_element
+    return ElementResponse(
+        element_id=new_element.element_id,
+        element_text=new_element.element_text,
+        segment_id=new_element.segment_id,
+        project_id=new_element.project_id,
+        segment=SegmentResponse(
+            segment_id=new_element.segment.segment_id,
+            segment_title=new_element.segment.segment_title,
+            series_id=new_element.segment.series_id,
+            project_id=new_element.segment.project_id
+        ) if new_element.segment else None,
+        annotations=[]
+    )
 
 @app.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
@@ -505,7 +519,21 @@ def read_elements(
     db: Session = Depends(get_db)
 ):
     elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
-    return elements
+    return [
+        ElementResponse(
+            element_id=element.element_id,
+            element_text=element.element_text,
+            segment_id=element.segment_id,
+            project_id=element.project_id,
+            segment=SegmentResponse(
+                segment_id=element.segment.segment_id,
+                segment_title=element.segment.segment_title,
+                series_id=element.segment.series_id,
+                project_id=element.segment.project_id
+            ) if element.segment else None,
+            annotations=[]
+        ) for element in elements
+    ]
 
 @app.get("/elements/{element_id}", response_model=ElementResponse)
 def read_element(element_id: int, db: Session = Depends(get_db)):
