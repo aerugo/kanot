@@ -608,8 +608,8 @@ def read_element(
         # Merge the element into the current session
         element = session.merge(element)
         
-        # Explicitly load the segment relationship
-        session.refresh(element, ['segment'])
+        # Explicitly load the segment and annotations relationships
+        session.refresh(element, ['segment', 'annotations'])
         
         return ElementResponse(
             id=element.element_id,
@@ -623,9 +623,29 @@ def read_element(
                 segment_title=element.segment.segment_title,
                 series_id=element.segment.series_id,
                 project_id=element.segment.project_id,
-                series=None
+                series=SeriesResponse(
+                    id=element.segment.series.series_id,
+                    series_id=element.segment.series.series_id,
+                    series_title=element.segment.series.series_title,
+                    project_id=element.segment.series.project_id
+                ) if element.segment.series else None
             ) if element.segment else None,
-            annotations=[]
+            annotations=[
+                AnnotationResponseMinimal(
+                    annotation_id=annotation.annotation_id,
+                    code=CodeResponse(
+                        id=annotation.code.code_id,
+                        code_id=annotation.code.code_id,
+                        term=annotation.code.term,
+                        description=annotation.code.description,
+                        type_id=annotation.code.type_id,
+                        reference=annotation.code.reference,
+                        coordinates=annotation.code.coordinates,
+                        project_id=annotation.code.project_id,
+                        code_type=None
+                    ) if annotation.code else None
+                ) for annotation in element.annotations
+            ]
         )
 
 @router.put("/elements/{element_id}", response_model=ElementResponse)
