@@ -609,6 +609,8 @@ def read_element(
         # Explicitly load the segment and annotations relationships
         session.refresh(element, ['segment', 'annotations'])
         
+        assert element is not None
+
         return ElementResponse(
             id=element.element_id,
             element_id=element.element_id,
@@ -849,7 +851,9 @@ def update_annotation(
         
         # Refresh the updated_annotation to ensure it's bound to the session
         session.refresh(updated_annotation)
-        
+
+        assert updated_annotation is not None
+
         return AnnotationResponse(
             id=updated_annotation.annotation_id,
             element_id=updated_annotation.element_id,
