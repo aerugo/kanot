@@ -787,21 +787,21 @@ def read_annotations(
     annotations = db_manager.read_all_annotations()
     assert annotations is not None
     return [AnnotationResponse(
-        id=annotation.annotation_id,
-        element_id=annotation.element_id,
-        code_id=annotation.code_id,
-        project_id=annotation.project_id,
+        id=annotation['annotation_id'],
+        element_id=annotation['element_id'],
+        code_id=annotation['code_id'],
+        project_id=annotation['project_id'],
         code=CodeResponse(
-            id=annotation.code.code_id,
-            code_id=annotation.code.code_id,
-            term=annotation.code.term,
-            description=annotation.code.description,
-            type_id=annotation.code.type_id,
-            reference=annotation.code.reference,
-            coordinates=annotation.code.coordinates,
-            project_id=annotation.code.project_id,
+            id=annotation['code']['code_id'],
+            code_id=annotation['code']['code_id'],
+            term=annotation['code']['term'],
+            description=annotation['code']['description'],
+            type_id=annotation['code']['type_id'],
+            reference=annotation['code']['reference'],
+            coordinates=annotation['code']['coordinates'],
+            project_id=annotation['code']['project_id'],
             code_type=None
-        ) if annotation.code else None
+        ) if annotation['code'] else None
     ) for annotation in annotations]
 
 @router.get("/annotations/{annotation_id}", response_model=AnnotationResponse)
