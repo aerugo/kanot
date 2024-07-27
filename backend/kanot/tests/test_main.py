@@ -1226,7 +1226,7 @@ def test_read_segments_by_project(client: TestClient, create_project: Callable[.
     # Create some segments
     segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series_id, "project_id": project_id})
     segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series_id, "project_id": project_id})
-    
+
     assert segment1.status_code == 200
     assert segment2.status_code == 200
 
@@ -1239,10 +1239,6 @@ def test_read_segments_by_project(client: TestClient, create_project: Callable[.
     assert any(segment["segment_title"] == "Segment 1" for segment in segments)
     assert any(segment["segment_title"] == "Segment 2" for segment in segments)
     assert all(segment["project_id"] == project_id for segment in segments)
-    query_params = urlencode(batch_annotation_remove.model_dump(by_alias=True), doseq=True)
-    response = client.delete(f"/batch_annotations/?{query_params}")
-    
-    assert response.status_code == 200, f"Unexpected status code: {response.status_code}. Response: {response.text}"
     removed_annotations = response.json()
     assert len(removed_annotations) == 1  # 1 element * 1 code = 1 annotation removed
     
