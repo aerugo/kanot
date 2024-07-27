@@ -1017,6 +1017,80 @@ def test_read_segments_by_project(client: TestClient, create_project: Callable[.
     assert any(segment["segment_title"] == "Segment 1" for segment in segments)
     assert any(segment["segment_title"] == "Segment 2" for segment in segments)
     assert all(segment["project_id"] == project_id for segment in segments)
+
+def test_read_codes_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    project_id = project["project_id"]
+
+    # Create a code type
+    code_type_create = CodeTypeCreate(type_name="Test Type", project_id=project_id)
+    code_type_response = client.post("/code_types/", json=code_type_create.model_dump())
+    assert code_type_response.status_code == 200
+    code_type_id = code_type_response.json()["type_id"]
+
+    # Create some codes
+    code1 = client.post("/codes/", json={"term": "Code 1", "description": "Description 1", "type_id": code_type_id, "project_id": project_id})
+    code2 = client.post("/codes/", json={"term": "Code 2", "description": "Description 2", "type_id": code_type_id, "project_id": project_id})
+    
+    assert code1.status_code == 200
+    assert code2.status_code == 200
+
+    # Read codes for the project
+    response = client.get(f"/codes/?project_id={project_id}")
+    assert response.status_code == 200
+    codes = response.json()
+    assert isinstance(codes, list)
+    assert len(codes) == 2
+    assert any(code["term"] == "Code 1" for code in codes)
+    assert any(code["term"] == "Code 2" for code in codes)
+    assert all(code["project_id"] == project_id for code in codes)
+
+def test_read_series_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    project_id = project["project_id"]
+
+    # Create some series
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project_id})
+    
+    assert series1.status_code == 200
+    assert series2.status_code == 200
+
+    # Read series for the project
+    response = client.get(f"/series/?project_id={project_id}")
+    assert response.status_code == 200
+    series_list = response.json()
+    assert isinstance(series_list, list)
+    assert len(series_list) == 2
+    assert any(series["series_title"] == "Series 1" for series in series_list)
+    assert any(series["series_title"] == "Series 2" for series in series_list)
+    assert all(series["project_id"] == project_id for series in series_list)
+
+def test_read_segments_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project = create_project()
+    project_id = project["project_id"]
+
+    # Create a series
+    series_response = client.post("/series/", json={"series_title": "Test Series", "project_id": project_id})
+    assert series_response.status_code == 200
+    series_id = series_response.json()["series_id"]
+
+    # Create some segments
+    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series_id, "project_id": project_id})
+    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series_id, "project_id": project_id})
+    
+    assert segment1.status_code == 200
+    assert segment2.status_code == 200
+
+    # Read segments for the project
+    response = client.get(f"/segments/?project_id={project_id}")
+    assert response.status_code == 200
+    segments = response.json()
+    assert isinstance(segments, list)
+    assert len(segments) == 2
+    assert any(segment["segment_title"] == "Segment 1" for segment in segments)
+    assert any(segment["segment_title"] == "Segment 2" for segment in segments)
+    assert all(segment["project_id"] == project_id for segment in segments)
     )
     response = client.post("/batch_annotations/", json=batch_annotation_create.model_dump())
     assert response.status_code == 200
