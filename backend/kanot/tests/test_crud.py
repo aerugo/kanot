@@ -223,6 +223,77 @@ def test_delete_segment(db_manager: DatabaseManager) -> None:
     segment = db_manager.read_segment(1)
     assert segment is None
 
+def test_read_codes_by_project(db_manager: DatabaseManager) -> None:
+    project1 = db_manager.create_project("Project 1", "Description 1")
+    project2 = db_manager.create_project("Project 2", "Description 2")
+    assert project1 is not None and project2 is not None
+
+    db_manager.create_code_type("Test Type", project1.project_id)
+    db_manager.create_code("Code 1", "Description 1", 1, "Reference 1", "Coordinates 1", project1.project_id)
+    db_manager.create_code("Code 2", "Description 2", 1, "Reference 2", "Coordinates 2", project1.project_id)
+    db_manager.create_code("Code 3", "Description 3", 1, "Reference 3", "Coordinates 3", project2.project_id)
+
+    codes_project1 = db_manager.read_codes_by_project(project1.project_id)
+    assert codes_project1 is not None
+    assert len(codes_project1) == 2
+    assert any(code.term == "Code 1" for code in codes_project1)
+    assert any(code.term == "Code 2" for code in codes_project1)
+    assert all(code.project_id == project1.project_id for code in codes_project1)
+
+    codes_project2 = db_manager.read_codes_by_project(project2.project_id)
+    assert codes_project2 is not None
+    assert len(codes_project2) == 1
+    assert codes_project2[0].term == "Code 3"
+    assert codes_project2[0].project_id == project2.project_id
+
+def test_read_series_by_project(db_manager: DatabaseManager) -> None:
+    project1 = db_manager.create_project("Project 1", "Description 1")
+    project2 = db_manager.create_project("Project 2", "Description 2")
+    assert project1 is not None and project2 is not None
+
+    db_manager.create_series("Series 1", project1.project_id)
+    db_manager.create_series("Series 2", project1.project_id)
+    db_manager.create_series("Series 3", project2.project_id)
+
+    series_project1 = db_manager.read_series_by_project(project1.project_id)
+    assert series_project1 is not None
+    assert len(series_project1) == 2
+    assert any(series.series_title == "Series 1" for series in series_project1)
+    assert any(series.series_title == "Series 2" for series in series_project1)
+    assert all(series.project_id == project1.project_id for series in series_project1)
+
+    series_project2 = db_manager.read_series_by_project(project2.project_id)
+    assert series_project2 is not None
+    assert len(series_project2) == 1
+    assert series_project2[0].series_title == "Series 3"
+    assert series_project2[0].project_id == project2.project_id
+
+def test_read_segments_by_project(db_manager: DatabaseManager) -> None:
+    project1 = db_manager.create_project("Project 1", "Description 1")
+    project2 = db_manager.create_project("Project 2", "Description 2")
+    assert project1 is not None and project2 is not None
+
+    series1 = db_manager.create_series("Series 1", project1.project_id)
+    series2 = db_manager.create_series("Series 2", project2.project_id)
+    assert series1 is not None and series2 is not None
+
+    db_manager.create_segment("Segment 1", series1.series_id, project1.project_id)
+    db_manager.create_segment("Segment 2", series1.series_id, project1.project_id)
+    db_manager.create_segment("Segment 3", series2.series_id, project2.project_id)
+
+    segments_project1 = db_manager.read_segments_by_project(project1.project_id)
+    assert segments_project1 is not None
+    assert len(segments_project1) == 2
+    assert any(segment.segment_title == "Segment 1" for segment in segments_project1)
+    assert any(segment.segment_title == "Segment 2" for segment in segments_project1)
+    assert all(segment.project_id == project1.project_id for segment in segments_project1)
+
+    segments_project2 = db_manager.read_segments_by_project(project2.project_id)
+    assert segments_project2 is not None
+    assert len(segments_project2) == 1
+    assert segments_project2[0].segment_title == "Segment 3"
+    assert segments_project2[0].project_id == project2.project_id
+
 # Element tests
 
 def test_create_element(db_manager: DatabaseManager) -> None:
