@@ -579,7 +579,20 @@ def read_elements(
                 "project_id": element.segment.series.project_id
             }) if element.segment.series else None,
         }) if element.segment else None,
-        "annotations": []
+        "annotations": [AnnotationResponseMinimal.model_validate({
+            "annotation_id": annotation.annotation_id,
+            "code": CodeResponse.model_validate({
+                "id": annotation.code.code_id,
+                "code_id": annotation.code.code_id,
+                "term": annotation.code.term,
+                "description": annotation.code.description,
+                "type_id": annotation.code.type_id,
+                "reference": annotation.code.reference,
+                "coordinates": annotation.code.coordinates,
+                "project_id": annotation.code.project_id,
+                "code_type": None
+            }) if annotation.code else None
+        }) for annotation in element.annotations]
     }) for element in elements]
 
 @router.get("/elements/{element_id}", response_model=ElementResponse)
