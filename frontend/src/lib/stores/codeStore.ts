@@ -13,10 +13,10 @@ function createCodeStore() {
     subscribe,
     set,
     update,
-    refresh: async (fetchFunc: FetchFunction = fetch) => {
+    refresh: async (projectId: number, fetchFunc: FetchFunction = fetch) => {
       if (browser) {
         try {
-          const codes = await fetchCodes(fetchFunc);
+          const codes = await fetchCodes(projectId, fetchFunc);
           set(codes);
         } catch (error) {
           console.error('Error fetching codes:', error);
