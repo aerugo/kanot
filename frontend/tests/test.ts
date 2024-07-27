@@ -39,7 +39,7 @@ test('Content page loads and displays elements', async ({ page }) => {
 		await expect(page.locator('table')).toBeVisible();
 		const rowCount = await page.locator('tr').count();
 		console.log(`Number of rows found: ${rowCount}`);
-		expect(rowCount).toBeGreaterThanOrEqual(1); // Changed from toBeGreaterThan(1) to toBeGreaterThanOrEqual(1)
+		expect(rowCount).toBeGreaterThanOrEqual(1);
 		if (rowCount === 1) {
 			console.log('Only header row is present, no data rows.');
 		}
