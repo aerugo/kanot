@@ -100,9 +100,9 @@ test('can filter codes by type', async ({ page }) => {
   // Check if the filter was applied successfully
   expect(filteredCodeCount).not.toBe(initialCodeCount);
   
-  // Check for the presence of the filter tag (which is currently not visible)
+  // Check for the presence of the filter tag
   const filterTag = page.locator('.filter-tag');
-  await expect(filterTag).not.toBeVisible();
+  await expect(filterTag).toBeVisible();
   
   await expect(page.locator('.codes-list')).toBeVisible();
 });
