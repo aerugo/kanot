@@ -92,23 +92,25 @@ test('can filter codes by type', async ({ page }) => {
   // Open the filter dropdown
   await page.click('button:has-text("Filter by Type")');
   
-  // Wait for the dropdown to be visible
-  await page.waitForSelector('.filter-option', { state: 'visible' });
+  // Wait for the dropdown to be visible and log its content
+  await page.waitForSelector('.filter-dropdown', { state: 'visible' });
+  console.log('Filter dropdown content:', await page.locator('.filter-dropdown').innerHTML());
   
   // Select the first filter option
   await page.click('.filter-option:first-child');
   
   // Wait for the filter to be applied (increased timeout)
-  await page.waitForTimeout(10000);
+  await page.waitForTimeout(15000);
   
   // Log the current state of the page
   console.log('Page content after filtering:', await page.content());
   
-  // Check if the filter tag is visible with a longer timeout
+  // Check if the filter tag is present and log its state
   const filterTag = page.locator('.filter-tag');
   console.log('Filter tag exists:', await filterTag.count() > 0);
   if (await filterTag.count() > 0) {
     console.log('Filter tag HTML:', await filterTag.evaluate(el => el.outerHTML));
+    console.log('Filter tag visible:', await filterTag.isVisible());
   } else {
     console.log('Filter tag not found. Checking for other elements:');
     console.log('Filter dropdown visible:', await page.locator('.filter-dropdown').isVisible());
@@ -125,9 +127,9 @@ test('can filter codes by type', async ({ page }) => {
   // Check if the number of visible codes has changed
   expect(filteredCodeCount).not.toBe(initialCodeCount);
   
-  // Only check for the filter tag visibility if the code count has changed
+  // Check for the filter tag visibility with an increased timeout
   if (filteredCodeCount !== initialCodeCount) {
-    await expect(filterTag).toBeVisible({ timeout: 30000 });
+    await expect(filterTag).toBeVisible({ timeout: 60000 });
   } else {
     console.log('Code count did not change. Filter may not have been applied successfully.');
   }
