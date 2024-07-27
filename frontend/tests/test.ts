@@ -81,20 +81,38 @@ test('can open new code form', async ({ page }) => {
 
 // Test for filtering codes by type
 test('can filter codes by type', async ({ page }) => {
-	await page.goto('/codes');
-	
-	// Open the filter dropdown
-	await page.click('button:has-text("Filter by Type")');
-	
-	// Select a filter option (adjust the selector as needed)
-	await page.click('.filter-option:first-child');
-	
-	// Check if the filter tag is visible
-	await expect(page.locator('.filter-tag')).toBeVisible();
-	
-	// Check if the codes list updates (this might need adjustment based on your UI)
-	await expect(page.locator('.codes-list')).toBeVisible();
-  });
+  await page.goto('/codes');
+  
+  // Wait for the codes list to be visible
+  await page.waitForSelector('.codes-list', { state: 'visible' });
+  
+  // Get the initial number of visible codes
+  const initialCodeCount = await page.locator('.codes-list tr').count();
+  
+  // Open the filter dropdown
+  await page.click('button:has-text("Filter by Type")');
+  
+  // Wait for the dropdown to be visible
+  await page.waitForSelector('.filter-option', { state: 'visible' });
+  
+  // Select the first filter option
+  await page.click('.filter-option:first-child');
+  
+  // Wait for the filter to be applied (you might need to adjust the timeout)
+  await page.waitForTimeout(1000);
+  
+  // Check if the filter tag is visible
+  await expect(page.locator('.filter-tag')).toBeVisible();
+  
+  // Get the new number of visible codes
+  const filteredCodeCount = await page.locator('.codes-list tr').count();
+  
+  // Check if the number of visible codes has changed
+  expect(filteredCodeCount).not.toBe(initialCodeCount);
+  
+  // Ensure that the codes list is still visible
+  await expect(page.locator('.codes-list')).toBeVisible();
+});
   
   // Test for editing a code
   test('can edit an existing code', async ({ page }) => {
