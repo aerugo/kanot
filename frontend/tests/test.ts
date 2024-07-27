@@ -196,13 +196,23 @@ test('can filter codes by type', async ({ page }) => {
 	
 	// Ensure there's at least one annotation
 	await page.click('table tbody tr:first-child button.add-code');
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible' });
 	await page.click('.annotation-dropdown .filter-option:first-child');
+	
+	// Wait for the code tag to appear
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
 	
 	// Get the initial number of annotations
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 	
 	// Remove the first annotation
 	await page.click('table tbody tr:first-child .code-tag button');
+	
+	// Wait for the annotation to be removed
+	await page.waitForFunction(
+	  (expectedCount) => document.querySelectorAll('table tbody tr:first-child .code-tag').length === expectedCount,
+	  initialAnnotationCount - 1
+	);
 	
 	// Check if the number of annotations has decreased
 	await expect(page.locator('table tbody tr:first-child .code-tag')).toHaveCount(initialAnnotationCount - 1);
