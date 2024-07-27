@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { fetchPaginatedElements } from '../src/lib/api';
 
 // Home page test
 test('home page has expected h1', async ({ page }) => {
@@ -7,7 +8,7 @@ test('home page has expected h1', async ({ page }) => {
 });
 
 // Content page tests
-test('Content page loads and displays elements', async ({ page }) => {
+test('Content page loads and displays elements', async ({ page, request }) => {
 	// Navigate to the content page
 	await page.goto('/content');
   
@@ -46,6 +47,15 @@ test('Content page loads and displays elements', async ({ page }) => {
 			const message = await page.locator('p.no-results').textContent();
 			console.log(`No results message: ${message}`);
 			expect(message).toBe('No results found.');
+		} else {
+			// Fetch elements from the API
+			const apiElements = await fetchPaginatedElements(1, 100);
+			
+			// Get the first element from the table
+			const firstTableElement = await page.locator('table tbody tr:first-child').textContent();
+			
+			// Compare the first element from the API with the first element in the table
+			expect(firstTableElement).toContain(apiElements[0].element_text);
 		}
 	} else if (noResultsMessage) {
 		// If the "No results found" message is displayed
