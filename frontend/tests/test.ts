@@ -209,11 +209,9 @@ test('can filter codes by type', async ({ page }) => {
 	await page.click('table tbody tr:first-child .code-tag button');
 	
 	// Wait for the annotation to be removed
-	await page.waitForFunction(
-	  (expectedCount) => document.querySelectorAll('table tbody tr:first-child .code-tag').length === expectedCount,
-	  initialAnnotationCount - 1
-	);
+	await page.waitForTimeout(1000); // Give some time for the UI to update
 	
 	// Check if the number of annotations has decreased
-	await expect(page.locator('table tbody tr:first-child .code-tag')).toHaveCount(initialAnnotationCount - 1);
+	const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+	expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
   });
