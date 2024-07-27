@@ -190,13 +190,16 @@ test('can filter codes by type', async ({ page }) => {
 	await expect(page.locator('table tbody tr:first-child .code-tag')).toBeVisible();
   });
   
-  // Test for removing an annotation from an element
-  test('can remove annotation from an element', async ({ page }) => {
+  // Test for adding and removing an annotation from an element
+  test('can add and remove annotation from an element', async ({ page }) => {
     await page.goto('/content');
-    
     console.log('Navigated to content page');
 
-    // Ensure there's at least one annotation
+    // Get the initial number of annotations
+    const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+    console.log(`Initial annotation count: ${initialAnnotationCount}`);
+
+    // Add an annotation
     await page.click('table tbody tr:first-child button.add-code');
     console.log('Clicked add code button');
 
@@ -210,9 +213,10 @@ test('can filter codes by type', async ({ page }) => {
     await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
     console.log('Code tag is visible');
 
-    // Get the initial number of annotations
-    const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-    console.log(`Initial annotation count: ${initialAnnotationCount}`);
+    // Check if the number of annotations has increased
+    const afterAddAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+    console.log(`After add annotation count: ${afterAddAnnotationCount}`);
+    expect(afterAddAnnotationCount).toBe(initialAnnotationCount + 1);
 
     // Remove the first annotation
     const removeButton = await page.locator('table tbody tr:first-child .code-tag button').first();
@@ -226,9 +230,8 @@ test('can filter codes by type', async ({ page }) => {
     // Wait for the annotation to be removed
     await page.waitForTimeout(2000); // Increased timeout to 2 seconds
 
-    // Check if the number of annotations has decreased
-    const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-    console.log(`New annotation count: ${newAnnotationCount}`);
-
-    expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
+    // Check if the number of annotations has decreased back to the initial count
+    const finalAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+    console.log(`Final annotation count: ${finalAnnotationCount}`);
+    expect(finalAnnotationCount).toBe(initialAnnotationCount);
   });
