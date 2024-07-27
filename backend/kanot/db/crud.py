@@ -417,6 +417,32 @@ class DatabaseManager:
             finally:
                 session.close()
 
+    def read_codes_by_project(self, project_id: int) -> Optional[list[Code]]:
+        with self.get_session() as session:
+            codes = session.query(Code).filter_by(project_id=project_id).options(joinedload(Code.code_type)).all()
+            session.close()
+            return codes
+
+    def read_series_by_project(self, project_id: int) -> Optional[list[Series]]:
+        with self.get_session() as session:
+            series = session.query(Series).filter_by(project_id=project_id).all()
+            session.close()
+            return series
+
+    def read_segments_by_project(self, project_id: int) -> Optional[list[Segment]]:
+        with self.get_session() as session:
+            try:
+                segments = (
+                    session.query(Segment)
+                    .join(Series)
+                    .filter(Series.project_id == project_id)
+                    .options(joinedload(Segment.series))
+                    .all()
+                )
+                return segments
+            finally:
+                session.close()
+
     def update_segment(
         self, segment_id: int, segment_title: Optional[str] = None
     ) -> Optional[Segment]:
