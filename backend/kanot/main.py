@@ -294,22 +294,22 @@ def read_code(
     code = db_manager.read_code(code_id)
     if code is None:
         raise HTTPException(status_code=404, detail="Code not found")
-    return CodeResponse.model_validate({
-        "id": code.code_id,
-        "code_id": code.code_id,
-        "term": code.term,
-        "description": code.description,
-        "type_id": code.type_id,
-        "reference": code.reference,
-        "coordinates": code.coordinates,
-        "project_id": code.project_id,
-        "code_type": CodeTypeResponse.model_validate({
-            "id": code.code_type.type_id,
-            "type_id": code.code_type.type_id,
-            "type_name": code.code_type.type_name,
-            "project_id": code.code_type.project_id
-        }) if code.code_type else None
-    })
+    return CodeResponse(
+        id=code.code_id,
+        code_id=code.code_id,
+        term=code.term,
+        description=code.description,
+        type_id=code.type_id,
+        reference=code.reference,
+        coordinates=code.coordinates,
+        project_id=code.project_id,
+        code_type=CodeTypeResponse(
+            id=code.code_type.type_id,
+            type_id=code.code_type.type_id,
+            type_name=code.code_type.type_name,
+            project_id=code.code_type.project_id
+        ) if code.code_type else None
+    )
 
 @router.put("/codes/{code_id}", response_model=CodeResponse)
 def update_code(
@@ -324,24 +324,22 @@ def update_code(
     updated_code = db_manager.read_code(code_id)
     if updated_code is None:
         raise HTTPException(status_code=404, detail="Code not found")
-    # Convert SQLAlchemy model to dictionary
-    code_dict = {
-        "id": updated_code.code_id,
-        "code_id": updated_code.code_id,
-        "term": updated_code.term,
-        "description": updated_code.description,
-        "type_id": updated_code.type_id,
-        "reference": updated_code.reference,
-        "coordinates": updated_code.coordinates,
-        "project_id": updated_code.project_id,
-        "code_type": {
-            "id": updated_code.code_type.type_id,
-            "type_id": updated_code.code_type.type_id,
-            "type_name": updated_code.code_type.type_name,
-            "project_id": updated_code.code_type.project_id
-        } if updated_code.code_type else None
-    }
-    return CodeResponse.model_validate(code_dict)
+    return CodeResponse(
+        id=updated_code.code_id,
+        code_id=updated_code.code_id,
+        term=updated_code.term,
+        description=updated_code.description,
+        type_id=updated_code.type_id,
+        reference=updated_code.reference,
+        coordinates=updated_code.coordinates,
+        project_id=updated_code.project_id,
+        code_type=CodeTypeResponse(
+            id=updated_code.code_type.type_id,
+            type_id=updated_code.code_type.type_id,
+            type_name=updated_code.code_type.type_name,
+            project_id=updated_code.code_type.project_id
+        ) if updated_code.code_type else None
+    )
 
 @router.delete("/codes/{code_id}")
 def delete_code(
@@ -442,19 +440,19 @@ def read_segments(
 ) -> List[SegmentResponse]:
     segments = db_manager.read_all_segments()
     assert segments is not None
-    return [SegmentResponse.model_validate({
-        "id": segment.segment_id,
-        "segment_id": segment.segment_id,
-        "segment_title": segment.segment_title,
-        "series_id": segment.series_id,
-        "project_id": segment.project_id,
-        "series": SeriesResponse.model_validate({
-            "id": segment.series.series_id,
-            "series_id": segment.series.series_id,
-            "series_title": segment.series.series_title,
-            "project_id": segment.series.project_id
-        }) if segment.series else None
-    }) for segment in segments]
+    return [SegmentResponse(
+        id=segment.segment_id,
+        segment_id=segment.segment_id,
+        segment_title=segment.segment_title,
+        series_id=segment.series_id,
+        project_id=segment.project_id,
+        series=SeriesResponse(
+            id=segment.series.series_id,
+            series_id=segment.series.series_id,
+            series_title=segment.series.series_title,
+            project_id=segment.series.project_id
+        ) if segment.series else None
+    ) for segment in segments]
 
 @router.get("/segments/{segment_id}", response_model=SegmentResponse)
 def read_segment(
@@ -560,40 +558,40 @@ def read_elements(
     elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
     if elements is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve elements")
-    return [ElementResponse.model_validate({
-        "id": element.element_id,
-        "element_id": element.element_id,
-        "element_text": element.element_text,
-        "segment_id": element.segment_id,
-        "project_id": element.project_id,
-        "segment": SegmentResponse.model_validate({
-            "id": element.segment.segment_id,
-            "segment_id": element.segment.segment_id,
-            "segment_title": element.segment.segment_title,
-            "series_id": element.segment.series_id,
-            "project_id": element.segment.project_id,
-            "series": SeriesResponse.model_validate({
-                "id": element.segment.series.series_id,
-                "series_id": element.segment.series.series_id,
-                "series_title": element.segment.series.series_title,
-                "project_id": element.segment.series.project_id
-            }) if element.segment.series else None,
-        }) if element.segment else None,
-        "annotations": [AnnotationResponseMinimal.model_validate({
-            "annotation_id": annotation.annotation_id,
-            "code": CodeResponse.model_validate({
-                "id": annotation.code.code_id,
-                "code_id": annotation.code.code_id,
-                "term": annotation.code.term,
-                "description": annotation.code.description,
-                "type_id": annotation.code.type_id,
-                "reference": annotation.code.reference,
-                "coordinates": annotation.code.coordinates,
-                "project_id": annotation.code.project_id,
-                "code_type": None
-            }) if annotation.code else None
-        }) for annotation in element.annotations]
-    }) for element in elements]
+    return [ElementResponse(
+        id=element.element_id,
+        element_id=element.element_id,
+        element_text=element.element_text,
+        segment_id=element.segment_id,
+        project_id=element.project_id,
+        segment=SegmentResponse(
+            id=element.segment.segment_id,
+            segment_id=element.segment.segment_id,
+            segment_title=element.segment.segment_title,
+            series_id=element.segment.series_id,
+            project_id=element.segment.project_id,
+            series=SeriesResponse(
+                id=element.segment.series.series_id,
+                series_id=element.segment.series.series_id,
+                series_title=element.segment.series.series_title,
+                project_id=element.segment.series.project_id
+            ) if element.segment.series else None,
+        ) if element.segment else None,
+        annotations=[AnnotationResponseMinimal(
+            annotation_id=annotation.annotation_id,
+            code=CodeResponse(
+                id=annotation.code.code_id,
+                code_id=annotation.code.code_id,
+                term=annotation.code.term,
+                description=annotation.code.description,
+                type_id=annotation.code.type_id,
+                reference=annotation.code.reference,
+                coordinates=annotation.code.coordinates,
+                project_id=annotation.code.project_id,
+                code_type=None
+            ) if annotation.code else None
+        ) for annotation in element.annotations]
+    ) for element in elements]
 
 @router.get("/elements/{element_id}", response_model=ElementResponse)
 def read_element(
@@ -723,24 +721,23 @@ def create_batch_annotations(
         for code_id in batch_data.code_ids:
             annotation = db_manager.create_annotation(element_id, code_id, project_id=batch_data.project_id)
             if annotation:
-                annotation_dict = {
-                    "id": annotation.annotation_id,
-                    "element_id": annotation.element_id,
-                    "code_id": annotation.code_id,
-                    "project_id": annotation.project_id,
-                    "code": {
-                        "id": annotation.code.code_id,
-                        "code_id": annotation.code.code_id,
-                        "term": annotation.code.term,
-                        "description": annotation.code.description,
-                        "type_id": annotation.code.type_id,
-                        "reference": annotation.code.reference,
-                        "coordinates": annotation.code.coordinates,
-                        "project_id": annotation.code.project_id,
-                        "code_type": None
-                    } if annotation.code else None
-                }
-                new_annotations.append(AnnotationResponse.model_validate(annotation_dict))
+                new_annotations.append(AnnotationResponse(
+                    id=annotation.annotation_id,
+                    element_id=annotation.element_id,
+                    code_id=annotation.code_id,
+                    project_id=annotation.project_id,
+                    code=CodeResponse(
+                        id=annotation.code.code_id,
+                        code_id=annotation.code.code_id,
+                        term=annotation.code.term,
+                        description=annotation.code.description,
+                        type_id=annotation.code.type_id,
+                        reference=annotation.code.reference,
+                        coordinates=annotation.code.coordinates,
+                        project_id=annotation.code.project_id,
+                        code_type=None
+                    ) if annotation.code else None
+                ))
     return new_annotations
 
 from typing import List
