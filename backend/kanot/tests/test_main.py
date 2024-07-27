@@ -168,7 +168,7 @@ def test_read_codes(client: TestClient, create_project: Callable[..., Dict[str, 
         project_id=project["project_id"]
     )
     client.post("/codes/", json=code_create.model_dump())
-    response = client.get("/codes/")
+    response = client.get(f"/codes/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [CodeResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -225,7 +225,7 @@ def test_read_series(client: TestClient, create_project: Callable[..., Dict[str,
     project = create_project()
     series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
     client.post("/series/", json=series_create.model_dump())
-    response = client.get("/series/")
+    response = client.get(f"/series/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [SeriesResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -269,7 +269,7 @@ def test_read_segments(client: TestClient, create_project: Callable[..., Dict[st
     
     segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
     client.post("/segments/", json=segment_create.model_dump())
-    response = client.get("/segments/")
+    response = client.get(f"/segments/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [SegmentResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -1239,14 +1239,6 @@ def test_read_segments_by_project(client: TestClient, create_project: Callable[.
     assert any(segment["segment_title"] == "Segment 1" for segment in segments)
     assert any(segment["segment_title"] == "Segment 2" for segment in segments)
     assert all(segment["project_id"] == project_id for segment in segments)
-    
-    from urllib.parse import urlencode
-
-    # Remove batch annotations
-    batch_annotation_remove = BatchAnnotationRemove(
-        element_ids=[element_id_1],
-        code_ids=[code_id_1]
-    )
     query_params = urlencode(batch_annotation_remove.model_dump(by_alias=True), doseq=True)
     response = client.delete(f"/batch_annotations/?{query_params}")
     
