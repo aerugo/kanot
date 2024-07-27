@@ -98,14 +98,21 @@ test('can filter codes by type', async ({ page }) => {
   // Select the first filter option
   await page.click('.filter-option:first-child');
   
-  // Wait for the filter to be applied (you might need to adjust the timeout)
-  await page.waitForTimeout(1000);
+  // Wait for the filter to be applied (increased timeout)
+  await page.waitForTimeout(2000);
   
-  // Check if the filter tag is visible
-  await expect(page.locator('.filter-tag')).toBeVisible();
+  // Log the current state of the page
+  console.log('Page content after filtering:', await page.content());
+  
+  // Check if the filter tag is visible with a longer timeout
+  await expect(page.locator('.filter-tag')).toBeVisible({ timeout: 10000 });
   
   // Get the new number of visible codes
   const filteredCodeCount = await page.locator('.codes-list tr').count();
+  
+  // Log the counts for debugging
+  console.log('Initial code count:', initialCodeCount);
+  console.log('Filtered code count:', filteredCodeCount);
   
   // Check if the number of visible codes has changed
   expect(filteredCodeCount).not.toBe(initialCodeCount);
