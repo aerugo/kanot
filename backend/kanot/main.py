@@ -117,7 +117,12 @@ def read_projects(
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[ProjectResponse]:
     projects = db_manager.read_all_projects()
-    return [ProjectResponse.model_validate(project) for project in projects]
+    return [ProjectResponse(
+        id=project.project_id,
+        project_id=project.project_id,
+        project_title=project.project_title,
+        project_description=project.project_description
+    ) for project in projects]
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 def read_project(
