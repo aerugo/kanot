@@ -986,10 +986,7 @@ def create_app(database_url: str | None = None):
         allow_headers=["*"],
     )
 
-    def get_db_for_request():
-        return get_extended_db(database_url)
-
-    app.dependency_overrides[get_db] = get_db_for_request
+    app.dependency_overrides[get_db] = get_db
         
     app.include_router(router)
 
