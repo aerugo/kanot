@@ -1,13 +1,18 @@
 <script>
 	import { page } from '$app/stores';
+	import ProjectSwitcher from '$lib/components/ProjectSwitcher.svelte';
+	import { currentProject } from '$lib/stores/projectStore';
 </script>
 
 <div class="layout">
-	<nav>
-		<a href="/" class:active={$page.url.pathname === '/'}>Home</a>
-		<a href="/codes" class:active={$page.url.pathname === '/codes'}>Codes</a>
-		<a href="/content" class:active={$page.url.pathname === '/content'}>Content</a>
-	</nav>
+	<header>
+		<nav>
+			<a href="/" class:active={$page.url.pathname === '/'}>Home</a>
+			<a href="/codes" class:active={$page.url.pathname === '/codes'}>Codes</a>
+			<a href="/content" class:active={$page.url.pathname === '/content'}>Content</a>
+		</nav>
+		<ProjectSwitcher bind:selectedProject={$currentProject} />
+	</header>
 
 	<main>
 		<slot />
