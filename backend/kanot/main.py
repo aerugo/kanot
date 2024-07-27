@@ -269,9 +269,10 @@ def create_code(
 
 @router.get("/codes/", response_model=List[CodeResponse])
 def read_codes(
+    project_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[CodeResponse]:
-    codes = db_manager.read_all_codes()
+    codes = db_manager.read_codes_by_project(project_id)
     assert codes is not None
     return [CodeResponse(
         id=code.code_id,
@@ -371,9 +372,10 @@ def create_series(
 
 @router.get("/series/", response_model=List[SeriesResponse])
 def read_all_series(
+    project_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[SeriesResponse]:
-    series_list = db_manager.read_all_series()
+    series_list = db_manager.read_series_by_project(project_id)
     assert series_list is not None
     return [SeriesResponse(
         id=series.series_id,
@@ -440,9 +442,10 @@ def create_segment(
 
 @router.get("/segments/", response_model=List[SegmentResponse])
 def read_segments(
+    project_id: int,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[SegmentResponse]:
-    segments = db_manager.read_all_segments()
+    segments = db_manager.read_segments_by_project(project_id)
     assert segments is not None
     return [SegmentResponse(
         id=segment.segment_id,
