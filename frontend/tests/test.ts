@@ -57,7 +57,7 @@ test('content search updates results', async ({ page }) => {
   await page.fill('input[placeholder="Search element texts..."]', 'test search');
   
   // Wait for the search results to update
-  await page.waitForTimeout(1000); // Wait for debounce
+  await page.waitForTimeout(1000);
   
   // Check if the table is still visible (assuming it always shows, even with no results)
   await expect(page.locator('table')).toBeVisible();
@@ -93,7 +93,7 @@ test('can filter codes by type', async ({ page }) => {
   
   await page.click('.filter-option:first-child');
   
-  await page.waitForTimeout(15000);
+  await page.waitForTimeout(1000);
   
   const filteredCodeCount = await page.locator('.codes-list tr').count();
   
