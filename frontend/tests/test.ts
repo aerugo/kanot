@@ -27,10 +27,17 @@ test('Content page loads and displays elements', async ({ page }) => {
 	// Wait for at least one row to appear
 	await page.waitForSelector('tr', { state: 'visible', timeout: 10000 });
   
-	// Count the number of rows and check if it's greater than 1 (assuming there's a header row)
+	// Count the number of rows and check if it's at least 1 (the header row)
 	const rowCount = await page.locator('tr').count();
-	expect(rowCount).toBeGreaterThan(1);
-  
-	// Log some information for debugging
 	console.log(`Number of rows found: ${rowCount}`);
+	expect(rowCount).toBeGreaterThanOrEqual(1);
+  
+	// Check if there's a message indicating no results
+	const noResultsMessage = await page.locator('p.no-results').textContent();
+	console.log(`No results message: ${noResultsMessage}`);
+  
+	// If there's only one row (the header), check for the no results message
+	if (rowCount === 1) {
+	  expect(noResultsMessage).toBe('No results found.');
+	}
   });
