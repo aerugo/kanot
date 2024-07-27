@@ -1239,14 +1239,6 @@ def test_read_segments_by_project(client: TestClient, create_project: Callable[.
     assert any(segment["segment_title"] == "Segment 1" for segment in segments)
     assert any(segment["segment_title"] == "Segment 2" for segment in segments)
     assert all(segment["project_id"] == project_id for segment in segments)
-    removed_annotations = response.json()
-    assert len(removed_annotations) == 1  # 1 element * 1 code = 1 annotation removed
-    
-    # Verify the remaining annotations
-    response = client.get("/annotations/")
-    assert response.status_code == 200
-    remaining_annotations = response.json()
-    assert len(remaining_annotations) == 3  # 4 original - 1 removed = 3 remaining
 
 def test_update_element(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
