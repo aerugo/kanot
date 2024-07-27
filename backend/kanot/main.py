@@ -38,6 +38,7 @@ from .models import (
     SeriesCreate,
     SeriesResponse,
     SeriesUpdate,
+    CodeWithAnnotations,
 )
 
 # LOGGING
@@ -89,6 +90,21 @@ def get_db_session():
     db_manager = get_db()
     with db_manager.get_session() as session:
         yield session
+
+# Extend DatabaseManager
+class ExtendedDatabaseManager(DatabaseManager):
+    def get_codes_with_annotations(self):
+        with self.get_session() as session:
+            codes = session.query(self.Code).all()
+            result = []
+            for code in codes:
+                annotations = session.query(self.Annotation).filter(self.Annotation.code_id == code.code_id).all()
+                result.append((code, annotations))
+            return result
+
+def get_extended_db(database_url: str | None = None):
+    db_manager = ExtendedDatabaseManager(configure_database(database_url).engine)
+    return db_manager
 
 # ROUTER
 
@@ -909,6 +925,19 @@ def get_annotations_for_code(
     annotations = db_manager.get_annotations_for_code(code_id)
     return [AnnotationResponse.model_validate(annotation) for annotation in annotations]
 
+@router.get("/codes_with_annotations/", response_model=List[CodeWithAnnotations])
+def get_codes_with_annotations(
+    db_manager: DatabaseManager = Depends(get_db)
+) -> List[CodeWithAnnotations]:
+    codes_with_annotations = db_manager.get_codes_with_annotations()
+    return [
+        CodeWithAnnotations(
+            code=CodeResponse.model_validate(code),
+            annotations=[AnnotationResponse.model_validate(annotation) for annotation in annotations]
+        )
+        for code, annotations in codes_with_annotations
+    ]
+
 @router.get("/search_elements/", response_model=List[ElementResponse])
 def search_elements(
     response: Response,
@@ -988,7 +1017,7 @@ def create_app(database_url: str | None = None):
     )
 
     def get_db_for_request():
-        return get_db(database_url)
+        return get_extended_db(database_url)
 
     app.dependency_overrides[get_db] = get_db_for_request
         
