@@ -192,26 +192,43 @@ test('can filter codes by type', async ({ page }) => {
   
   // Test for removing an annotation from an element
   test('can remove annotation from an element', async ({ page }) => {
-	await page.goto('/content');
-	
-	// Ensure there's at least one annotation
-	await page.click('table tbody tr:first-child button.add-code');
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible' });
-	await page.click('.annotation-dropdown .filter-option:first-child');
-	
-	// Wait for the code tag to appear
-	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
-	
-	// Get the initial number of annotations
-	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	
-	// Remove the first annotation
-	await page.click('table tbody tr:first-child .code-tag button');
-	
-	// Wait for the annotation to be removed
-	await page.waitForTimeout(1000); // Give some time for the UI to update
-	
-	// Check if the number of annotations has decreased
-	const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
+    await page.goto('/content');
+    
+    console.log('Navigated to content page');
+
+    // Ensure there's at least one annotation
+    await page.click('table tbody tr:first-child button.add-code');
+    console.log('Clicked add code button');
+
+    await page.waitForSelector('.annotation-dropdown', { state: 'visible' });
+    console.log('Annotation dropdown is visible');
+
+    await page.click('.annotation-dropdown .filter-option:first-child');
+    console.log('Selected first code from dropdown');
+
+    // Wait for the code tag to appear
+    await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
+    console.log('Code tag is visible');
+
+    // Get the initial number of annotations
+    const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+    console.log(`Initial annotation count: ${initialAnnotationCount}`);
+
+    // Remove the first annotation
+    const removeButton = await page.locator('table tbody tr:first-child .code-tag button').first();
+    if (await removeButton.isVisible()) {
+      await removeButton.click();
+      console.log('Clicked remove button on first code tag');
+    } else {
+      console.error('Remove button not visible');
+    }
+
+    // Wait for the annotation to be removed
+    await page.waitForTimeout(2000); // Increased timeout to 2 seconds
+
+    // Check if the number of annotations has decreased
+    const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+    console.log(`New annotation count: ${newAnnotationCount}`);
+
+    expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
   });
