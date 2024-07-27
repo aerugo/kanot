@@ -73,7 +73,7 @@
 </script>
 
 <div class="table-container">
-	{#if $elementsStore.length === 0}
+	{#if filteredCodes.length === 0}
 		<p class="no-results">No results found.</p>
 	{:else}
 		<table>

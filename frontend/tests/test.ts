@@ -24,24 +24,29 @@ test('Content page loads and displays elements', async ({ page }) => {
 	// Check if the table is visible
 	await expect(page.locator('table')).toBeVisible();
   
-	// Wait for at least one row to appear
-	await page.waitForSelector('tr', { state: 'visible', timeout: 10000 });
-  
+	// Wait for either the table or the "No results found" message to appear
+	await Promise.race([
+		page.waitForSelector('table', { state: 'visible', timeout: 10000 }),
+		page.waitForSelector('p.no-results', { state: 'visible', timeout: 10000 })
+	]);
+
 	// Check if there are any rows in the table or if the "No results found" message is displayed
-	const hasRows = await page.locator('tr').count() > 1;
+	const hasTable = await page.locator('table').isVisible();
 	const noResultsMessage = await page.locator('p.no-results').isVisible();
 
-	if (hasRows) {
-		// If there are rows, check if the table is visible and has content
+	if (hasTable) {
+		// If the table is visible, check if it has content
 		await expect(page.locator('table')).toBeVisible();
 		const rowCount = await page.locator('tr').count();
 		console.log(`Number of rows found: ${rowCount}`);
 		expect(rowCount).toBeGreaterThan(1);
-	} else {
-		// If there are no rows, check if the "No results found" message is displayed
+	} else if (noResultsMessage) {
+		// If the "No results found" message is displayed
 		await expect(page.locator('p.no-results')).toBeVisible();
 		const message = await page.locator('p.no-results').textContent();
 		console.log(`No results message: ${message}`);
 		expect(message).toBe('No results found.');
+	} else {
+		throw new Error('Neither table nor "No results found" message was displayed');
 	}
-  });
+});
