@@ -269,22 +269,22 @@ def read_codes(
 ) -> List[CodeResponse]:
     codes = db_manager.read_all_codes()
     assert codes is not None
-    return [CodeResponse.model_validate({
-        "id": code.code_id,
-        "code_id": code.code_id,
-        "term": code.term,
-        "description": code.description,
-        "type_id": code.type_id,
-        "reference": code.reference,
-        "coordinates": code.coordinates,
-        "project_id": code.project_id,
-        "code_type": CodeTypeResponse.model_validate({
-            "id": code.code_type.type_id,
-            "type_id": code.code_type.type_id,
-            "type_name": code.code_type.type_name,
-            "project_id": code.code_type.project_id
-        }) if code.code_type else None
-    }) for code in codes]
+    return [CodeResponse(
+        id=code.code_id,
+        code_id=code.code_id,
+        term=code.term,
+        description=code.description,
+        type_id=code.type_id,
+        reference=code.reference,
+        coordinates=code.coordinates,
+        project_id=code.project_id,
+        code_type=CodeTypeResponse(
+            id=code.code_type.type_id,
+            type_id=code.code_type.type_id,
+            type_name=code.code_type.type_name,
+            project_id=code.code_type.project_id
+        ) if code.code_type else None
+    ) for code in codes]
 
 @router.get("/codes/{code_id}", response_model=CodeResponse)
 def read_code(
