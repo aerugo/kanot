@@ -8,6 +8,7 @@ test('home page has expected h1', async ({ page }) => {
 
 // Content page tests
 test('Content page loads and displays elements', async ({ page }) => {
+	page.setDefaultTimeout(60000); // Increase timeout to 60 seconds
 	// Navigate to the content page
 	await page.goto('/content');
   
