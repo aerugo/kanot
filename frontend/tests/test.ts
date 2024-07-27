@@ -43,11 +43,10 @@ test('Content page loads and displays elements', async ({ page, request }) => {
 		expect(rowCount).toBeGreaterThan(0); // Expect at least the header row
 		if (rowCount === 1) {
 			console.log('Only header row is present, checking for "No results found" message');
-			await expect(page.locator('p.no-results')).toBeVisible();
-			const message = await page.locator('p.no-results').textContent();
-			console.log(`No results message: ${message}`);
-			expect(message).toBe('No results found.');
-		} else {
+			const noResultsMessage = await page.locator('p.no-results').textContent();
+			console.log(`No results message: ${noResultsMessage}`);
+			expect(noResultsMessage).toBe('No results found.');
+		} else if (rowCount > 1) {
 			// Fetch elements from the API
 			const apiElements = await fetchPaginatedElements(1, 100);
 			
@@ -56,6 +55,8 @@ test('Content page loads and displays elements', async ({ page, request }) => {
 			
 			// Compare the first element from the API with the first element in the table
 			expect(firstTableElement).toContain(apiElements[0].element_text);
+		} else {
+			throw new Error('Unexpected table state: no rows found');
 		}
 	} else if (noResultsMessage) {
 		// If the "No results found" message is displayed
