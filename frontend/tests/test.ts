@@ -25,11 +25,17 @@ test('Content page loads and displays elements', async ({ page, request }) => {
 	// Check if the table is visible
 	await expect(page.locator('table')).toBeVisible();
   
-	// Wait for either the table or the "No results found" message to appear
+	// Wait for either the table data to load or the "No results found" message to appear
 	await Promise.race([
-		page.waitForSelector('table', { state: 'visible', timeout: 10000 }),
+		page.waitForFunction(() => {
+			const table = document.querySelector('table');
+			return table && table.querySelectorAll('tr').length > 1;
+		}, { timeout: 10000 }),
 		page.waitForSelector('p.no-results', { state: 'visible', timeout: 10000 })
 	]);
+
+	// Additional wait to ensure data is fully loaded
+	await page.waitForTimeout(1000);
 
 	// Check if there are any rows in the table or if the "No results found" message is displayed
 	const hasTable = await page.locator('table').isVisible();
