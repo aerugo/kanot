@@ -120,6 +120,7 @@ class AnnotationResponseMinimal(BaseModel):
 class ElementResponse(ResponseModel[ElementBase], ElementBase):
     element_id: int
     segment: Optional[SegmentResponse] = None
+    series: Optional[SeriesResponse] = None
     annotations: List[AnnotationResponseMinimal] = []
 
 class AnnotationBase(BaseModel):
@@ -143,6 +144,7 @@ class BatchAnnotationCreate(BaseModel):
     project_id: int
 
 from pydantic import Field
+
 
 class BatchAnnotationRemove(BaseModel):
     element_ids: List[int] = Field(..., alias="element_ids")
