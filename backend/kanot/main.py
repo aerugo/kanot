@@ -16,6 +16,7 @@ from .db.schema import Segment, Series
 from .models import (
     AnnotationCreate,
     AnnotationResponse,
+    AnnotationResponseMinimal,
     AnnotationUpdate,
     BatchAnnotationCreate,
     BatchAnnotationRemove,
@@ -576,7 +577,7 @@ def read_elements(
                 "series_id": element.segment.series.series_id,
                 "series_title": element.segment.series.series_title,
                 "project_id": element.segment.series.project_id
-            }) if element.segment.series else None
+            }) if element.segment.series else None,
         }) if element.segment else None,
         "annotations": []
     }) for element in elements]
@@ -916,19 +917,15 @@ def search_elements(
             segment_title=element.segment.segment_title,
             series_id=element.segment.series_id,
             project_id=element.segment.project_id,
-            series=None
+            series=SeriesResponse(
+                id=element.segment.series.series_id,
+                series_id=element.segment.series.series_id,
+                series_title=element.segment.series.series_title,
+                project_id=element.segment.series.project_id
+            ) if element.segment.series else None
         ) if element.segment else None,
-        series=SeriesResponse(
-            id=element.segment.series.series_id,
-            series_id=element.segment.series.series_id,
-            series_title=element.segment.series.series_title,
-            project_id=element.segment.series.project_id
-        ) if element.segment and element.segment.series else None,
-        annotations = AnnotationResponse(
-            id=annotation.annotation_id,
-            element_id=annotation.element_id,
-            code_id=annotation.code_id,
-            project_id=annotation.project_id,
+        annotations=[AnnotationResponseMinimal(
+            annotation_id=annotation.annotation_id,
             code=CodeResponse(
                 id=annotation.code.code_id,
                 code_id=annotation.code.code_id,
@@ -940,7 +937,7 @@ def search_elements(
                 project_id=annotation.code.project_id,
                 code_type=None
             ) if annotation.code else None
-        ) for annotation in element.annotations
+        ) for annotation in element.annotations]
     ) for element in elements]
 
 # APP SETUP
