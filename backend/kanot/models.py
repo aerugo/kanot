@@ -149,3 +149,8 @@ from pydantic import Field
 class BatchAnnotationRemove(BaseModel):
     element_ids: List[int] = Field(..., alias="element_ids")
     code_ids: List[int] = Field(..., alias="code_ids")
+class CodeWithAnnotations(BaseModel):
+    code: CodeResponse
+    annotations: List[AnnotationResponse]
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
