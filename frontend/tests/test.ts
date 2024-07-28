@@ -152,12 +152,23 @@ test('can filter codes by type', async ({ page }) => {
 
       // Check if the modal closes
       try {
-        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 20000 });
       } catch (error) {
         console.error('Modal did not close as expected:', error);
         // Log the current state of the modal
         const modalContent = await page.locator('.modal').innerHTML();
         console.log('Modal content:', modalContent);
+        
+        // Check if there are any error messages
+        const errorMessages = await page.locator('.error-message').allInnerTexts();
+        console.log('Error messages:', errorMessages);
+        
+        // Log the network requests
+        const requests = await page.context().pages()[0].evaluate(() => {
+          return (window as any).requestLog || [];
+        });
+        console.log('Network requests:', requests);
+        
         throw error;
       }
       

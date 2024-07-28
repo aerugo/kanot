@@ -23,11 +23,24 @@
   let modalEl: HTMLDivElement;
   let firstFocusableEl: HTMLElement;
   let lastFocusableEl: HTMLElement;
+  let errorMessage: string = '';
 
   onMount(() => {
     if (code) {
       editingCode = { ...code };
     }
+    // Initialize request logging
+    (window as any).requestLog = [];
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      (window as any).requestLog.push({
+        url: args[0],
+        method: args[1]?.method || 'GET',
+        status: response.status,
+      });
+      return response;
+    };
   });
 
   $: if (code && !editingCode) {
@@ -48,12 +61,13 @@
   async function saveEdit() {
     if (editingCode) {
       try {
-        await updateCode(editingCode.code_id, editingCode);
-        dispatch("codeUpdated", editingCode);
+        const updatedCode = await updateCode(editingCode.code_id, editingCode);
+        console.log('Code updated successfully:', updatedCode);
+        dispatch("codeUpdated", updatedCode);
         closeModal();
       } catch (error) {
         console.error("Error updating code:", error);
-        // You might want to show an error message to the user here
+        errorMessage = `Error updating code: ${error.message}`;
       }
     }
   }
@@ -128,6 +142,9 @@
           Coordinates:
           <input bind:value={editingCode.coordinates} data-id="edit-code-coordinates" />
         </label>
+        {#if errorMessage}
+          <p class="error-message">{errorMessage}</p>
+        {/if}
         <div class="button-group">
           <button type="submit">Save</button>
           <button type="button" on:click={closeModal}>Cancel</button>
