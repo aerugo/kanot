@@ -61,6 +61,7 @@
   async function saveEdit() {
     if (editingCode) {
       try {
+        console.log('Attempting to update code:', editingCode);
         const updatedCode = await updateCode(editingCode.code_id, editingCode);
         console.log('Code updated successfully:', updatedCode);
         dispatch("codeUpdated", updatedCode);
@@ -73,7 +74,13 @@
   }
 
   function closeModal() {
+    console.log('Closing modal');
     dispatch("close");
+  }
+
+  $: if (code && !editingCode) {
+    console.log('Initializing editingCode:', code);
+    editingCode = { ...code };
   }
 
   function handleKeydown(event: KeyboardEvent) {

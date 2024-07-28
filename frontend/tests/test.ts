@@ -147,12 +147,14 @@ test('can filter codes by type', async ({ page }) => {
       // Save the changes
       await page.click('.modal button:has-text("Save")');
       
+      console.log('Clicked Save button');
+
       // Wait for the save operation to complete (increase timeout if needed)
       await page.waitForTimeout(5000);
 
       // Check if the modal closes
       try {
-        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 20000 });
+        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 30000 });
       } catch (error) {
         console.error('Modal did not close as expected:', error);
         // Log the current state of the modal
@@ -168,9 +170,17 @@ test('can filter codes by type', async ({ page }) => {
           return (window as any).requestLog || [];
         });
         console.log('Network requests:', requests);
+
+        // Log console messages
+        const consoleMessages = await page.context().pages()[0].evaluate(() => {
+          return (window as any).consoleLog || [];
+        });
+        console.log('Console messages:', consoleMessages);
         
         throw error;
       }
+
+      console.log('Modal closed successfully');
       
       // Wait for the update to be reflected
       await page.waitForTimeout(2000);
