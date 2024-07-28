@@ -112,9 +112,6 @@ test('can filter codes by type', async ({ page }) => {
     await page.goto('/codes');
     
     // Wait for the codes list to be visible and contain at least one row
-    await page.waitForSelector('.codes-list tr', { state: 'visible' });
-    
-    // Wait for the codes list to load and contain at least one row
     await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 15000 });
 
     // Log the number of rows in the codes list
@@ -126,40 +123,29 @@ test('can filter codes by type', async ({ page }) => {
       await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 15000 });
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
       
-      // Wait for the modal to appear and log its visibility
-      await page.waitForSelector('.modal', { state: 'visible', timeout: 1000 }).catch(() => console.log('Modal not visible after 1 seconds'));
-      const isModalVisible = await page.isVisible('.modal');
+      // Wait for the modal to appear
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
 
-      if (isModalVisible) {
-        const inputExists = await page.isVisible('.modal input[placeholder="Term"]');
+      // Fill in a new term using the data-id attribute
+      await page.fill('[data-id="edit-code-term"]', 'Updated Code Term');
 
-        if (inputExists) {
-          // Fill in a new term
-          await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
-        } else {
-          console.log('Input field not found in the modal');
-        }
-      } else {
-        console.log('Modal did not appear');
-      }
+      // Fill in a new description using the data-id attribute
+      await page.fill('[data-id="edit-code-description"]', 'Updated Code Description');
+
+      // Save the changes
+      await page.click('.modal button:has-text("Save")');
+      
+      // Check if the modal closes
+      await expect(page.locator('.modal')).not.toBeVisible({ timeout: 5000 });
+      
+      // Wait for the update to be reflected
+      await page.waitForTimeout(2000);
+      
+      // Check if the updated term is visible in the list
+      await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
     } else {
       throw new Error('No codes found in the list');
     }
-    
-    // Pause exection until continued
-    await page.pause();
-
-    // Save the changes
-    await page.click('.modal button:has-text("Save")');
-    
-    // Check if the modal closes
-    await expect(page.locator('.modal')).not.toBeVisible();
-    
-    // Wait for the update to be reflected
-    await page.waitForTimeout(2000);
-    
-    // Check if the updated term is visible in the list
-    await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
   });
   
   // Test for deleting a code
