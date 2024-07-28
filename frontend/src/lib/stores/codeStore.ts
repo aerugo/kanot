@@ -13,8 +13,8 @@ function createCodeStore() {
     subscribe,
     set,
     update,
-    refresh: async (projectId: number, fetchFunc: FetchFunction = fetch) => {
-      if (browser) {
+    refresh: async (projectId: number | null, fetchFunc: FetchFunction = fetch) => {
+      if (browser && projectId !== null) {
         try {
           const codes = await fetchCodes(projectId, fetchFunc);
           set(codes);
@@ -37,8 +37,8 @@ function createCodeTypeStore() {
   return {
     subscribe,
     set,
-    refresh: async (projectId: number, fetchFunc: FetchFunction = fetch) => {
-      if (browser) {
+    refresh: async (projectId: number | null, fetchFunc: FetchFunction = fetch) => {
+      if (browser && projectId !== null) {
         try {
           const types = await fetchCodeTypes(projectId, fetchFunc);
           console.log('Fetched code types:', types);
