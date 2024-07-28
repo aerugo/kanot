@@ -3,8 +3,9 @@
 	import { codes } from '../stores/codeStore';
 	import AnnotationDropdown from './AnnotationDropdown.svelte';
 
-	export let selectedCount: number = 0;
 	export let show: boolean = false;
+	export let selectedCount: number = 0;
+	export let selectedElementIds;
 	export let elementId: string = '';
 
 	let selectedCodes: number[] = [];

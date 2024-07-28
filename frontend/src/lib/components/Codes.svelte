@@ -57,7 +57,7 @@
 	}
 
 	function handleCodeAdded(event: Event): void {
-		codes.refresh();
+		codes.refresh($currentProject);
 	}
 
 	function handleEditCode(event: CustomEvent<Code>): void {

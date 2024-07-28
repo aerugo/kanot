@@ -124,8 +124,8 @@ export async function searchElements(
 	const params = new URLSearchParams({
 		project_id: getCurrentProjectId().toString(),
 		search_term: searchTerm,
-		skip: ((page - 1) * pageSize).toString(),
-		limit: pageSize.toString()
+		skip: Math.max(0, (page - 1) * pageSize).toString(),
+		limit: Math.max(1, pageSize).toString()
 	});
 
 	if (seriesIds.length) params.append('series_ids', seriesIds.join(','));
