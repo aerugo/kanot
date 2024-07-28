@@ -12,8 +12,6 @@
 	let modalElement: HTMLDialogElement;
 	let selectedCodesToRemove: number[] = [];
 
-	export let selectedElements: Element[];
-
 	$: uniqueCodes = Array.from(
 		new Set(
 			selectedElements
