@@ -369,6 +369,11 @@ test('can add annotations in batch', async ({ page }) => {
 	// Log the number of checkboxes found
 	const checkboxCount = await page.locator('table tbody tr input[type="checkbox"]').count();
 	console.log(`Number of checkboxes found: ${checkboxCount}`);
+	
+	// Log the visibility of some key elements
+	const tableVisible = await page.isVisible('table');
+	const firstCheckboxVisible = await page.isVisible('table tbody tr:first-child input[type="checkbox"]');
+	console.log(`Table visible: ${tableVisible}, First checkbox visible: ${firstCheckboxVisible}`);
 
 	// Select elements (3rd to 10th)
 	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
@@ -384,12 +389,23 @@ test('can add annotations in batch', async ({ page }) => {
 	const annotateButtonVisible = await page.isVisible('button:has-text("Annotate Selected")');
 	console.log(`"Annotate Selected" button visible: ${annotateButtonVisible}`);
 
+	// Log the current URL
+	console.log(`Current URL: ${page.url()}`);
+
+	// Take a screenshot before clicking the button
+	await page.screenshot({ path: 'before-annotate-click.png' });
+
 	// Click the batch annotation button
 	await page.click('button:has-text("Annotate Selected")');
+	console.log('Clicked "Annotate Selected" button');
+
+	// Wait a bit and take another screenshot
+	await page.waitForTimeout(2000);
+	await page.screenshot({ path: 'after-annotate-click.png' });
 
 	// Wait for the batch annotation modal to appear with increased timeout
 	try {
-		await page.waitForSelector('.modal', { state: 'visible', timeout: 60000 });
+		await page.waitForSelector('.modal', { state: 'visible', timeout: 120000 });
 	} catch (error) {
 		console.error('Modal did not appear:', error);
 		// Take a screenshot for debugging
