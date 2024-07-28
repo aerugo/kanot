@@ -359,6 +359,62 @@ test('can delete a code', async ({ page }) => {
 	expect(newCodeCount).toBe(initialCodeCount - 1);
 });
 
+// Test for batch annotation
+test('can add annotations in batch', async ({ page }) => {
+	await page.goto('/content');
+
+	// Wait for the table to be visible
+	await page.waitForSelector('table', { state: 'visible', timeout: 15000 });
+
+	// Select elements (3rd to 10th)
+	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
+	await page.keyboard.down('Shift');
+	await page.click('table tbody tr:nth-child(10) input[type="checkbox"]');
+	await page.keyboard.up('Shift');
+
+	// Click the batch annotation button
+	await page.click('button:has-text("Annotate Selected")');
+
+	// Wait for the batch annotation modal to appear
+	await page.waitForSelector('.modal', { state: 'visible' });
+
+	// Get all available codes
+	const allCodes = await page.$$eval('.dropdown-wrapper .code-tag', (elements) => 
+		elements.map(el => el.textContent?.trim())
+	);
+
+	// Get existing annotations for the selected elements
+	const existingAnnotations = await page.$$eval('table tbody tr:nth-child(n+3):nth-child(-n+10) .code-tag', 
+		(elements) => elements.map(el => el.textContent?.trim())
+	);
+
+	// Find two unused codes
+	const unusedCodes = allCodes.filter(code => !existingAnnotations.includes(code)).slice(0, 2);
+
+	if (unusedCodes.length < 2) {
+		throw new Error('Not enough unused codes available for testing');
+	}
+
+	// Select the two unused codes
+	for (const code of unusedCodes) {
+		await page.click('button:has-text("Add Code")');
+		await page.click(`.dropdown-wrapper button:has-text("${code}")`);
+	}
+
+	// Apply the batch annotation
+	await page.click('button:has-text("Apply")');
+
+	// Wait for the modal to close
+	await page.waitForSelector('.modal', { state: 'hidden' });
+
+	// Check if the new annotations are added to all selected elements
+	for (let i = 3; i <= 10; i++) {
+		for (const code of unusedCodes) {
+			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).toBeVisible();
+		}
+	}
+});
+
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
 	await page.goto('/content');
