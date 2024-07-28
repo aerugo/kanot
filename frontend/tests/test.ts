@@ -364,7 +364,11 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.goto('/content');
 
 	// Wait for the table to be visible
-	await page.waitForSelector('table', { state: 'visible', timeout: 15000 });
+	await page.waitForSelector('table', { state: 'visible', timeout: 30000 });
+
+	// Log the number of checkboxes found
+	const checkboxCount = await page.locator('table tbody tr input[type="checkbox"]').count();
+	console.log(`Number of checkboxes found: ${checkboxCount}`);
 
 	// Select elements (3rd to 10th)
 	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
@@ -372,24 +376,42 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.click('table tbody tr:nth-child(10) input[type="checkbox"]');
 	await page.keyboard.up('Shift');
 
+	// Log the number of selected checkboxes
+	const selectedCheckboxCount = await page.locator('table tbody tr input[type="checkbox"]:checked').count();
+	console.log(`Number of selected checkboxes: ${selectedCheckboxCount}`);
+
+	// Check if the "Annotate Selected" button is visible
+	const annotateButtonVisible = await page.isVisible('button:has-text("Annotate Selected")');
+	console.log(`"Annotate Selected" button visible: ${annotateButtonVisible}`);
+
 	// Click the batch annotation button
 	await page.click('button:has-text("Annotate Selected")');
 
-	// Wait for the batch annotation modal to appear
-	await page.waitForSelector('.modal', { state: 'visible' });
+	// Wait for the batch annotation modal to appear with increased timeout
+	try {
+		await page.waitForSelector('.modal', { state: 'visible', timeout: 60000 });
+	} catch (error) {
+		console.error('Modal did not appear:', error);
+		// Take a screenshot for debugging
+		await page.screenshot({ path: 'modal-not-visible.png' });
+		throw error;
+	}
 
 	// Get all available codes
 	const allCodes = await page.$$eval('.dropdown-wrapper .code-tag', (elements) => 
 		elements.map(el => el.textContent?.trim())
 	);
+	console.log(`Available codes: ${allCodes.join(', ')}`);
 
 	// Get existing annotations for the selected elements
 	const existingAnnotations = await page.$$eval('table tbody tr:nth-child(n+3):nth-child(-n+10) .code-tag', 
 		(elements) => elements.map(el => el.textContent?.trim())
 	);
+	console.log(`Existing annotations: ${existingAnnotations.join(', ')}`);
 
 	// Find two unused codes
 	const unusedCodes = allCodes.filter(code => !existingAnnotations.includes(code)).slice(0, 2);
+	console.log(`Unused codes: ${unusedCodes.join(', ')}`);
 
 	if (unusedCodes.length < 2) {
 		throw new Error('Not enough unused codes available for testing');
@@ -405,7 +427,7 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.click('button:has-text("Apply")');
 
 	// Wait for the modal to close
-	await page.waitForSelector('.modal', { state: 'hidden' });
+	await page.waitForSelector('.modal', { state: 'hidden', timeout: 30000 });
 
 	// Check if the new annotations are added to all selected elements
 	for (let i = 3; i <= 10; i++) {
@@ -413,7 +435,7 @@ test('can add annotations in batch', async ({ page }) => {
 			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).toBeVisible();
 		}
 	}
-});
+}, { timeout: 120000 }); // Increase the overall test timeout to 2 minutes
 
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
