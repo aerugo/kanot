@@ -381,7 +381,13 @@ test('can add annotation to an element', async ({ page }) => {
 	console.log(`Existing annotations: ${JSON.stringify(existingAnnotations)}`);
 
 	// Find a code that is not already used for the element
-	const unusedCode = allCodes.find(code => !existingAnnotations.includes(code));
+	let unusedCode;
+	for (const code of allCodes) {
+		if (!existingAnnotations.includes(code)) {
+			unusedCode = code;
+			break;
+		}
+	}
 
 	if (unusedCode) {
 		console.log(`Selected unused code: ${unusedCode}`);
