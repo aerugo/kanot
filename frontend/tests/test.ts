@@ -365,6 +365,10 @@ test('can add annotation to an element', async ({ page }) => {
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
+	// Get existing annotations for the element
+	const existingAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
+	console.log(`Existing annotations: ${JSON.stringify(existingAnnotations)}`);
+
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
 	console.log('Clicked add annotation button');
@@ -375,10 +379,6 @@ test('can add annotation to an element', async ({ page }) => {
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
 	console.log(`Count of all available codes: ${allCodes.length}`);
-
-	// Get existing annotations for the element
-	const existingAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
-	console.log(`Existing annotations: ${JSON.stringify(existingAnnotations)}`);
 
 	// Find a code that is not already used for the element
 	let unusedCode;
