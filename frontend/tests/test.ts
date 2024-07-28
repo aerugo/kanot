@@ -370,21 +370,20 @@ test('can add annotation to an element', async ({ page }) => {
 	// Check if the annotation dropdown is visible
 	await expect(page.locator('.annotation-dropdown')).toBeVisible();
 
-	// Wait for the filter options to be visible
-	await page.waitForSelector('.annotation-dropdown .filter-option', { state: 'visible', timeout: 20000 });
+	// Type in the search box to filter codes
+	await page.fill('.annotation-dropdown input[type="text"]', 'test');
 
-	// Log the number of filter options found
-	const filterOptionsCount = await page.locator('.annotation-dropdown .filter-option').count();
+	// Wait for the filtered options to be visible
+	await page.waitForSelector('.annotation-dropdown ul li button', { state: 'visible', timeout: 20000 });
 
-	// Ensure that at least one filter option is present
-	await expect(page.locator('.annotation-dropdown .filter-option')).toHaveCount({ min: 1 });
+	// Log the number of filtered options found
+	const filteredOptionsCount = await page.locator('.annotation-dropdown ul li button').count();
 
-	// If filter options are found, click the first one
-	if (filterOptionsCount > 0) {
-		await page.click('.annotation-dropdown .filter-option:first-child', { timeout: 10000 });
-	} else {
-		throw new Error('No filter options found in the dropdown');
-	}
+	// Ensure that at least one filtered option is present
+	expect(filteredOptionsCount).toBeGreaterThan(0);
+
+	// Click the first filtered option
+	await page.click('.annotation-dropdown ul li button:first-child');
 
 	// Wait for the code tag to be added
 	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 15000 });
