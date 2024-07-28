@@ -87,24 +87,43 @@ test('can filter codes by type', async ({ page }) => {
 
 	const initialCodeCount = await page.locator('.codes-list tr').count();
 
+	// Click the "Filter by Type" dropdown
 	await page.click('button:has-text("Filter by Type")');
 
-	await page.waitForSelector('.filter-dropdown', { state: 'visible' });
+	// Wait for the dropdown options to be visible
+	await page.waitForSelector('.filter-dropdown .filter-option', { state: 'visible' });
 
-	await page.click('.filter-option:first-child');
+	// Select the first filter option
+	await page.click('.filter-dropdown .filter-option:first-child');
 
-	await page.waitForTimeout(2000);
+	// Wait for the filter to be applied
+	await page.waitForTimeout(1000);
 
 	const filteredCodeCount = await page.locator('.codes-list tr').count();
 
 	// Check if the filter was applied successfully
 	expect(filteredCodeCount).not.toBe(initialCodeCount);
 
-	// Check for the presence of the filter tag
-	const filterTag = page.locator('.active-filter');
+	// Check for the presence of the filter tag in SelectedFilters component
+	const filterTag = page.locator('.selected-filters .filter-tag');
 	await expect(filterTag).toBeVisible();
 
+	// Check if the filter tag has the correct background color (assuming it's 'gray' for type filters)
+	const filterTagColor = await filterTag.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+	expect(filterTagColor).toBe('rgb(128, 128, 128)'); // This is the RGB value for gray
+
+	// Verify that the codes list is still visible
 	await expect(page.locator('.codes-list')).toBeVisible();
+
+	// Clear the filter
+	await page.click('.selected-filters .filter-tag button');
+
+	// Wait for the filter to be cleared
+	await page.waitForTimeout(1000);
+
+	// Check if the code count has returned to the initial count
+	const finalCodeCount = await page.locator('.codes-list tr').count();
+	expect(finalCodeCount).toBe(initialCodeCount);
 });
 
 // Test for editing a code
