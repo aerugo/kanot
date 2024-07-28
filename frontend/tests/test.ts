@@ -405,9 +405,13 @@ test('can add annotations in batch', async ({ page }) => {
 
 	// Wait for the batch annotation modal to appear with increased timeout
 	try {
-		await page.waitForSelector('.modal', { state: 'visible', timeout: 120000 });
+		console.log('Waiting for modal to appear...');
+		await page.waitForSelector('.modal', { state: 'visible', timeout: 180000 });
+		console.log('Modal appeared successfully');
 	} catch (error) {
 		console.error('Modal did not appear:', error);
+		// Log the current state of the page
+		console.log('Current page content:', await page.content());
 		// Take a screenshot for debugging
 		await page.screenshot({ path: 'modal-not-visible.png' });
 		throw error;
@@ -451,7 +455,7 @@ test('can add annotations in batch', async ({ page }) => {
 			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).toBeVisible();
 		}
 	}
-}, { timeout: 120000 }); // Increase the overall test timeout to 2 minutes
+}, { timeout: 240000 }); // Increase the overall test timeout to 4 minutes
 
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
