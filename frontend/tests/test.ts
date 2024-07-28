@@ -364,7 +364,7 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.goto('/content');
 
 	// Wait for the table to be visible
-	await page.waitForSelector('table', { state: 'visible', timeout: 30000 });
+	await page.waitForSelector('table', { state: 'visible', timeout: 2000 });
 
 	// Log the number of checkboxes found
 	const checkboxCount = await page.locator('table tbody tr input[type="checkbox"]').count();
@@ -403,17 +403,12 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.waitForTimeout(2000);
 	await page.screenshot({ path: 'after-annotate-click.png' });
 
-	// Wait for the batch annotation modal to appear with increased timeout
 	try {
 		console.log('Waiting for modal to appear...');
-		await page.waitForSelector('.modal', { state: 'visible', timeout: 180000 });
+		await page.waitForSelector('.modal', { state: 'visible', timeout: 2000 });
 		console.log('Modal appeared successfully');
 	} catch (error) {
 		console.error('Modal did not appear:', error);
-		// Log the current state of the page
-		console.log('Current page content:', await page.content());
-		// Take a screenshot for debugging
-		await page.screenshot({ path: 'modal-not-visible.png' });
 		throw error;
 	}
 
@@ -447,7 +442,7 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.click('button:has-text("Apply")');
 
 	// Wait for the modal to close
-	await page.waitForSelector('.modal', { state: 'hidden', timeout: 30000 });
+	await page.waitForSelector('.modal', { state: 'hidden', timeout: 2000 });
 
 	// Check if the new annotations are added to all selected elements
 	for (let i = 3; i <= 10; i++) {
@@ -455,7 +450,7 @@ test('can add annotations in batch', async ({ page }) => {
 			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).toBeVisible();
 		}
 	}
-}, { timeout: 240000 }); // Increase the overall test timeout to 4 minutes
+}, { timeout: 30000 }); 
 
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
