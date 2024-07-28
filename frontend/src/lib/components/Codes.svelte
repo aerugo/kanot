@@ -25,16 +25,16 @@
 	let editingCode: Code | null = null;
 
 	onMount((): void => {
-		if ($currentProject) {
-			codes.refresh($currentProject, fetch);
-			codeTypes.refresh($currentProject, fetch);
+		if ($currentProject !== null) {
+			codes.refresh($currentProject);
+			codeTypes.refresh($currentProject);
 		}
 		// Initialize seriesOptions and segmentOptions here if needed
 	});
 
-	$: if ($currentProject) {
-		codes.refresh($currentProject, fetch);
-		codeTypes.refresh($currentProject, fetch);
+	$: if ($currentProject !== null) {
+		codes.refresh($currentProject);
+		codeTypes.refresh($currentProject);
 	}
 
 	$: {

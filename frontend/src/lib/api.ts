@@ -49,23 +49,22 @@ async function apiRequest(
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
-export async function fetchCodes(projectId: number, fetchFunc: FetchFunction = fetch): Promise<any> {
-	return apiRequest(`/codes/?project_id=${projectId}`, 'GET', null, fetchFunc);
+export async function fetchCodes(projectId: number): Promise<Code[]> {
+	return apiRequest(`/codes/?project_id=${projectId}`);
 }
 
-export async function fetchProjects(fetchFunc: FetchFunction = fetch): Promise<any> {
-	return apiRequest('/projects/', 'GET', null, fetchFunc);
+export async function fetchProjects(): Promise<Project[]> {
+	return apiRequest('/projects/');
 }
 
 /**
  * Fetch code types
  *
  * @param {number} projectId - The project ID
- * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
- * @returns {Promise<any>}
+ * @returns {Promise<CodeType[]>}
  */
-export async function fetchCodeTypes(projectId: number, fetchFunc: FetchFunction = fetch): Promise<any> {
-	return apiRequest(`/code_types/?project_id=${projectId}`, 'GET', null, fetchFunc);
+export async function fetchCodeTypes(projectId: number): Promise<CodeType[]> {
+	return apiRequest(`/code_types/?project_id=${projectId}`);
 }
 
 /**

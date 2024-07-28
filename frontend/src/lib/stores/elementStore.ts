@@ -57,6 +57,7 @@ export const filteredElements = derived(
  * @returns Promise<Element[]> - List of new elements
  */
 export async function loadMoreElements(
+	projectId: number,
 	page: number = 1,
 	searchTerm: string = '',
 	selectedSeries: number[] = [],
@@ -66,6 +67,7 @@ export async function loadMoreElements(
 ): Promise<Element[]> {
 	try {
 		const newElements = await searchElements(
+			projectId,
 			searchTerm,
 			selectedSeries,
 			selectedSegments,

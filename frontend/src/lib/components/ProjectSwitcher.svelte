@@ -2,32 +2,26 @@
     import { onMount } from 'svelte';
     import { fetchProjects } from '../api';
     import type { Project } from '../types';
+    import { currentProject } from '../stores/projectStore';
 
     let projects: Project[] = [];
-    let selectedProjectId: number | null = null;
 
     onMount(async () => {
         projects = await fetchProjects();
         if (projects.length > 0) {
-            selectedProjectId = projects[0].project_id;
-            dispatch('projectSelected', selectedProjectId);
+            currentProject.set(projects[0].project_id);
         }
     });
 
     function handleProjectChange(event: Event) {
         const target = event.target as HTMLSelectElement;
-        selectedProjectId = parseInt(target.value, 10);
-        dispatch('projectSelected', selectedProjectId);
+        const selectedProjectId = parseInt(target.value, 10);
+        currentProject.set(selectedProjectId);
     }
-
-    import { createEventDispatcher } from 'svelte';
-    const dispatch = createEventDispatcher<{
-        projectSelected: number;
-    }>();
 </script>
 
 <div class="project-switcher">
-    <select on:change={handleProjectChange} value={selectedProjectId}>
+    <select on:change={handleProjectChange} value={$currentProject}>
         {#each projects as project}
             <option value={project.project_id}>{project.project_title}</option>
         {/each}
