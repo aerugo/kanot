@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { codes } from '../stores/codeStore';
+	import { codes, codeTypes } from '../stores/codeStore';
 	import type { Code } from "../types";
 
 	interface Option {
@@ -16,6 +16,7 @@
 	export let selectedSeries: number[] = [];
 	export let selectedSegments: number[] = [];
 	export let selectedCodes: number[] = [];
+	export let selectedTypes: number[] = [];
 	export let seriesOptions: Option[] = [];
 	export let segmentOptions: Option[] = [];
 	export let onClearFilter: (id: number, type: 'series' | 'segment' | 'code' | 'type') => void;
