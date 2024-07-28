@@ -117,9 +117,21 @@ test('can filter codes by type', async ({ page }) => {
     // Log the content of the codes list for debugging
     console.log('Codes list content:', await page.textContent('.codes-list'));
     
-    // Wait for and click the edit button on the first code
-    await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 10000 });
-    await page.click('.codes-list tr:first-child button:has-text("Edit")');
+    // Wait for the codes list to load and contain at least one row
+    await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 15000 });
+
+    // Log the number of rows in the codes list
+    const rowCount = await page.locator('.codes-list tr').count();
+    console.log(`Number of rows in codes list: ${rowCount}`);
+
+    // Check if there's at least one row
+    if (rowCount > 0) {
+      // Wait for and click the edit button on the first code
+      await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 10000 });
+      await page.click('.codes-list tr:first-child button:has-text("Edit")');
+    } else {
+      throw new Error('No codes found in the list');
+    }
     
     // Check if the edit modal is visible
     await expect(page.locator('.modal')).toBeVisible();
