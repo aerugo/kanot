@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { codes, codeTypes } from '../stores/codeStore';
+	import { currentProject } from '../stores/projectStore';
 	import type { Code } from "../types";
 	import AddCodeForm from './AddCodeForm.svelte';
 	import CodeList from './CodeList.svelte';
@@ -14,8 +15,6 @@
 		name: string;
 	}
 
-	export let currentProjectId: number;
-
 	let filteredCodes: Code[] = [];
 	let selectedTypes: number[] = [];
 	let selectedCodes: number[] = [];
@@ -26,16 +25,16 @@
 	let editingCode: Code | null = null;
 
 	onMount((): void => {
-		if (currentProjectId) {
-			codes.refresh(currentProjectId, fetch);
-			codeTypes.refresh(currentProjectId, fetch);
+		if ($currentProject) {
+			codes.refresh($currentProject, fetch);
+			codeTypes.refresh($currentProject, fetch);
 		}
 		// Initialize seriesOptions and segmentOptions here if needed
 	});
 
-	$: if (currentProjectId) {
-		codes.refresh(currentProjectId, fetch);
-		codeTypes.refresh(currentProjectId, fetch);
+	$: if ($currentProject) {
+		codes.refresh($currentProject, fetch);
+		codeTypes.refresh($currentProject, fetch);
 	}
 
 	$: {

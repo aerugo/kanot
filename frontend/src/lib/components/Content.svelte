@@ -30,12 +30,12 @@
 	import type { Annotation, Element, Series } from '../types';
 	import { debounce } from '../utils/helpers';
 
+	import { currentProject } from '../stores/projectStore';
+
 	interface Option {
 		id: number;
 		name: string;
 	}
-
-	export let currentProjectId: number | null = null;
 
 	let elementsStore: Writable<Element[]> = writable([]);
 	let page: number = 1;
@@ -63,26 +63,27 @@
 	}, 300);
 
 	async function loadInitialData(): Promise<void> {
+		if ($currentProject === null) return;
 		await loadFilterOptions();
-		await codes.refresh(currentProjectId);
-		await codeTypes.refresh(currentProjectId);
+		await codes.refresh($currentProject);
+		await codeTypes.refresh($currentProject);
 		await loadMoreData();
 	}
 
-	$: if (currentProjectId !== null) {
-		console.log('Current Project ID:', currentProjectId);
+	$: if ($currentProject !== null) {
+		console.log('Current Project ID:', $currentProject);
 		loadInitialData();
 	}
 
 	async function loadFilterOptions(): Promise<void> {
-		if (currentProjectId === null) {
+		if ($currentProject === null) {
 			console.error('Current project ID is null');
 			return;
 		}
 		try {
 			const [series, segmentsData] = await Promise.all([
-				fetchSeries(currentProjectId),
-				fetchSegments(currentProjectId)
+				fetchSeries($currentProject),
+				fetchSegments($currentProject)
 			]);
 
 			seriesOptions = (series as Series[]).map((s: Series) => ({
@@ -100,11 +101,11 @@
 	}
 
 	async function loadMoreData(): Promise<void> {
-    if (!browser || loading || !hasMore) return;
+    if (!browser || loading || !hasMore || $currentProject === null) return;
     loading = true;
     try {
         const newElements = await loadMoreElements(
-            currentProjectId,
+            $currentProject,
             page,
             $searchTerm,
             $selectedSeries,
