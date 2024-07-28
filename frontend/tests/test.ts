@@ -121,8 +121,30 @@ test('can filter codes by type', async ({ page }) => {
 	// Wait for the filter to be cleared and the list to update
 	await page.waitForTimeout(2000);
 
-	// Check if the code count has returned to the initial count
-	const finalCodeCount = await page.locator('.codes-list tr').count();
+	// Function to get the current code count
+	const getCodeCount = async () => await page.locator('.codes-list tr').count();
+
+	// Wait for the code count to stabilize
+	let finalCodeCount;
+	await page.waitForFunction(
+		({ initialCount, getCount }) => {
+			return new Promise((resolve) => {
+				const checkCount = async () => {
+					const currentCount = await getCount();
+					if (currentCount === initialCount) {
+						resolve(true);
+					} else {
+						setTimeout(checkCount, 500);
+					}
+				};
+				checkCount();
+			});
+		},
+		{ initialCount: initialCodeCount, getCount: getCodeCount },
+		{ timeout: 10000 }
+	);
+
+	finalCodeCount = await getCodeCount();
 	
 	// Log debug information
 	console.log(`Initial count: ${initialCodeCount}, Filtered count: ${filteredCodeCount}, Final count: ${finalCodeCount}`);
@@ -135,13 +157,32 @@ test('can filter codes by type', async ({ page }) => {
 		console.log('Filters still present, attempting to clear...');
 		await page.click('.selected-filters .clear-all-filters');
 		await page.waitForTimeout(2000);
+		
+		// Wait again for the code count to stabilize
+		await page.waitForFunction(
+			({ initialCount, getCount }) => {
+				return new Promise((resolve) => {
+					const checkCount = async () => {
+						const currentCount = await getCount();
+						if (currentCount === initialCount) {
+							resolve(true);
+						} else {
+							setTimeout(checkCount, 500);
+						}
+					};
+					checkCount();
+				});
+			},
+			{ initialCount: initialCodeCount, getCount: getCodeCount },
+			{ timeout: 10000 }
+		);
+		
+		finalCodeCount = await getCodeCount();
 	}
 
-	// Recheck the final count after ensuring filters are cleared
-	const recheckFinalCount = await page.locator('.codes-list tr').count();
-	console.log(`Rechecked final count: ${recheckFinalCount}`);
+	console.log(`Final rechecked count: ${finalCodeCount}`);
 
-	expect(recheckFinalCount).toBe(initialCodeCount);
+	expect(finalCodeCount).toBe(initialCodeCount);
 });
 
 // Test for editing a code
