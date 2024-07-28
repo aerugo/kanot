@@ -31,11 +31,9 @@
 		// Initialize seriesOptions and segmentOptions here if needed
 	});
 
-	$: {
-		if (currentProjectId) {
-			codes.refresh(currentProjectId, fetch);
-			codeTypes.refresh(currentProjectId, fetch);
-		}
+	$: if (currentProjectId) {
+		codes.refresh(currentProjectId);
+		codeTypes.refresh(currentProjectId);
 	}
 
 	$: {

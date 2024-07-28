@@ -37,10 +37,10 @@ function createCodeTypeStore() {
   return {
     subscribe,
     set,
-    refresh: async (fetchFunc: FetchFunction = fetch) => {
+    refresh: async (projectId: number, fetchFunc: FetchFunction = fetch) => {
       if (browser) {
         try {
-          const types = await fetchCodeTypes(fetchFunc);
+          const types = await fetchCodeTypes(projectId, fetchFunc);
           console.log('Fetched code types:', types);
           set(types);
         } catch (error) {
