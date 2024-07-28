@@ -184,13 +184,10 @@ def create_code_type(
 
 @router.get("/code_types/", response_model=List[CodeTypeResponse])
 def read_code_types(
-    project_id: Optional[int] = None,
+    project_id: int = Query(..., description="ID of the project"),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[CodeTypeResponse]:
-    if project_id is not None:
-        code_types = db_manager.read_code_types_by_project(project_id)
-    else:
-        code_types = db_manager.read_all_code_types()
+    code_types = db_manager.read_code_types_by_project(project_id)
     assert code_types is not None
     return [CodeTypeResponse(
         id=code_type.type_id,
@@ -273,7 +270,7 @@ def create_code(
 
 @router.get("/codes/", response_model=List[CodeResponse])
 def read_codes(
-    project_id: int,
+    project_id: int = Query(..., description="ID of the project"),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[CodeResponse]:
     codes = db_manager.read_codes_by_project(project_id)
@@ -376,7 +373,7 @@ def create_series(
 
 @router.get("/series/", response_model=List[SeriesResponse])
 def read_all_series(
-    project_id: int,
+    project_id: int = Query(..., description="ID of the project"),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[SeriesResponse]:
     series_list = db_manager.read_series_by_project(project_id)
@@ -446,7 +443,7 @@ def create_segment(
 
 @router.get("/segments/", response_model=List[SegmentResponse])
 def read_segments(
-    project_id: int,
+    project_id: int = Query(..., description="ID of the project"),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[SegmentResponse]:
     segments = db_manager.read_segments_by_project(project_id)
@@ -794,9 +791,10 @@ def remove_batch_annotations(
 
 @router.get("/annotations/", response_model=List[AnnotationResponse])
 def read_annotations(
+    project_id: int = Query(..., description="ID of the project"),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[AnnotationResponse]:
-    annotations = db_manager.read_all_annotations()
+    annotations = db_manager.read_annotations_by_project(project_id)
     assert annotations is not None
     return [AnnotationResponse(
         id=annotation['annotation_id'],

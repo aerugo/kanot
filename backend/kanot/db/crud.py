@@ -688,6 +688,30 @@ class DatabaseManager:
                 })
             return result
 
+    def read_annotations_by_project(self, project_id: int) -> Optional[list[dict[str, Any]]]:
+        with self.get_session() as session:
+            annotations = session.query(Annotation).filter_by(project_id=project_id).options(joinedload(Annotation.code)).all()
+            result: list[dict[str, Any]] = []
+            for annotation in annotations:
+                session.refresh(annotation)
+                assert annotation is not None
+                result.append({
+                    'annotation_id': annotation.annotation_id,
+                    'element_id': annotation.element_id,
+                    'code_id': annotation.code_id,
+                    'project_id': annotation.project_id,
+                    'code': {
+                        'code_id': annotation.code.code_id,
+                        'term': annotation.code.term,
+                        'description': annotation.code.description,
+                        'type_id': annotation.code.type_id,
+                        'reference': annotation.code.reference,
+                        'coordinates': annotation.code.coordinates,
+                        'project_id': annotation.code.project_id
+                    } if annotation.code else None
+                })
+            return result
+
     def update_annotation(
         self,
         annotation_id: int,
