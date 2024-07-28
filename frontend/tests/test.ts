@@ -310,49 +310,8 @@ test('can remove annotation from an element', async ({ page }) => {
 		console.log('Clicking remove button...');
 		await page.click('table tbody tr:first-child .code-tag:first-child button.remove-code');
 
-		console.log('Waiting for annotation to be removed...');
-		try {
-			await page.waitForFunction(
-				(selector: string, initialCount: number) => {
-					const currentCount = document.querySelectorAll(selector).length;
-					console.log(`Current annotation count: ${currentCount}, Initial count: ${initialCount}`);
-					return currentCount === initialCount - 1;
-				},
-				'table tbody tr:first-child .code-tag',
-				initialAnnotationCount,
-				{ timeout: 120000 } // Increase timeout to 120 seconds
-			);
-		} catch (error) {
-			console.error('Error while waiting for annotation removal:', error);
-			
-			// Log current annotations
-			const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
-			console.log('Current annotations:', currentAnnotations);
-			
-			// Take a screenshot
-			await page.screenshot({ path: 'annotation-removal-failed.png' });
-			
-			// Log page content
-			const pageContent = await page.content();
-			console.log('Page content:', pageContent);
-			
-			// Log network requests
-			const requests = await page.evaluate(() => (window as any).requestLog);
-			console.log('Network requests:', requests);
-			
-			// Check if the remove button is still present
-			const removeButtonVisible = await page.isVisible('table tbody tr:first-child .code-tag:first-child button.remove-code');
-			console.log('Remove button still visible:', removeButtonVisible);
-			
-			// Check if any error messages are displayed on the page
-			const errorMessages = await page.locator('.error-message').allTextContents();
-			console.log('Error messages on page:', errorMessages);
-			
-			throw error;
-		}
-
-		console.log('Waiting after removal...');
-		await page.waitForTimeout(10000);
+		console.log('Waiting for 2 seconds after removal...');
+		await page.waitForTimeout(2000);
 
 		console.log('Checking new annotation count...');
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
