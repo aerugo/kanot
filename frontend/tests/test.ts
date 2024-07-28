@@ -366,47 +366,24 @@ test('can add annotations in batch', async ({ page }) => {
 	// Wait for the table to be visible
 	await page.waitForSelector('table', { state: 'visible', timeout: 2000 });
 
-	// Log the number of checkboxes found
-	const checkboxCount = await page.locator('table tbody tr input[type="checkbox"]').count();
-	console.log(`Number of checkboxes found: ${checkboxCount}`);
-	
-	// Log the visibility of some key elements
-	const tableVisible = await page.isVisible('table');
-	const firstCheckboxVisible = await page.isVisible('table tbody tr:first-child input[type="checkbox"]');
-	console.log(`Table visible: ${tableVisible}, First checkbox visible: ${firstCheckboxVisible}`);
-
 	// Select elements (3rd to 10th)
 	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
 	await page.keyboard.down('Shift');
 	await page.click('table tbody tr:nth-child(10) input[type="checkbox"]');
 	await page.keyboard.up('Shift');
 
-	// Log the number of selected checkboxes
-	const selectedCheckboxCount = await page.locator('table tbody tr input[type="checkbox"]:checked').count();
-	console.log(`Number of selected checkboxes: ${selectedCheckboxCount}`);
-
-	// Check if the "Annotate Selected" button is visible
-	const annotateButtonVisible = await page.isVisible('button:has-text("Annotate Selected")');
-	console.log(`"Annotate Selected" button visible: ${annotateButtonVisible}`);
-
-	// Log the current URL
-	console.log(`Current URL: ${page.url()}`);
-
 	// Take a screenshot before clicking the button
 	await page.screenshot({ path: 'before-annotate-click.png' });
 
 	// Click the batch annotation button
 	await page.click('button:has-text("Add Annotations")');
-	console.log('Clicked "Add Annotations" button');
 
 	// Wait a bit and take another screenshot
 	await page.waitForTimeout(2000);
 	await page.screenshot({ path: 'after-annotate-click.png' });
 
 	try {
-		console.log('Waiting for modal to appear...');
 		await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 2000 });
-		console.log('Modal appeared successfully');
 	} catch (error) {
 		console.error('Modal did not appear:', error);
 		// Take a screenshot for debugging
@@ -422,17 +399,14 @@ test('can add annotations in batch', async ({ page }) => {
 
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
-	console.log(`Available codes: ${allCodes.join(', ')}`);
 
 	// Get existing annotations for the selected elements
 	const existingAnnotations = await page.$$eval('table tbody tr:nth-child(n+3):nth-child(-n+10) .code-tag', 
-		(elements) => elements.map(el => el.textContent?.trim())
+		(elements: HTMLElement[]) => elements.map(el => el.textContent?.trim())
 	);
-	console.log(`Existing annotations: ${existingAnnotations.join(', ')}`);
 
 	// Find unused codes
-	const unusedCodes = allCodes.filter(code => !existingAnnotations.some(annotation => annotation.startsWith(code))).slice(0, 2);
-	console.log(`Unused codes: ${unusedCodes.join(', ')}`);
+	const unusedCodes = allCodes.filter((code: string) => !existingAnnotations.some((annotation: string) => annotation.startsWith(code))).slice(0, 2);
 
 	if (unusedCodes.length < 2) {
 		throw new Error('Not enough unused codes available for testing');
