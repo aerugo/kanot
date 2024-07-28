@@ -62,6 +62,8 @@
 		}
 	}, 300);
 
+	import { codes, codeTypes } from '../stores/codeStore';
+
 	async function loadInitialData(): Promise<void> {
 		if ($currentProject === null) return;
 		await loadFilterOptions();
@@ -101,33 +103,33 @@
 	}
 
 	async function loadMoreData(): Promise<void> {
-    if (!browser || loading || !hasMore || $currentProject === null) return;
-    loading = true;
-    try {
-        const newElements = await loadMoreElements(
-            $currentProject,
-            page,
-            $searchTerm,
-            $selectedSeries,
-            $selectedSegments,
-            $selectedCodes
-        );
-        elementsStore.update((currentElements) => {
-            const updatedElements = page === 1 ? newElements : [...currentElements];
-            // Filter out duplicates based on element_id
-            const uniqueElements = newElements.filter(
-                (newElement) => !updatedElements.some((existingElement) => existingElement.element_id === newElement.element_id)
-            );
-            return [...updatedElements, ...uniqueElements];
-        });
-        hasMore = newElements.length > 0;
-        page++;
-    } catch (error) {
-        console.error('Error loading more elements:', error);
-    } finally {
-        loading = false;
-    }
-}
+		if (!browser || loading || !hasMore || $currentProject === null) return;
+		loading = true;
+		try {
+			const newElements = await loadMoreElements(
+				$currentProject,
+				page,
+				$searchTerm,
+				$selectedSeries,
+				$selectedSegments,
+				$selectedCodes
+			);
+			elementsStore.update((currentElements) => {
+				const updatedElements = page === 1 ? newElements : [...currentElements];
+				// Filter out duplicates based on element_id
+				const uniqueElements = newElements.filter(
+					(newElement) => !updatedElements.some((existingElement) => existingElement.element_id === newElement.element_id)
+				);
+				return [...updatedElements, ...uniqueElements];
+			});
+			hasMore = newElements.length > 0;
+			page++;
+		} catch (error) {
+			console.error('Error loading more elements:', error);
+		} finally {
+			loading = false;
+		}
+	}
 
 	async function resetSearch(): Promise<void> {
 		page = 1;
