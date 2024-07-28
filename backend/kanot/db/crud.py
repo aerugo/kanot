@@ -171,6 +171,12 @@ class DatabaseManager:
             session.close()
             return code_types
 
+    def read_code_types_by_project(self, project_id: int) -> Optional[list[CodeType]]:
+        with self.get_session() as session:
+            code_types = session.query(CodeType).filter_by(project_id=project_id).all()
+            session.close()
+            return code_types
+
     def update_code_type(self, type_id: int, type_name: str) -> None:
         with self.get_session() as session:
             code_type: Optional[CodeType] = (

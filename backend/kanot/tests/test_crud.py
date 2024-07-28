@@ -77,6 +77,27 @@ def test_read_all_code_types(db_manager: DatabaseManager) -> None:
     assert code_types[0].type_name == "Test Type 1"
     assert code_types[1].type_name == "Test Type 2"
 
+def test_read_code_types_by_project(db_manager: DatabaseManager) -> None:
+    project1 = db_manager.create_project("Test Project 1", "Test Description 1")
+    project2 = db_manager.create_project("Test Project 2", "Test Description 2")
+    assert project1 is not None and project2 is not None
+    db_manager.create_code_type("Test Type 1", project1.project_id)
+    db_manager.create_code_type("Test Type 2", project1.project_id)
+    db_manager.create_code_type("Test Type 3", project2.project_id)
+    
+    code_types_project1 = db_manager.read_code_types_by_project(project1.project_id)
+    assert code_types_project1 is not None
+    assert len(code_types_project1) == 2
+    assert code_types_project1[0].type_name == "Test Type 1"
+    assert code_types_project1[1].type_name == "Test Type 2"
+    assert all(ct.project_id == project1.project_id for ct in code_types_project1)
+
+    code_types_project2 = db_manager.read_code_types_by_project(project2.project_id)
+    assert code_types_project2 is not None
+    assert len(code_types_project2) == 1
+    assert code_types_project2[0].type_name == "Test Type 3"
+    assert code_types_project2[0].project_id == project2.project_id
+
 def test_update_code_type(db_manager: DatabaseManager) -> None:
     project = db_manager.create_project("Test Project", "Test Description")
     assert project is not None

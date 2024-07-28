@@ -184,9 +184,13 @@ def create_code_type(
 
 @router.get("/code_types/", response_model=List[CodeTypeResponse])
 def read_code_types(
+    project_id: Optional[int] = None,
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[CodeTypeResponse]:
-    code_types = db_manager.read_all_code_types()
+    if project_id is not None:
+        code_types = db_manager.read_code_types_by_project(project_id)
+    else:
+        code_types = db_manager.read_all_code_types()
     assert code_types is not None
     return [CodeTypeResponse(
         id=code_type.type_id,
