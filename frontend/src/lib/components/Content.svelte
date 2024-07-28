@@ -554,7 +554,7 @@
 	<BatchRemovalModal
 		bind:show={showBatchRemovalModal}
 		selectedCount={selectedElementIds.length}
-		{selectedElementIds}
+		selectedElements={$elementsStore.filter(element => selectedElementIds.includes(element.element_id))}
 		on:removeAnnotations={handleBatchRemoval}
 	/>
 </main>

@@ -5,7 +5,7 @@
 
 	export let show = false;
 	export let selectedCount: number;
-	export let selectedElementIds: number[];
+	export let selectedElements: Element[];
 
 	const dispatch = createEventDispatcher();
 
@@ -29,6 +29,9 @@
 		code_id: code.code_id,
 		term: code.term
 	}));
+
+	$: console.log('Selected Elements:', selectedElements);
+	$: console.log('Unique Codes:', uniqueCodes);
 
 	$: if (modalElement) {
 		if (show) {
