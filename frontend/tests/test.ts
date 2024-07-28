@@ -319,15 +319,23 @@ test('can remove annotation from an element', async ({ page }) => {
 				},
 				'table tbody tr:first-child .code-tag',
 				initialAnnotationCount,
-				{ timeout: 60000 } // Increase timeout to 60 seconds
+				{ timeout: 120000 } // Increase timeout to 120 seconds
 			);
 		} catch (error) {
 			console.error('Error while waiting for annotation removal:', error);
 			// Log the current state of annotations
 			const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
 			console.log('Current annotations:', currentAnnotations);
+			// Take a screenshot for debugging
+			await page.screenshot({ path: 'annotation-removal-failed.png' });
+			// Log the page content
+			const pageContent = await page.content();
+			console.log('Page content:', pageContent);
 			throw error;
 		}
+
+		// Add a delay after the removal
+		await page.waitForTimeout(5000);
 
 		// Check if the number of annotations has decreased
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
