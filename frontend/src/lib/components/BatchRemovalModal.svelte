@@ -20,11 +20,9 @@
 						.map((annotation) => annotation.code)
 						.filter((code): code is NonNullable<Annotation['code']> => code != null)
 				)
+				.map(code => JSON.stringify({ code_id: code.code_id, term: code.term }))
 		)
-	).map((code) => ({
-		code_id: code.code_id,
-		term: code.term
-	}));
+	).map(codeString => JSON.parse(codeString));
 
 	$: if (modalElement) {
 		if (show) {
@@ -55,6 +53,12 @@
 		dispatch('removeAnnotations', { codeIds: selectedCodesToRemove });
 		closeModal();
 	}
+
+	function getAnnotationCount(codeId: number): number {
+		return selectedElements.reduce((count, element) => 
+			count + element.annotations.filter(annotation => annotation.code?.code_id === codeId).length, 0
+		);
+	}
 </script>
 
 <dialog
@@ -72,7 +76,7 @@
 					checked={selectedCodesToRemove.includes(code.code_id)}
 					on:change={() => toggleCode(code.code_id)}
 				/>
-				{code.term}
+				{code.term} ({getAnnotationCount(code.code_id)} annotations)
 			</label>
 		{/each}
 	</div>
