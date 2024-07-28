@@ -414,10 +414,14 @@ test('can add annotations in batch', async ({ page }) => {
 		throw error;
 	}
 
-	// Get all available codes
-	const allCodes = await page.$$eval('.dropdown-wrapper .code-tag', (elements) => 
-		elements.map(el => el.textContent?.trim())
-	);
+	// Click the "Add Code" button to open the dropdown
+	await page.click('button:has-text("Add Code")');
+
+	// Wait for the annotation dropdown to be visible
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
+
+	// Get all available codes from the dropdown
+	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
 	console.log(`Available codes: ${allCodes.join(', ')}`);
 
 	// Get existing annotations for the selected elements
@@ -426,8 +430,8 @@ test('can add annotations in batch', async ({ page }) => {
 	);
 	console.log(`Existing annotations: ${existingAnnotations.join(', ')}`);
 
-	// Find two unused codes
-	const unusedCodes = allCodes.filter(code => !existingAnnotations.includes(code)).slice(0, 2);
+	// Find unused codes
+	const unusedCodes = allCodes.filter(code => !existingAnnotations.some(annotation => annotation.startsWith(code))).slice(0, 2);
 	console.log(`Unused codes: ${unusedCodes.join(', ')}`);
 
 	if (unusedCodes.length < 2) {
@@ -436,8 +440,10 @@ test('can add annotations in batch', async ({ page }) => {
 
 	// Select the two unused codes
 	for (const code of unusedCodes) {
+		await page.click(`.annotation-dropdown ul li button:has-text("${code}")`);
+		// Wait for the code to be added and the dropdown to reopen
+		await page.waitForSelector(`.selected-codes .code-tag:has-text("${code}")`, { state: 'visible' });
 		await page.click('button:has-text("Add Code")');
-		await page.click(`.dropdown-wrapper button:has-text("${code}")`);
 	}
 
 	// Apply the batch annotation
