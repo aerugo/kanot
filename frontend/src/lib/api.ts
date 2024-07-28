@@ -49,8 +49,8 @@ async function apiRequest(
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
-export async function fetchCodes(projectId: number): Promise<Code[]> {
-	return apiRequest(`/codes/?project_id=${projectId}`);
+export async function fetchCodes(): Promise<Code[]> {
+	return apiRequest(`/codes/?project_id=${getCurrentProjectId()}`);
 }
 
 export async function fetchProjects(): Promise<Project[]> {
@@ -60,26 +60,24 @@ export async function fetchProjects(): Promise<Project[]> {
 /**
  * Fetch code types
  *
- * @param {number} projectId - The project ID
  * @returns {Promise<CodeType[]>}
  */
-export async function fetchCodeTypes(projectId: number): Promise<CodeType[]> {
-	return apiRequest(`/code_types/?project_id=${projectId}`);
+export async function fetchCodeTypes(): Promise<CodeType[]> {
+	return apiRequest(`/code_types/?project_id=${getCurrentProjectId()}`);
 }
 
 /**
  * Fetch paginated elements
  *
- * @param {number} projectId - The project ID
  * @param {number} [page=1] - The page number
  * @param {number} [pageSize=100] - The page size
  * @returns {Promise<any>}
  */
 export async function fetchPaginatedElements(
-	projectId: number,
 	page: number = 1,
 	pageSize: number = 100
 ): Promise<any> {
+	const projectId = getCurrentProjectId();
 	if (projectId === undefined || projectId === null) {
 		console.error('Project ID is undefined or null in fetchPaginatedElements');
 		throw new Error("Project ID is required");
@@ -90,7 +88,6 @@ export async function fetchPaginatedElements(
 /**
  * Search elements
  *
- * @param {number} projectId - The project ID
  * @param {string} searchTerm - The search term
  * @param {number[]} [seriesIds=[]] - Array of series IDs
  * @param {number[]} [segmentIds=[]] - Array of segment IDs
@@ -100,7 +97,6 @@ export async function fetchPaginatedElements(
  * @returns {Promise<any>}
  */
 export async function searchElements(
-	projectId: number,
 	searchTerm: string,
 	seriesIds: number[] = [],
 	segmentIds: number[] = [],
@@ -109,7 +105,7 @@ export async function searchElements(
 	pageSize: number = 100
 ): Promise<any> {
 	const params = new URLSearchParams({
-		project_id: projectId.toString(),
+		project_id: getCurrentProjectId().toString(),
 		search_term: searchTerm,
 		skip: ((page - 1) * pageSize).toString(),
 		limit: pageSize.toString()
