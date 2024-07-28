@@ -126,11 +126,12 @@ test('can filter codes by type', async ({ page }) => {
       // Wait for the modal to appear
       await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
 
-      // Fill in a new term using the data-id attribute
+      // Fill in new values for all fields
       await page.fill('[data-id="edit-code-term"]', 'Updated Code Term');
-
-      // Fill in a new description using the data-id attribute
       await page.fill('[data-id="edit-code-description"]', 'Updated Code Description');
+      await page.selectOption('select', { label: 'Select Code Type' }); // Assuming there's at least one option
+      await page.fill('[data-id="edit-code-reference"]', 'Updated Reference');
+      await page.fill('[data-id="edit-code-coordinates"]', 'Updated Coordinates');
 
       // Save the changes
       await page.click('.modal button:has-text("Save")');
@@ -141,8 +142,24 @@ test('can filter codes by type', async ({ page }) => {
       // Wait for the update to be reflected
       await page.waitForTimeout(2000);
       
-      // Check if the updated term is visible in the list
+      // Check if all updated fields are visible in the list
       await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
+      await expect(page.locator('.codes-list')).toContainText('Updated Code Description');
+      await expect(page.locator('.codes-list')).toContainText('Updated Reference');
+      await expect(page.locator('.codes-list')).toContainText('Updated Coordinates');
+      
+      // Click the edit button again to verify all fields
+      await page.click('.codes-list tr:first-child button:has-text("Edit")');
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
+      
+      // Verify all fields contain the updated values
+      await expect(page.locator('[data-id="edit-code-term"]')).toHaveValue('Updated Code Term');
+      await expect(page.locator('[data-id="edit-code-description"]')).toHaveValue('Updated Code Description');
+      await expect(page.locator('[data-id="edit-code-reference"]')).toHaveValue('Updated Reference');
+      await expect(page.locator('[data-id="edit-code-coordinates"]')).toHaveValue('Updated Coordinates');
+      
+      // Close the modal
+      await page.click('.modal button:has-text("Cancel")');
     } else {
       throw new Error('No codes found in the list');
     }
