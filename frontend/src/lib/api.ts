@@ -1,9 +1,21 @@
+import { currentProject } from '$lib/stores/projectStore';
+import { get } from 'svelte/store';
+
 const BASE_URL = 'http://localhost:8000';
 
 /**
  * Type for FetchFunction
  */
 type FetchFunction = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+/**
+ * Get the current project ID
+ *
+ * @returns {number} The current project ID
+ */
+function getCurrentProjectId(): number {
+    return get(currentProject);
+}
 
 /**
  * General function for API requests
@@ -214,8 +226,8 @@ export async function deleteAnnotation(annotationId: number | string): Promise<a
  *
  * @returns {Promise<any>}
  */
-export async function fetchSeries(projectId: number): Promise<any> {
-	return apiRequest(`/series/?project_id=${projectId}`);
+export async function fetchSeries(): Promise<any> {
+	return apiRequest(`/series/?project_id=${getCurrentProjectId()}`);
 }
 
 // Segments API
@@ -223,9 +235,8 @@ export async function fetchSeries(projectId: number): Promise<any> {
 /**
  * Fetch segments
  *
- * @param {number} projectId - The project ID
  * @returns {Promise<any>}
  */
-export async function fetchSegments(projectId: number): Promise<any> {
-	return apiRequest(`/segments/?project_id=${projectId}`);
+export async function fetchSegments(): Promise<any> {
+	return apiRequest(`/segments/?project_id=${getCurrentProjectId()}`);
 }
