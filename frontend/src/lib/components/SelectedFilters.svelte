@@ -46,7 +46,14 @@
 		})
 		.filter(isFilter);
 
-	$: allSelectedFilters = [...selectedSeriesNames, ...selectedSegmentNames, ...selectedCodeNames];
+	$: selectedTypeNames = selectedTypes
+		.map((typeId) => {
+			const codeType = $codeTypes.find((ct) => ct.type_id === typeId);
+			return codeType ? { id: codeType.type_id, name: codeType.type_name, type: 'type' as const } : null;
+		})
+		.filter(isFilter);
+
+	$: allSelectedFilters = [...selectedSeriesNames, ...selectedSegmentNames, ...selectedCodeNames, ...selectedTypeNames];
 
 	function getFilterColor(type: Filter['type']): string {
 		switch (type) {
