@@ -26,9 +26,6 @@
 		term: code.term
 	}));
 
-	$: console.log('Selected Elements:', selectedElements);
-	$: console.log('Unique Codes:', uniqueCodes);
-
 	$: if (modalElement) {
 		if (show) {
 			modalElement.showModal();
@@ -52,7 +49,6 @@
 		selectedCodesToRemove = selectedCodesToRemove.includes(codeId)
 			? selectedCodesToRemove.filter((id) => id !== codeId)
 			: [...selectedCodesToRemove, codeId];
-		console.log('Selected codes to remove:', selectedCodesToRemove);
 	}
 
 	function removeAnnotations() {
