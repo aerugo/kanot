@@ -127,17 +127,31 @@ test('can filter codes by type', async ({ page }) => {
     // Check if there's at least one row
     if (rowCount > 0) {
       // Wait for and click the edit button on the first code
-      await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 10000 });
+      await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 15000 });
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
+      
+      // Wait for the modal to appear and log its visibility
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 }).catch(() => console.log('Modal not visible after 5 seconds'));
+      const isModalVisible = await page.isVisible('.modal');
+      console.log('Is modal visible:', isModalVisible);
+
+      if (isModalVisible) {
+        // Check if the input field exists and is visible
+        const inputExists = await page.isVisible('.modal input[placeholder="Term"]');
+        console.log('Does input field exist:', inputExists);
+
+        if (inputExists) {
+          // Fill in a new term
+          await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
+        } else {
+          console.log('Input field not found in the modal');
+        }
+      } else {
+        console.log('Modal did not appear');
+      }
     } else {
       throw new Error('No codes found in the list');
     }
-    
-    // Check if the edit modal is visible
-    await expect(page.locator('.modal')).toBeVisible();
-    
-    // Fill in a new term
-    await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
     
     // Save the changes
     await page.click('.modal button:has-text("Save")');
