@@ -363,9 +363,11 @@ test('can add annotation to an element', async ({ page }) => {
 
 	// Get the initial number of annotations
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
+	console.log('Clicked add annotation button');
 
 	// Wait for the annotation dropdown to be visible
 	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
@@ -409,6 +411,8 @@ test('can add annotation to an element', async ({ page }) => {
 
 		// Check if a new code tag is added to the element
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+		console.log(`New annotation count: ${newAnnotationCount}`);
+		console.log(`Expected: ${initialAnnotationCount + 1}, Actual: ${newAnnotationCount}`);
 		expect(newAnnotationCount).toBe(initialAnnotationCount + 1);
 
 		// Verify that the new annotation is visible in the UI
