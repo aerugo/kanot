@@ -292,37 +292,25 @@ test('can edit an existing code', async ({ page }) => {
 test('can remove annotation from an element', async ({ page }) => {
 	await page.goto('/content');
 
-	console.log('Waiting for table to be visible...');
 	await page.waitForSelector('table', { state: 'visible', timeout: 20000 });
 
-	console.log('Adding an annotation...');
 	await page.click('table tbody tr:first-child button.add-code');
 	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
 	await page.click('.annotation-dropdown ul li button:first-child');
 
-	console.log('Waiting for 2 seconds after adding annotation...');
 	await page.waitForTimeout(2000);
 
-	console.log('Getting initial annotation count...');
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
-	console.log('Getting text of first annotation...');
 	const firstAnnotationText = await page.locator('table tbody tr:first-child .code-tag').first().textContent();
-	console.log(`First annotation text: ${firstAnnotationText}`);
 
-	console.log('Clicking remove button...');
 	await page.click('table tbody tr:first-child .code-tag:first-child button.remove-code');
 
-	console.log('Waiting for 2 seconds after removal...');
 	await page.waitForTimeout(2000);
 
-	console.log('Checking new annotation count...');
 	const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	console.log(`New annotation count: ${newAnnotationCount}`);
 	expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
 
-	console.log('Verifying removed annotation is not visible...');
 	await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${firstAnnotationText}")`)).not.toBeVisible();
 }, { timeout: 180000 }); // Increase overall test timeout to 180 seconds
 
