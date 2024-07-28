@@ -130,20 +130,28 @@
           Description:
           <input bind:value={editingCode.description} data-id="edit-code-description" />
         </label>
-        <label>
+        <label for="code-type-select">
           Code Type:
-          <div class="custom-select" data-id="edit-code-type">
-            <div class="selected-option" on:click={() => isDropdownOpen = !isDropdownOpen}>
+          <div class="custom-select" data-id="edit-code-type" id="code-type-select">
+            <div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
               {$codeTypes.find(ct => ct.type_id === editingCode.type_id)?.type_name || 'Select Code Type'}
             </div>
             {#if isDropdownOpen}
-              <div class="options">
+              <div class="options" role="listbox">
                 {#each $codeTypes as codeType}
                   <div 
-                    class="option" 
+                    class="option"
+                    role="option"
+                    tabindex="0"
                     on:click={() => {
                       editingCode.type_id = codeType.type_id;
                       isDropdownOpen = false;
+                    }}
+                    on:keydown={(e) => {
+                      if (e.key === 'Enter') {
+                        editingCode.type_id = codeType.type_id;
+                        isDropdownOpen = false;
+                      }
                     }}
                   >
                     {codeType.type_name}
@@ -206,16 +214,10 @@
     margin-bottom: 0.5rem;
   }
 
-  input,
-  select {
+  input {
     width: 100%;
     padding: 0.5rem;
     margin-top: 0.25rem;
-  }
-
-  select {
-    background-color: white;
-    cursor: pointer;
   }
 
   .button-group {
