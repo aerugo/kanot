@@ -108,20 +108,26 @@
 
 	async function loadMoreData(): Promise<void> {
 		if (!browser || loading || !hasMore) return;
-		if ($currentProject === null) {
-			console.error('Current project is null in loadMoreData');
+		if ($currentProject === null || $currentProject === 0) {
+			console.error('Invalid project in loadMoreData');
 			return;
 		}
 		loading = true;
 		console.log('Loading more data for project:', $currentProject);
 		try {
-			const newElements = await loadMoreElements(
-				$currentProject,
-				page,
+			console.log('Fetching elements:', { 
+				projectId: $currentProject, 
+				searchTerm: $searchTerm, 
+				page, 
+				pageSize: 100 
+			});
+			const newElements = await searchElements(
 				$searchTerm,
 				$selectedSeries,
 				$selectedSegments,
-				$selectedCodes
+				$selectedCodes,
+				page,
+				100
 			);
 			elementsStore.update((currentElements) => {
 				const updatedElements = page === 1 ? newElements : [...currentElements];
