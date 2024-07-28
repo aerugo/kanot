@@ -45,6 +45,7 @@ async function apiRequest(
 /**
  * Fetch codes
  *
+ * @param {number} projectId - The project ID
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
