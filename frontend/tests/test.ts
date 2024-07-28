@@ -211,13 +211,20 @@ test('can delete a code', async ({ page }) => {
 	await page.waitForSelector('.codes-list', { state: 'visible' });
 
 	// Store the initial number of codes
-	const initialCodeCount = await page.locator('.codes-list tr').count();
+	let initialCodeCount = await page.locator('.codes-list tr').count();
 	console.log(`Initial code count: ${initialCodeCount}`);
 
-	// Check if there are any codes to delete
+	// If there are no codes, create one
 	if (initialCodeCount === 0) {
-		console.log('No codes to delete. Test cannot proceed.');
-		return;
+		console.log('No codes found. Creating a new code.');
+		await page.click('button:has-text("New Code")');
+		await page.fill('input[placeholder="Term"]', 'Test Code');
+		await page.fill('input[placeholder="Description"]', 'Test Description');
+		await page.selectOption('select', { index: 0 }); // Select the first code type
+		await page.click('button:has-text("Add Code")');
+		await page.waitForTimeout(2000); // Wait for the new code to be added
+		initialCodeCount = await page.locator('.codes-list tr').count();
+		console.log(`New initial code count: ${initialCodeCount}`);
 	}
 
 	// Click the delete button on the first code
