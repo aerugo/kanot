@@ -154,7 +154,7 @@ test('can filter codes by type', async ({ page }) => {
 
       // Check if the modal closes
       try {
-        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 20000 });
+        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 5000 });
       } catch (error) {
         console.error('Modal did not close as expected:', error);
         // Log the current state of the modal
