@@ -1,3 +1,8 @@
+export interface Project {
+	project_id: number;
+	project_title: string;
+}
+
 export interface Code {
 	code_id: number;
 	term: string;

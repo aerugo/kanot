@@ -64,12 +64,15 @@
 	import { codeTypes } from '../stores/codeStore';
 
 	async function loadInitialData(): Promise<void> {
-		if ($currentProject === null) return;
+		if ($currentProject === null) {
+			console.error('Current project is null');
+			return;
+		}
 		console.log('Loading initial data for project:', $currentProject);
 		await loadFilterOptions();
 		await codes.refresh($currentProject);
 		await codeTypes.refresh($currentProject);
-		await loadMoreData();
+		await resetSearch();
 	}
 
 	$: if ($currentProject !== null) {
@@ -103,8 +106,13 @@
 	}
 
 	async function loadMoreData(): Promise<void> {
-		if (!browser || loading || !hasMore || $currentProject === null) return;
+		if (!browser || loading || !hasMore) return;
+		if ($currentProject === null) {
+			console.error('Current project is null in loadMoreData');
+			return;
+		}
 		loading = true;
+		console.log('Loading more data for project:', $currentProject);
 		try {
 			const newElements = await loadMoreElements(
 				$currentProject,
@@ -168,8 +176,9 @@
 	}
 
 	onMount(async () => {
-		await loadInitialData();
-		codes.refresh();
+		if ($currentProject !== null) {
+			await loadInitialData();
+		}
 		if (browser) {
 			window.addEventListener('scroll', handleScroll);
 		}
@@ -249,7 +258,8 @@
 		try {
 			const newAnnotation = await createAnnotation({
 				element_id: elementId,
-				code_id: codeId
+				code_id: codeId,
+				project_id: $currentProject
 			});
 
 			if (newAnnotation) {
@@ -344,8 +354,12 @@
 
 	async function applyBatchAnnotations(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
+		if ($currentProject === null) {
+			console.error('Current project is null in applyBatchAnnotations');
+			return;
+		}
 		try {
-			const newAnnotations = await createBatchAnnotations(selectedElementIds, codeIds);
+			const newAnnotations = await createBatchAnnotations(selectedElementIds, codeIds, $currentProject);
 
 			elementsStore.update((elements) =>
 				elements.map((element) => {
