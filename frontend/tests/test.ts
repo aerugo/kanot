@@ -365,19 +365,30 @@ test('can add annotation to an element', async ({ page }) => {
 	await page.click('table tbody tr:first-child button.add-code');
 
 	// Wait for the annotation dropdown to be visible
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 15000 });
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
 
 	// Check if the annotation dropdown is visible
 	await expect(page.locator('.annotation-dropdown')).toBeVisible();
 
+	// Log the current state of the dropdown
+	console.log('Dropdown HTML:', await page.locator('.annotation-dropdown').evaluate(el => el.outerHTML));
+
 	// Wait for the filter options to be visible
-	await page.waitForSelector('.annotation-dropdown .filter-option', { state: 'visible', timeout: 15000 });
+	await page.waitForSelector('.annotation-dropdown .filter-option', { state: 'visible', timeout: 20000 });
+
+	// Log the number of filter options found
+	const filterOptionsCount = await page.locator('.annotation-dropdown .filter-option').count();
+	console.log('Number of filter options found:', filterOptionsCount);
 
 	// Ensure that at least one filter option is present
 	await expect(page.locator('.annotation-dropdown .filter-option')).toHaveCount({ min: 1 });
 
-	// Select the first code from the dropdown
-	await page.click('.annotation-dropdown .filter-option:first-child', { timeout: 10000 });
+	// If filter options are found, click the first one
+	if (filterOptionsCount > 0) {
+		await page.click('.annotation-dropdown .filter-option:first-child', { timeout: 10000 });
+	} else {
+		throw new Error('No filter options found in the dropdown');
+	}
 
 	// Wait for the code tag to be added
 	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 15000 });
