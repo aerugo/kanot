@@ -293,10 +293,10 @@ test('can remove annotation from an element', async ({ page }) => {
 	await page.goto('/content');
 
 	// Wait for the table to be visible
-	await page.waitForSelector('table', { state: 'visible', timeout: 15000 });
+	await page.waitForSelector('table', { state: 'visible', timeout: 2000 });
 
 	// Wait for annotations to load
-	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 10000 });
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 2000 });
 
 	// Get the initial number of annotations
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
@@ -311,7 +311,7 @@ test('can remove annotation from an element', async ({ page }) => {
 
 		// Wait for the annotation to be removed
 		await page.waitForFunction(
-			(selector, initialCount) => document.querySelectorAll(selector).length === initialCount - 1,
+			(selector: string, initialCount: number) => document.querySelectorAll(selector).length === initialCount - 1,
 			'table tbody tr:first-child .code-tag',
 			initialAnnotationCount
 		);
