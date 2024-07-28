@@ -59,11 +59,12 @@ export async function fetchProjects(fetchFunc: FetchFunction = fetch): Promise<a
 /**
  * Fetch code types
  *
+ * @param {number} projectId - The project ID
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
-export async function fetchCodeTypes(fetchFunc: FetchFunction = fetch): Promise<any> {
-	return apiRequest('/code_types/', 'GET', null, fetchFunc);
+export async function fetchCodeTypes(projectId: number, fetchFunc: FetchFunction = fetch): Promise<any> {
+	return apiRequest(`/code_types/?project_id=${projectId}`, 'GET', null, fetchFunc);
 }
 
 /**
@@ -204,8 +205,8 @@ export async function searchElements(
  *
  * @returns {Promise<any>}
  */
-export async function fetchSeries(): Promise<any> {
-	return apiRequest('/series/');
+export async function fetchSeries(projectId: number): Promise<any> {
+	return apiRequest(`/series/?project_id=${projectId}`);
 }
 
 // Segments API
@@ -213,8 +214,9 @@ export async function fetchSeries(): Promise<any> {
 /**
  * Fetch segments
  *
+ * @param {number} projectId - The project ID
  * @returns {Promise<any>}
  */
-export async function fetchSegments(): Promise<any> {
-	return apiRequest('/segments/');
+export async function fetchSegments(projectId: number): Promise<any> {
+	return apiRequest(`/segments/?project_id=${projectId}`);
 }
