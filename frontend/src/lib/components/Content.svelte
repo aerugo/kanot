@@ -64,14 +64,13 @@
 
 	async function loadInitialData(): Promise<void> {
 		await loadFilterOptions();
-		await fetchCodeTypes();
+		await codes.refresh(currentProjectId);
+		await codeTypes.refresh(currentProjectId);
 		await loadMoreData();
 	}
 
-	$: {
-		if (currentProjectId) {
-			loadInitialData();
-		}
+	$: if (currentProjectId) {
+		loadInitialData();
 	}
 
 	async function loadFilterOptions(): Promise<void> {
