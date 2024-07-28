@@ -91,20 +91,27 @@ test('can filter codes by type', async ({ page }) => {
 
 	// Wait for the code count to stabilize
 	let initialCodeCount = 0;
-	const maxAttempts = 10;
+	const maxAttempts = 20;
 	let attempts = 0;
 
-	while (initialCodeCount === 0 && attempts < maxAttempts) {
-		initialCodeCount = await getCodeCount();
-		if (initialCodeCount === 0) {
-			await page.waitForTimeout(1000);
-			attempts++;
+	while (attempts < maxAttempts) {
+		const currentCount = await getCodeCount();
+		console.log(`Attempt ${attempts + 1}: Current code count: ${currentCount}`);
+		
+		if (currentCount > 0 && currentCount === initialCodeCount) {
+			break;
 		}
+		
+		initialCodeCount = currentCount;
+		await page.waitForTimeout(500);
+		attempts++;
 	}
 
 	if (initialCodeCount === 0) {
 		throw new Error('Failed to get initial code count after multiple attempts');
 	}
+
+	console.log(`Initial code count stabilized at: ${initialCodeCount}`);
 
 	// Click the "Filter by Type" dropdown
 	await page.click('button:has-text("Filter by Type")');
@@ -116,9 +123,21 @@ test('can filter codes by type', async ({ page }) => {
 	await page.click('.filter-dropdown .filter-option:first-child');
 
 	// Wait for the filter to be applied
-	await page.waitForTimeout(1000);
+	let filteredCodeCount = 0;
+	const filterMaxAttempts = 20;
+	let filterAttempts = 0;
 
-	const filteredCodeCount = await page.locator('.codes-list tr').count();
+	while (filterAttempts < filterMaxAttempts) {
+		filteredCodeCount = await getCodeCount();
+		console.log(`Filter attempt ${filterAttempts + 1}: Filtered code count: ${filteredCodeCount}`);
+		
+		if (filteredCodeCount !== initialCodeCount) {
+			break;
+		}
+		
+		await page.waitForTimeout(500);
+		filterAttempts++;
+	}
 
 	// Check if the filter was applied successfully
 	console.log(`Initial code count: ${initialCodeCount}, Filtered code count: ${filteredCodeCount}`);
@@ -139,29 +158,21 @@ test('can filter codes by type', async ({ page }) => {
 	await page.click('.selected-filters .filter-tag button');
 
 	// Wait for the filter to be cleared and the list to update
-	await page.waitForTimeout(2000);
+	let finalCodeCount = 0;
+	const clearMaxAttempts = 20;
+	let clearAttempts = 0;
 
-	// Wait for the code count to stabilize
-	let finalCodeCount;
-	await page.waitForFunction(
-		({ initialCount, getCount }) => {
-			return new Promise((resolve) => {
-				const checkCount = async () => {
-					const currentCount = await getCount();
-					if (currentCount === initialCount) {
-						resolve(true);
-					} else {
-						setTimeout(checkCount, 500);
-					}
-				};
-				checkCount();
-			});
-		},
-		{ initialCount: initialCodeCount, getCount: getCodeCount },
-		{ timeout: 10000 }
-	);
-
-	finalCodeCount = await getCodeCount();
+	while (clearAttempts < clearMaxAttempts) {
+		finalCodeCount = await getCodeCount();
+		console.log(`Clear attempt ${clearAttempts + 1}: Final code count: ${finalCodeCount}`);
+		
+		if (finalCodeCount === initialCodeCount) {
+			break;
+		}
+		
+		await page.waitForTimeout(500);
+		clearAttempts++;
+	}
 	
 	// Log debug information
 	console.log(`Initial count: ${initialCodeCount}, Filtered count: ${filteredCodeCount}, Final count: ${finalCodeCount}`);
