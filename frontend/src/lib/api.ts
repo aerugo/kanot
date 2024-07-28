@@ -203,17 +203,30 @@ export async function createBatchAnnotations(
 export async function removeBatchAnnotations(
 	elementIds: number[],
 	codeIds: number[]
-): Promise<Response> {
-	return fetch(`${BASE_URL}/batch_annotations/`, {
-		method: 'DELETE',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			element_ids: elementIds,
-			code_ids: codeIds
-		})
-	});
+): Promise<{ success: boolean; message: string; removedCount?: number }> {
+	try {
+		const response = await fetch(`${BASE_URL}/batch_annotations/`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				element_ids: elementIds,
+				code_ids: codeIds
+			})
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			return { success: false, message: errorData.detail || 'Failed to remove annotations' };
+		}
+
+		const result = await response.json();
+		return { success: true, message: 'Annotations removed successfully', removedCount: result.removed_count };
+	} catch (error) {
+		console.error('Error in removeBatchAnnotations:', error);
+		return { success: false, message: 'An error occurred while removing annotations' };
+	}
 }
 
 /**

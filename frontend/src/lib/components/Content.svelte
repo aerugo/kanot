@@ -394,40 +394,34 @@
 
 	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
-		try {
-			const response = await removeBatchAnnotations(selectedElementIds, codeIds);
-			if (response.ok) {
-				let removedCount = 0;
-				elementsStore.update((elements) => {
-					return elements.map((element) => {
-						if (selectedElementIds.includes(element.element_id)) {
-							const originalAnnotationCount = element.annotations.length;
-							const updatedAnnotations = element.annotations.filter(
-								(annotation) => !codeIds.includes(annotation.code?.code_id ?? -1)
-							);
-							removedCount += originalAnnotationCount - updatedAnnotations.length;
-							return {
-								...element,
-								annotations: updatedAnnotations
-							};
-						}
-						return element;
-					});
+		const result = await removeBatchAnnotations(selectedElementIds, codeIds);
+	
+		if (result.success) {
+			elementsStore.update((elements) => {
+				return elements.map((element) => {
+					if (selectedElementIds.includes(element.element_id)) {
+						const updatedAnnotations = element.annotations.filter(
+							(annotation) => !codeIds.includes(annotation.code?.code_id ?? -1)
+						);
+						return {
+							...element,
+							annotations: updatedAnnotations
+						};
+					}
+					return element;
 				});
+			});
 
-				// Clear selection and close modal
-				clearSelection();
-				showBatchRemovalModal = false;
+			// Clear selection and close modal
+			clearSelection();
+			showBatchRemovalModal = false;
 
-				// Display a success message with the number of removed annotations
-				alert(`Successfully removed ${removedCount} annotation${removedCount !== 1 ? 's' : ''}.`);
-			} else {
-				throw new Error('Failed to remove annotations');
-			}
-		} catch (error) {
-			console.error('Error removing batch annotations:', error);
+			// Display a success message with the number of removed annotations
+			alert(`Successfully removed ${result.removedCount} annotation${result.removedCount !== 1 ? 's' : ''}.`);
+		} else {
+			console.error('Error removing batch annotations:', result.message);
 			// Display an error message to the user
-			alert('Failed to remove annotations. Please try again.');
+			alert(`Failed to remove annotations: ${result.message}`);
 		}
 	}
 </script>
