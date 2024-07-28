@@ -75,7 +75,7 @@
 	}
 
 	async function loadFilterOptions(): Promise<void> {
-		const [series, segmentsData] = await Promise.all([fetchSeries(), fetchSegments()]);
+		const [series, segmentsData] = await Promise.all([fetchSeries(currentProjectId), fetchSegments(currentProjectId)]);
 
 		seriesOptions = (series as Series[]).map((s: Series) => ({
 			id: s.series_id,
