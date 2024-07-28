@@ -90,17 +90,21 @@ test('can filter codes by type', async ({ page }) => {
 	const getCodeCount = async () => await page.locator('.codes-list tr').count();
 
 	// Wait for the code count to stabilize
-	let initialCodeCount;
-	await page.waitForFunction(
-		async (getCount) => {
-			const count = await getCount();
-			return count > 0;
-		},
-		getCodeCount,
-		{ timeout: 10000 }
-	);
+	let initialCodeCount = 0;
+	const maxAttempts = 10;
+	let attempts = 0;
 
-	initialCodeCount = await getCodeCount();
+	while (initialCodeCount === 0 && attempts < maxAttempts) {
+		initialCodeCount = await getCodeCount();
+		if (initialCodeCount === 0) {
+			await page.waitForTimeout(1000);
+			attempts++;
+		}
+	}
+
+	if (initialCodeCount === 0) {
+		throw new Error('Failed to get initial code count after multiple attempts');
+	}
 
 	// Click the "Filter by Type" dropdown
 	await page.click('button:has-text("Filter by Type")');
@@ -117,6 +121,7 @@ test('can filter codes by type', async ({ page }) => {
 	const filteredCodeCount = await page.locator('.codes-list tr').count();
 
 	// Check if the filter was applied successfully
+	console.log(`Initial code count: ${initialCodeCount}, Filtered code count: ${filteredCodeCount}`);
 	expect(filteredCodeCount).not.toBe(initialCodeCount);
 
 	// Check for the presence of the filter tag in SelectedFilters component
