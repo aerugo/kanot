@@ -402,17 +402,19 @@ test('can add annotation to an element', async ({ page }) => {
 	if (unusedOption) {
 		// Click the first unused option
 		await unusedOption.click();
+
+		// Wait for the code tag to be added
+		await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 15000 });
+
+		// Check if a new code tag is added to the element
+		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+		expect(newAnnotationCount).toBe(initialAnnotationCount + 1);
 	} else {
 		console.log('No unused annotations available for this element');
-		return;
+		// Check that the annotation count hasn't changed
+		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+		expect(newAnnotationCount).toBe(initialAnnotationCount);
 	}
-
-	// Wait for the code tag to be added
-	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 15000 });
-
-	// Check if a new code tag is added to the element
-	const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	expect(newAnnotationCount).toBe(initialAnnotationCount + 1);
 });
 
 // Test for adding and removing an annotation from an element
