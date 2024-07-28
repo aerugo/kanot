@@ -69,11 +69,9 @@
 		await loadMoreData();
 	}
 
-	$: {
+	$: if (currentProjectId !== null) {
 		console.log('Current Project ID:', currentProjectId);
-		if (currentProjectId !== null) {
-			loadInitialData();
-		}
+		loadInitialData();
 	}
 
 	async function loadFilterOptions(): Promise<void> {
