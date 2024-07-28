@@ -576,78 +576,247 @@ def test_remove_batch_annotations(client: TestClient, create_project: Callable[.
     assert len(created_annotations) == 4  # 2 elements * 2 codes = 4 annotations
 
 def test_read_series_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
-    project = create_project()
-    project_id = project["project_id"]
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
 
-    # Create some series
-    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project_id})
-    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project_id})
+    # Create series for both projects
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project1_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project1_id})
+    series3 = client.post("/series/", json={"series_title": "Series 3", "project_id": project2_id})
     
     assert series1.status_code == 200
     assert series2.status_code == 200
+    assert series3.status_code == 200
 
-    # Read series for the project
-    response = client.get(f"/series/?project_id={project_id}")
+    # Read series for project 1
+    response = client.get(f"/series/?project_id={project1_id}")
     assert response.status_code == 200
     series_list: list[Any] = response.json()
     assert isinstance(series_list, list)
     assert len(series_list) == 2
     assert any(series["series_title"] == "Series 1" for series in series_list)
     assert any(series["series_title"] == "Series 2" for series in series_list)
-    assert all(series["project_id"] == project_id for series in series_list)
+    assert all(series["project_id"] == project1_id for series in series_list)
+
+    # Read series for project 2
+    response = client.get(f"/series/?project_id={project2_id}")
+    assert response.status_code == 200
+    series_list: list[Any] = response.json()
+    assert isinstance(series_list, list)
+    assert len(series_list) == 1
+    assert series_list[0]["series_title"] == "Series 3"
+    assert series_list[0]["project_id"] == project2_id
 
 def test_read_codes_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
-    project = create_project()
-    project_id = project["project_id"]
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
 
-    # Create a code type
-    code_type_create = CodeTypeCreate(type_name="Test Type", project_id=project_id)
-    code_type_response = client.post("/code_types/", json=code_type_create.model_dump())
-    assert code_type_response.status_code == 200
-    code_type_id = code_type_response.json()["type_id"]
+    # Create code types for both projects
+    code_type1 = CodeTypeCreate(type_name="Test Type 1", project_id=project1_id)
+    code_type2 = CodeTypeCreate(type_name="Test Type 2", project_id=project2_id)
+    code_type1_response = client.post("/code_types/", json=code_type1.model_dump())
+    code_type2_response = client.post("/code_types/", json=code_type2.model_dump())
+    assert code_type1_response.status_code == 200
+    assert code_type2_response.status_code == 200
+    code_type1_id = code_type1_response.json()["type_id"]
+    code_type2_id = code_type2_response.json()["type_id"]
 
-    # Create some codes
-    code1 = client.post("/codes/", json={"term": "Code 1", "description": "Description 1", "type_id": code_type_id, "project_id": project_id})
-    code2 = client.post("/codes/", json={"term": "Code 2", "description": "Description 2", "type_id": code_type_id, "project_id": project_id})
+    # Create codes for both projects
+    code1 = client.post("/codes/", json={"term": "Code 1", "description": "Description 1", "type_id": code_type1_id, "project_id": project1_id})
+    code2 = client.post("/codes/", json={"term": "Code 2", "description": "Description 2", "type_id": code_type1_id, "project_id": project1_id})
+    code3 = client.post("/codes/", json={"term": "Code 3", "description": "Description 3", "type_id": code_type2_id, "project_id": project2_id})
     
     assert code1.status_code == 200
     assert code2.status_code == 200
+    assert code3.status_code == 200
 
-    # Read codes for the project
-    response = client.get(f"/codes/?project_id={project_id}")
+    # Read codes for project 1
+    response = client.get(f"/codes/?project_id={project1_id}")
     assert response.status_code == 200
     codes: list[Any] = response.json()
     assert isinstance(codes, list)
     assert len(codes) == 2
     assert any(code["term"] == "Code 1" for code in codes)
     assert any(code["term"] == "Code 2" for code in codes)
-    assert all(code["project_id"] == project_id for code in codes)
+    assert all(code["project_id"] == project1_id for code in codes)
+
+    # Read codes for project 2
+    response = client.get(f"/codes/?project_id={project2_id}")
+    assert response.status_code == 200
+    codes: list[Any] = response.json()
+    assert isinstance(codes, list)
+    assert len(codes) == 1
+    assert codes[0]["term"] == "Code 3"
+    assert codes[0]["project_id"] == project2_id
 
 def test_read_segments_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
-    project = create_project()
-    project_id = project["project_id"]
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
 
-    # Create a series
-    series_response = client.post("/series/", json={"series_title": "Test Series", "project_id": project_id})
-    assert series_response.status_code == 200
-    series_id = series_response.json()["series_id"]
+    # Create series for both projects
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project1_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project2_id})
+    assert series1.status_code == 200
+    assert series2.status_code == 200
+    series1_id = series1.json()["series_id"]
+    series2_id = series2.json()["series_id"]
 
-    # Create some segments
-    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series_id, "project_id": project_id})
-    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series_id, "project_id": project_id})
+    # Create segments for both projects
+    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series1_id, "project_id": project1_id})
+    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series1_id, "project_id": project1_id})
+    segment3 = client.post("/segments/", json={"segment_title": "Segment 3", "series_id": series2_id, "project_id": project2_id})
 
     assert segment1.status_code == 200
     assert segment2.status_code == 200
+    assert segment3.status_code == 200
 
-    # Read segments for the project
-    response = client.get(f"/segments/?project_id={project_id}")
+    # Read segments for project 1
+    response = client.get(f"/segments/?project_id={project1_id}")
     assert response.status_code == 200
     segments: list[Any] = response.json()
     assert isinstance(segments, list)
     assert len(segments) == 2
     assert any(segment["segment_title"] == "Segment 1" for segment in segments)
     assert any(segment["segment_title"] == "Segment 2" for segment in segments)
-    assert all(segment["project_id"] == project_id for segment in segments)
+    assert all(segment["project_id"] == project1_id for segment in segments)
+
+    # Read segments for project 2
+    response = client.get(f"/segments/?project_id={project2_id}")
+    assert response.status_code == 200
+    segments: list[Any] = response.json()
+    assert isinstance(segments, list)
+    assert len(segments) == 1
+    assert segments[0]["segment_title"] == "Segment 3"
+    assert segments[0]["project_id"] == project2_id
+
+def test_read_elements_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
+
+    # Create series and segments for both projects
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project1_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project2_id})
+    assert series1.status_code == 200
+    assert series2.status_code == 200
+    series1_id = series1.json()["series_id"]
+    series2_id = series2.json()["series_id"]
+
+    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series1_id, "project_id": project1_id})
+    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series2_id, "project_id": project2_id})
+    assert segment1.status_code == 200
+    assert segment2.status_code == 200
+    segment1_id = segment1.json()["segment_id"]
+    segment2_id = segment2.json()["segment_id"]
+
+    # Create elements for both projects
+    element1 = client.post("/elements/", json={"element_text": "Element 1", "segment_id": segment1_id, "project_id": project1_id})
+    element2 = client.post("/elements/", json={"element_text": "Element 2", "segment_id": segment1_id, "project_id": project1_id})
+    element3 = client.post("/elements/", json={"element_text": "Element 3", "segment_id": segment2_id, "project_id": project2_id})
+
+    assert element1.status_code == 200
+    assert element2.status_code == 200
+    assert element3.status_code == 200
+
+    # Read elements for project 1
+    response = client.get(f"/elements/?project_id={project1_id}")
+    assert response.status_code == 200
+    elements: list[Any] = response.json()
+    assert isinstance(elements, list)
+    assert len(elements) == 2
+    assert any(element["element_text"] == "Element 1" for element in elements)
+    assert any(element["element_text"] == "Element 2" for element in elements)
+    assert all(element["project_id"] == project1_id for element in elements)
+
+    # Read elements for project 2
+    response = client.get(f"/elements/?project_id={project2_id}")
+    assert response.status_code == 200
+    elements: list[Any] = response.json()
+    assert isinstance(elements, list)
+    assert len(elements) == 1
+    assert elements[0]["element_text"] == "Element 3"
+    assert elements[0]["project_id"] == project2_id
+
+def test_read_annotations_by_project(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
+
+    # Create code types and codes for both projects
+    code_type1 = CodeTypeCreate(type_name="Test Type 1", project_id=project1_id)
+    code_type2 = CodeTypeCreate(type_name="Test Type 2", project_id=project2_id)
+    code_type1_response = client.post("/code_types/", json=code_type1.model_dump())
+    code_type2_response = client.post("/code_types/", json=code_type2.model_dump())
+    assert code_type1_response.status_code == 200
+    assert code_type2_response.status_code == 200
+    code_type1_id = code_type1_response.json()["type_id"]
+    code_type2_id = code_type2_response.json()["type_id"]
+
+    code1 = client.post("/codes/", json={"term": "Code 1", "description": "Description 1", "type_id": code_type1_id, "project_id": project1_id})
+    code2 = client.post("/codes/", json={"term": "Code 2", "description": "Description 2", "type_id": code_type2_id, "project_id": project2_id})
+    assert code1.status_code == 200
+    assert code2.status_code == 200
+    code1_id = code1.json()["code_id"]
+    code2_id = code2.json()["code_id"]
+
+    # Create series, segments, and elements for both projects
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project1_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project2_id})
+    assert series1.status_code == 200
+    assert series2.status_code == 200
+    series1_id = series1.json()["series_id"]
+    series2_id = series2.json()["series_id"]
+
+    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series1_id, "project_id": project1_id})
+    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series2_id, "project_id": project2_id})
+    assert segment1.status_code == 200
+    assert segment2.status_code == 200
+    segment1_id = segment1.json()["segment_id"]
+    segment2_id = segment2.json()["segment_id"]
+
+    element1 = client.post("/elements/", json={"element_text": "Element 1", "segment_id": segment1_id, "project_id": project1_id})
+    element2 = client.post("/elements/", json={"element_text": "Element 2", "segment_id": segment2_id, "project_id": project2_id})
+    assert element1.status_code == 200
+    assert element2.status_code == 200
+    element1_id = element1.json()["element_id"]
+    element2_id = element2.json()["element_id"]
+
+    # Create annotations for both projects
+    annotation1 = client.post("/annotations/", json={"element_id": element1_id, "code_id": code1_id, "project_id": project1_id})
+    annotation2 = client.post("/annotations/", json={"element_id": element1_id, "code_id": code1_id, "project_id": project1_id})
+    annotation3 = client.post("/annotations/", json={"element_id": element2_id, "code_id": code2_id, "project_id": project2_id})
+
+    assert annotation1.status_code == 200
+    assert annotation2.status_code == 200
+    assert annotation3.status_code == 200
+
+    # Read annotations for project 1
+    response = client.get(f"/annotations/?project_id={project1_id}")
+    assert response.status_code == 200
+    annotations: list[Any] = response.json()
+    assert isinstance(annotations, list)
+    assert len(annotations) == 2
+    assert all(annotation["project_id"] == project1_id for annotation in annotations)
+    assert all(annotation["element_id"] == element1_id for annotation in annotations)
+    assert all(annotation["code_id"] == code1_id for annotation in annotations)
+
+    # Read annotations for project 2
+    response = client.get(f"/annotations/?project_id={project2_id}")
+    assert response.status_code == 200
+    annotations: list[Any] = response.json()
+    assert isinstance(annotations, list)
+    assert len(annotations) == 1
+    assert annotations[0]["project_id"] == project2_id
+    assert annotations[0]["element_id"] == element2_id
+    assert annotations[0]["code_id"] == code2_id
 
 def test_update_element(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
