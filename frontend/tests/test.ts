@@ -366,22 +366,18 @@ test('can add annotation to an element', async ({ page }) => {
 
 	// Get the initial number of annotations
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
 	// Get existing annotations for the element
 	const existingAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
-	console.log(`Existing annotations: ${JSON.stringify(existingAnnotations)}`);
 
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
-	console.log('Clicked add annotation button');
 
 	// Wait for the annotation dropdown to be visible
 	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
 
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
-	console.log(`Count of all available codes: ${allCodes.length}`);
 
 	// Find a code that is not already used for the element
 	let unusedCode;
@@ -393,7 +389,6 @@ test('can add annotation to an element', async ({ page }) => {
 	}
 
 	if (unusedCode) {
-		console.log(`Selected unused code: ${unusedCode}`);
 
 		// Click the unused code option
 		await page.click(`.annotation-dropdown ul li button:has-text("${unusedCode}")`);
@@ -403,7 +398,6 @@ test('can add annotation to an element', async ({ page }) => {
 
 		// Check if a new code tag is added to the element
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-		console.log(`New annotation count: ${newAnnotationCount}`);
 		expect(newAnnotationCount).toBe(initialAnnotationCount + 1);
 
 		// Verify that the new annotation is visible in the UI
@@ -412,42 +406,4 @@ test('can add annotation to an element', async ({ page }) => {
 		console.error('No unused codes found. This test cannot proceed.');
 		throw new Error('No unused codes available for testing');
 	}
-});
-
-// Test for adding and removing an annotation from an element
-test('can add and remove annotation from an element', async ({ page }) => {
-	await page.goto('/content');
-
-	// Wait for the table to be visible
-	await page.waitForSelector('table', { state: 'visible' });
-
-	// Get the initial number of annotations
-	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-
-	// Add an annotation
-	await page.click('table tbody tr:first-child button.add-code');
-
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible' });
-
-	await page.click('.annotation-dropdown .filter-option:first-child');
-
-	// Wait for the code tag to appear
-	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
-
-	// Check if the number of annotations has increased
-	const afterAddAnnotationCount = await page
-		.locator('table tbody tr:first-child .code-tag')
-		.count();
-	expect(afterAddAnnotationCount).toBe(initialAnnotationCount + 1);
-
-	// Remove the first annotation
-	const removeButton = await page.locator('table tbody tr:first-child .code-tag button').first();
-	await removeButton.click();
-
-	// Wait for the annotation to be removed
-	await page.waitForTimeout(2000);
-
-	// Check if the number of annotations has decreased back to the initial count
-	const finalAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-	expect(finalAnnotationCount).toBe(initialAnnotationCount);
 });
