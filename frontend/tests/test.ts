@@ -136,9 +136,6 @@ test('can filter codes by type', async ({ page }) => {
 	// Wait for the filter to be cleared and the list to update
 	await page.waitForTimeout(2000);
 
-	// Function to get the current code count
-	const getCodeCount = async () => await page.locator('.codes-list tr').count();
-
 	// Wait for the code count to stabilize
 	let finalCodeCount;
 	await page.waitForFunction(
