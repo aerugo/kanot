@@ -10,7 +10,8 @@
 		deleteAnnotation,
 		fetchSegments,
 		fetchSeries,
-		removeBatchAnnotations
+		removeBatchAnnotations,
+		searchElements
 	} from '../api';
 	import AnnotationDropdown from '../components/AnnotationDropdown.svelte';
 	import BatchAnnotationModal from '../components/BatchAnnotationModal.svelte';
