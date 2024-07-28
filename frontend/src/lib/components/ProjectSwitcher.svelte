@@ -10,6 +10,7 @@
         projects = await fetchProjects();
         if (projects.length > 0) {
             selectedProjectId = projects[0].project_id;
+            dispatch('projectSelected', selectedProjectId);
         }
     });
 
