@@ -438,6 +438,12 @@ test('can add annotation to an element', async ({ page }) => {
 	// Log the content of the first row after the test
 	const finalFirstRowContent = await page.locator('table tbody tr:first-child').textContent();
 	console.log(`Final first row content: ${finalFirstRowContent}`);
+
+	// If no unused annotations were found, log a message and exit the test
+	if (!unusedOption) {
+		console.log('No unused annotations available. Test cannot proceed.');
+		return;
+	}
 });
 
 // Test for adding and removing an annotation from an element
