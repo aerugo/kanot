@@ -24,6 +24,7 @@
   let firstFocusableEl: HTMLElement;
   let lastFocusableEl: HTMLElement;
   let errorMessage: string = '';
+  let isDropdownOpen: boolean = false;
 
   onMount(() => {
     if (code) {
@@ -131,12 +132,26 @@
         </label>
         <label>
           Code Type:
-          <select bind:value={editingCode.type_id} data-id="edit-code-type" required>
-            <option value="">Select Code Type</option>
-            {#each $codeTypes as codeType}
-              <option value={codeType.type_id}>{codeType.type_name}</option>
-            {/each}
-          </select>
+          <div class="custom-select" data-id="edit-code-type">
+            <div class="selected-option" on:click={() => isDropdownOpen = !isDropdownOpen}>
+              {$codeTypes.find(ct => ct.type_id === editingCode.type_id)?.type_name || 'Select Code Type'}
+            </div>
+            {#if isDropdownOpen}
+              <div class="options">
+                {#each $codeTypes as codeType}
+                  <div 
+                    class="option" 
+                    on:click={() => {
+                      editingCode.type_id = codeType.type_id;
+                      isDropdownOpen = false;
+                    }}
+                  >
+                    {codeType.type_name}
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </div>
         </label>
         <label>
           Reference:
@@ -225,5 +240,41 @@
   button[type="button"] {
     background-color: #95a5a6;
     color: white;
+  }
+
+  .custom-select {
+    position: relative;
+    width: 100%;
+  }
+
+  .selected-option {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: white;
+  }
+
+  .options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+
+  .option {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .option:hover {
+    background-color: #f0f0f0;
   }
 </style>
