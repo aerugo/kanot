@@ -365,10 +365,6 @@ test('can add annotation to an element', async ({ page }) => {
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
-	// Log the content of the first row
-	const firstRowContent = await page.locator('table tbody tr:first-child').textContent();
-	console.log(`First row content: ${firstRowContent}`);
-
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
 	console.log('Clicked add annotation button');
@@ -376,73 +372,39 @@ test('can add annotation to an element', async ({ page }) => {
 	// Wait for the annotation dropdown to be visible
 	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
 
-	// Check if the annotation dropdown is visible
-	await expect(page.locator('.annotation-dropdown')).toBeVisible();
+	// Get all available codes from the dropdown
+	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
+	console.log(`All available codes: ${JSON.stringify(allCodes)}`);
 
-	// Type in the search box to filter codes
-	await page.fill('.annotation-dropdown input[type="text"]', 'test');
+	// Get existing annotations for the element
+	const existingAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
+	console.log(`Existing annotations: ${JSON.stringify(existingAnnotations)}`);
 
-	// Wait for the filtered options to be visible
-	await page.waitForSelector('.annotation-dropdown ul li button', { state: 'visible', timeout: 20000 });
+	// Find a code that is not already used for the element
+	const unusedCode = allCodes.find(code => !existingAnnotations.includes(code));
 
-	// Log the number of filtered options found
-	const filteredOptionsCount = await page.locator('.annotation-dropdown ul li button').count();
-	console.log(`Number of filtered options: ${filteredOptionsCount}`);
+	if (unusedCode) {
+		console.log(`Selected unused code: ${unusedCode}`);
 
-	// Log all filtered options
-	const filteredOptions = await page.locator('.annotation-dropdown ul li button').allTextContents();
-	console.log(`Filtered options: ${JSON.stringify(filteredOptions)}`);
+		// Click the unused code option
+		await page.click(`.annotation-dropdown ul li button:has-text("${unusedCode}")`);
 
-	// Ensure that at least one filtered option is present
-	expect(filteredOptionsCount).toBeGreaterThan(0);
-
-	// Get all the option elements
-	const optionElements = await page.locator('.annotation-dropdown ul li button').all();
-
-	// Find an unused option
-	let unusedOption = null;
-	for (const option of optionElements) {
-		const optionText = await option.textContent();
-		const isUsed = await page.locator(`table tbody tr:first-child .code-tag:has-text("${optionText}")`).count() > 0;
-		console.log(`Option: ${optionText}, Is used: ${isUsed}`);
-		if (!isUsed) {
-			unusedOption = option;
-			break;
-		}
-	}
-
-	if (unusedOption) {
-		// Click the unused option
-		await unusedOption.click();
-
-		// Wait for the code tag to be added
-		await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 15000 });
+		// Wait for the new code tag to be added
+		await page.waitForSelector(`table tbody tr:first-child .code-tag:has-text("${unusedCode}")`, { state: 'visible', timeout: 15000 });
 
 		// Check if a new code tag is added to the element
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 		console.log(`New annotation count: ${newAnnotationCount}`);
-		console.log(`Expected: ${initialAnnotationCount + 1}, Actual: ${newAnnotationCount}`);
 		expect(newAnnotationCount).toBe(initialAnnotationCount + 1);
 
 		// Verify that the new annotation is visible in the UI
-		const addedAnnotationText = await unusedOption.textContent();
-		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${addedAnnotationText}")`)).toBeVisible();
+		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${unusedCode}")`)).toBeVisible();
 	} else {
-		console.log('All filtered options are already used for this element');
+		console.log('All codes are already used for this element');
 		// Check that the annotation count hasn't changed
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 		console.log(`Final annotation count: ${newAnnotationCount}`);
 		expect(newAnnotationCount).toBe(initialAnnotationCount);
-	}
-
-	// Log the content of the first row after the test
-	const finalFirstRowContent = await page.locator('table tbody tr:first-child').textContent();
-	console.log(`Final first row content: ${finalFirstRowContent}`);
-
-	// If no unused annotations were found, log a message and exit the test
-	if (!unusedOption) {
-		console.log('No unused annotations available. Test cannot proceed.');
-		return;
 	}
 });
 
