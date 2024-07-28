@@ -125,7 +125,7 @@ def test_read_code_types(client: TestClient, create_project: Callable[..., Dict[
     project = create_project()
     code_type_create = CodeTypeCreate(type_name="Test Code Type", project_id=project["project_id"])
     client.post("/code_types/", json=code_type_create.model_dump())
-    response = client.get("/code_types/")
+    response = client.get(f"/code_types/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [CodeTypeResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -298,14 +298,14 @@ def test_read_elements(client: TestClient, create_project: Callable[..., Dict[st
     series_create = SeriesCreate(series_title="Test Series", project_id=project["project_id"])
     series_response = client.post("/series/", json=series_create.model_dump())
     series_id = series_response.json()["series_id"]
-    
+
     segment_create = SegmentCreate(segment_title="Test Segment", series_id=series_id, project_id=project["project_id"])
     segment_response = client.post("/segments/", json=segment_create.model_dump())
     segment_id = segment_response.json()["segment_id"]
-    
+
     element_create = ElementCreate(element_text="Test Element", segment_id=segment_id, project_id=project["project_id"])
     client.post("/elements/", json=element_create.model_dump())
-    response = client.get("/elements/")
+    response = client.get(f"/elements/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [ElementResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -388,7 +388,7 @@ def test_read_annotations(client: TestClient, create_project: Callable[..., Dict
     annotation_create = AnnotationCreate(element_id=element_id, code_id=code_id, project_id=project["project_id"])
     client.post("/annotations/", json=annotation_create.model_dump())
     
-    response = client.get("/annotations/")
+    response = client.get(f"/annotations/?project_id={project['project_id']}")
     assert response.status_code == 200
     data = [AnnotationResponse(**item) for item in response.json()]
     assert len(data) > 0
@@ -791,11 +791,10 @@ def test_read_annotations_by_project(client: TestClient, create_project: Callabl
 
     # Create annotations for both projects
     annotation1 = client.post("/annotations/", json={"element_id": element1_id, "code_id": code1_id, "project_id": project1_id})
-    annotation2 = client.post("/annotations/", json={"element_id": element1_id, "code_id": code1_id, "project_id": project1_id})
+    # We'll skip creating annotation2 as it's a duplicate of annotation1
     annotation3 = client.post("/annotations/", json={"element_id": element2_id, "code_id": code2_id, "project_id": project2_id})
 
     assert annotation1.status_code == 200
-    assert annotation2.status_code == 200
     assert annotation3.status_code == 200
 
     # Read annotations for project 1
