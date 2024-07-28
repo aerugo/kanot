@@ -17,7 +17,6 @@
         const target = event.target as HTMLSelectElement;
         const selectedProjectId = parseInt(target.value, 10);
         currentProject.set(selectedProjectId);
-        console.log('Project changed to:', selectedProjectId);
     }
 </script>
 
