@@ -434,6 +434,56 @@ test('can add annotations in batch', async ({ page }) => {
 	}
 }, { timeout: 30000 }); 
 
+// Test for removing annotations in batch
+test('can remove annotations in batch', async ({ page }) => {
+	await page.goto('/content');
+
+	// Wait for the table to be visible
+	await page.waitForSelector('table', { state: 'visible', timeout: 2000 });
+
+	// Select elements (3rd to 10th)
+	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
+	await page.keyboard.down('Shift');
+	await page.click('table tbody tr:nth-child(10) input[type="checkbox"]');
+	await page.keyboard.up('Shift');
+
+	// Click the batch removal button
+	await page.click('button:has-text("Remove Annotations")');
+
+	// Wait for the modal to appear
+	await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 2000 });
+
+	// Click the "Add Code" button to open the dropdown
+	await page.click('button:has-text("Add Code")');
+
+	// Wait for the annotation dropdown to be visible
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
+
+	// Get all available codes from the dropdown
+	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
+
+	// Select the first two codes
+	for (let i = 0; i < 2 && i < allCodes.length; i++) {
+		await page.click(`.annotation-dropdown ul li button:has-text("${allCodes[i]}")`);
+		// Wait for the code to be added and the dropdown to reopen
+		await page.waitForSelector(`.selected-codes .code-tag:has-text("${allCodes[i]}")`, { state: 'visible' });
+		await page.click('button:has-text("Add Code")');
+	}
+
+	// Apply the batch removal
+	await page.click('button:has-text("Apply")');
+
+	// Wait for the modal to close
+	await page.waitForSelector('.modal', { state: 'hidden', timeout: 2000 });
+
+	// Check if the selected annotations are removed from all selected elements
+	for (let i = 3; i <= 10; i++) {
+		for (const code of allCodes.slice(0, 2)) {
+			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).not.toBeVisible();
+		}
+	}
+}, { timeout: 30000 }); 
+
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
 	await page.goto('/content');
