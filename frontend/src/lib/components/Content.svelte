@@ -7,7 +7,6 @@
 		createAnnotation,
 		createBatchAnnotations,
 		deleteAnnotation,
-		fetchCodeTypes,
 		fetchSegments,
 		fetchSeries,
 		removeBatchAnnotations
@@ -62,7 +61,7 @@
 		}
 	}, 300);
 
-	import { codes, codeTypes } from '../stores/codeStore';
+	import { codeTypes } from '../stores/codeStore';
 
 	async function loadInitialData(): Promise<void> {
 		if ($currentProject === null) return;
