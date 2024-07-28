@@ -35,6 +35,8 @@
 		name: string;
 	}
 
+	export let currentProjectId: number;
+
 	let elementsStore: Writable<Element[]> = writable([]);
 	let page: number = 1;
 	let loading: boolean = false;
@@ -64,6 +66,12 @@
 		await loadFilterOptions();
 		await fetchCodeTypes();
 		await loadMoreData();
+	}
+
+	$: {
+		if (currentProjectId) {
+			loadInitialData();
+		}
 	}
 
 	async function loadFilterOptions(): Promise<void> {

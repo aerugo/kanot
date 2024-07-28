@@ -48,8 +48,12 @@ async function apiRequest(
  * @param {FetchFunction} [fetchFunc=fetch] - The fetch function
  * @returns {Promise<any>}
  */
-export async function fetchCodes(fetchFunc: FetchFunction = fetch): Promise<any> {
-	return apiRequest('/codes/', 'GET', null, fetchFunc);
+export async function fetchCodes(projectId: number, fetchFunc: FetchFunction = fetch): Promise<any> {
+	return apiRequest(`/codes/?project_id=${projectId}`, 'GET', null, fetchFunc);
+}
+
+export async function fetchProjects(fetchFunc: FetchFunction = fetch): Promise<any> {
+	return apiRequest('/projects/', 'GET', null, fetchFunc);
 }
 
 /**

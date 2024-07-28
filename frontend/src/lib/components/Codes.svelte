@@ -14,6 +14,8 @@
 		name: string;
 	}
 
+	export let currentProjectId: number;
+
 	let filteredCodes: Code[] = [];
 	let selectedTypes: number[] = [];
 	let selectedCodes: number[] = [];
@@ -24,10 +26,16 @@
 	let editingCode: Code | null = null;
 
 	onMount((): void => {
-		codes.refresh(fetch);
+		codes.refresh(currentProjectId, fetch);
 		codeTypes.refresh(fetch);
 		// Initialize seriesOptions and segmentOptions here if needed
 	});
+
+	$: {
+		if (currentProjectId) {
+			codes.refresh(currentProjectId, fetch);
+		}
+	}
 
 	$: {
 		filteredCodes = $codes.filter(
