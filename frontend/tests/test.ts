@@ -365,6 +365,10 @@ test('can add annotation to an element', async ({ page }) => {
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 	console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
+	// Log the content of the first row
+	const firstRowContent = await page.locator('table tbody tr:first-child').textContent();
+	console.log(`First row content: ${firstRowContent}`);
+
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
 	console.log('Clicked add annotation button');
@@ -385,6 +389,10 @@ test('can add annotation to an element', async ({ page }) => {
 	const filteredOptionsCount = await page.locator('.annotation-dropdown ul li button').count();
 	console.log(`Number of filtered options: ${filteredOptionsCount}`);
 
+	// Log all filtered options
+	const filteredOptions = await page.locator('.annotation-dropdown ul li button').allTextContents();
+	console.log(`Filtered options: ${JSON.stringify(filteredOptions)}`);
+
 	// Ensure that at least one filtered option is present
 	expect(filteredOptionsCount).toBeGreaterThan(0);
 
@@ -396,6 +404,7 @@ test('can add annotation to an element', async ({ page }) => {
 	for (const option of optionElements) {
 		const optionText = await option.textContent();
 		const isUsed = await page.locator(`table tbody tr:first-child .code-tag:has-text("${optionText}")`).count() > 0;
+		console.log(`Option: ${optionText}, Is used: ${isUsed}`);
 		if (!isUsed) {
 			unusedOption = option;
 			break;
@@ -422,8 +431,13 @@ test('can add annotation to an element', async ({ page }) => {
 		console.log('All filtered options are already used for this element');
 		// Check that the annotation count hasn't changed
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+		console.log(`Final annotation count: ${newAnnotationCount}`);
 		expect(newAnnotationCount).toBe(initialAnnotationCount);
 	}
+
+	// Log the content of the first row after the test
+	const finalFirstRowContent = await page.locator('table tbody tr:first-child').textContent();
+	console.log(`Final first row content: ${finalFirstRowContent}`);
 });
 
 // Test for adding and removing an annotation from an element
