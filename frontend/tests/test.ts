@@ -381,6 +381,7 @@ test('can add annotation to an element', async ({ page }) => {
 
 	// Log the number of filtered options found
 	const filteredOptionsCount = await page.locator('.annotation-dropdown ul li button').count();
+	console.log(`Number of filtered options: ${filteredOptionsCount}`);
 
 	// Ensure that at least one filtered option is present
 	expect(filteredOptionsCount).toBeGreaterThan(0);
@@ -388,7 +389,7 @@ test('can add annotation to an element', async ({ page }) => {
 	// Get all the option elements
 	const optionElements = await page.locator('.annotation-dropdown ul li button').all();
 
-	// Find the first unused option
+	// Find an unused option
 	let unusedOption = null;
 	for (const option of optionElements) {
 		const optionText = await option.textContent();
@@ -400,7 +401,7 @@ test('can add annotation to an element', async ({ page }) => {
 	}
 
 	if (unusedOption) {
-		// Click the first unused option
+		// Click the unused option
 		await unusedOption.click();
 
 		// Wait for the code tag to be added
@@ -414,7 +415,7 @@ test('can add annotation to an element', async ({ page }) => {
 		const addedAnnotationText = await unusedOption.textContent();
 		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${addedAnnotationText}")`)).toBeVisible();
 	} else {
-		console.log('No unused annotations available for this element');
+		console.log('All filtered options are already used for this element');
 		// Check that the annotation count hasn't changed
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 		expect(newAnnotationCount).toBe(initialAnnotationCount);
