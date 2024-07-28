@@ -361,6 +361,9 @@ test('can add annotation to an element', async ({ page }) => {
 	// Wait for the table to be visible
 	await page.waitForSelector('table', { state: 'visible', timeout: 15000 });
 
+	// Wait for annotations to load (adjust the timeout as needed)
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 10000 });
+
 	// Get the initial number of annotations
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 	console.log(`Initial annotation count: ${initialAnnotationCount}`);
