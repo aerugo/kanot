@@ -83,9 +83,24 @@ test('can open new code form', async ({ page }) => {
 test('can filter codes by type', async ({ page }) => {
 	await page.goto('/codes');
 
-	await page.waitForSelector('.codes-list', { state: 'visible' });
+	// Wait for at least one code to be present in the list
+	await page.waitForSelector('.codes-list tr', { state: 'visible' });
 
-	const initialCodeCount = await page.locator('.codes-list tr').count();
+	// Function to get the current code count
+	const getCodeCount = async () => await page.locator('.codes-list tr').count();
+
+	// Wait for the code count to stabilize
+	let initialCodeCount;
+	await page.waitForFunction(
+		async (getCount) => {
+			const count = await getCount();
+			return count > 0;
+		},
+		getCodeCount,
+		{ timeout: 10000 }
+	);
+
+	initialCodeCount = await getCodeCount();
 
 	// Click the "Filter by Type" dropdown
 	await page.click('button:has-text("Filter by Type")');
