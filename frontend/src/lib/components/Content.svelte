@@ -92,6 +92,7 @@
     loading = true;
     try {
         const newElements = await loadMoreElements(
+            currentProjectId,
             page,
             $searchTerm,
             $selectedSeries,
