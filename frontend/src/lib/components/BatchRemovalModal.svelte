@@ -24,15 +24,11 @@
 						.map((annotation) => annotation.code)
 						.filter((code): code is NonNullable<Annotation['code']> => code != null)
 				)
-				.map((code) => JSON.stringify(code)) // Convert each code object to a string
 		)
-	).map((codeString) => {
-		const code = JSON.parse(codeString);
-		return {
-			code_id: code.code_id,
-			term: code.term
-		};
-	});
+	).map((code) => ({
+		code_id: code.code_id,
+		term: code.term
+	}));
 
 	$: if (modalElement) {
 		if (show) {
@@ -57,6 +53,7 @@
 		selectedCodesToRemove = selectedCodesToRemove.includes(codeId)
 			? selectedCodesToRemove.filter((id) => id !== codeId)
 			: [...selectedCodesToRemove, codeId];
+		console.log('Selected codes to remove:', selectedCodesToRemove);
 	}
 
 	function removeAnnotations() {
