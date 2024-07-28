@@ -67,6 +67,37 @@ export async function fetchCodeTypes(projectId: number, fetchFunc: FetchFunction
 	return apiRequest(`/code_types/?project_id=${projectId}`, 'GET', null, fetchFunc);
 }
 
+export async function fetchPaginatedElements(
+	projectId: number,
+	page: number = 1,
+	pageSize: number = 100
+): Promise<any> {
+	return apiRequest(`/elements/?project_id=${projectId}&skip=${(page - 1) * pageSize}&limit=${pageSize}`);
+}
+
+export async function searchElements(
+	projectId: number,
+	searchTerm: string,
+	seriesIds: number[] = [],
+	segmentIds: number[] = [],
+	codeIds: number[] = [],
+	page: number = 1,
+	pageSize: number = 100
+): Promise<any> {
+	const params = new URLSearchParams({
+		project_id: projectId.toString(),
+		search_term: searchTerm,
+		skip: ((page - 1) * pageSize).toString(),
+		limit: pageSize.toString()
+	});
+
+	if (seriesIds.length) params.append('series_ids', seriesIds.join(','));
+	if (segmentIds.length) params.append('segment_ids', segmentIds.join(','));
+	if (codeIds.length) params.append('code_ids', codeIds.join(','));
+
+	return apiRequest(`/search_elements/?${params}`);
+}
+
 /**
  * Add a new code
  *
