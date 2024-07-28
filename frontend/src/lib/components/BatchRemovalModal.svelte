@@ -12,9 +12,7 @@
 	let modalElement: HTMLDialogElement;
 	let selectedCodesToRemove: number[] = [];
 
-	$: selectedElements = $filteredElements.filter((element) =>
-		selectedElementIds.includes(element.element_id)
-	);
+	export let selectedElements: Element[];
 
 	$: uniqueCodes = Array.from(
 		new Set(
