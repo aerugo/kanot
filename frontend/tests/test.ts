@@ -111,17 +111,26 @@ test('can filter codes by type', async ({ page }) => {
   test('can edit an existing code', async ({ page }) => {
     await page.goto('/codes');
     
+    console.log('Navigated to /codes');
+    
     // Wait for the codes list to be visible and contain at least one row
     await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 5000 });
 
+    console.log('Codes list is visible');
+
     // Log the number of rows in the codes list
     const rowCount = await page.locator('.codes-list tr').count();
+    console.log(`Number of code rows: ${rowCount}`);
 
     // Check if there's at least one row
     if (rowCount > 0) {
+      console.log('At least one code row found');
+      
       // Wait for and click the edit button on the first code
       await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 15000 });
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
+      
+      console.log('Clicked edit button on first code');
       
       // Wait for the modal to appear
       await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
