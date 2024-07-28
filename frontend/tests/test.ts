@@ -118,12 +118,19 @@ test('can filter codes by type', async ({ page }) => {
 	// Clear the filter
 	await page.click('.selected-filters .filter-tag button');
 
-	// Wait for the filter to be cleared
-	await page.waitForTimeout(1000);
+	// Wait for the filter to be cleared and the list to update
+	await page.waitForTimeout(2000);
 
 	// Check if the code count has returned to the initial count
 	const finalCodeCount = await page.locator('.codes-list tr').count();
 	expect(finalCodeCount).toBe(initialCodeCount);
+
+	// If the counts don't match, log some debug information
+	if (finalCodeCount !== initialCodeCount) {
+		console.log(`Initial count: ${initialCodeCount}, Final count: ${finalCodeCount}`);
+		console.log('Current filter tags:', await page.locator('.selected-filters .filter-tag').count());
+		console.log('Filter dropdown state:', await page.isVisible('button:has-text("Filter by Type")'));
+	}
 });
 
 // Test for editing a code
