@@ -44,7 +44,7 @@
 					(code.code_type && selectedTypes.includes(code.code_type.type_id))) &&
 				(searchTerm === '' ||
 					code.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					code.description.toLowerCase().includes(searchTerm.toLowerCase()))
+					(code.description && code.description.toLowerCase().includes(searchTerm.toLowerCase())))
 		);
 	}
 
@@ -62,6 +62,7 @@
 
 	function handleEditCode(event: CustomEvent<Code>): void {
 		editingCode = event.detail;
+		console.log('Editing code:', editingCode); // Add this line for debugging
 	}
 
 	function handleCodeUpdated(event: CustomEvent<Code>): void {
@@ -124,7 +125,12 @@
 			onClearAll={clearAllFilters}
 		/>
 
-		<CodeList {filteredCodes} on:editCode={handleEditCode} on:deleteCode={handleDeleteCode} />
+		<CodeList 
+			{filteredCodes} 
+			on:editCode={handleEditCode} 
+			on:deleteCode={handleDeleteCode}
+			on:codeUpdated={() => codes.refresh($currentProject)}
+		/>
 	</section>
 
 	{#if editingCode}
