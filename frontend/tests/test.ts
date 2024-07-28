@@ -385,23 +385,26 @@ test('can add annotation to an element', async ({ page }) => {
 	// Ensure that at least one filtered option is present
 	expect(filteredOptionsCount).toBeGreaterThan(0);
 
-	// Get the text of the first option
-	const firstOptionText = await page.locator('.annotation-dropdown ul li button:first-child').textContent();
+	// Get all the option elements
+	const optionElements = await page.locator('.annotation-dropdown ul li button').all();
 
-	// Check if the first option is already used as an annotation
-	const isAlreadyUsed = await page.locator(`table tbody tr:first-child .code-tag:has-text("${firstOptionText}")`).count() > 0;
-
-	if (isAlreadyUsed) {
-		// If the first option is already used, click the second option (if available)
-		if (filteredOptionsCount > 1) {
-			await page.click('.annotation-dropdown ul li button:nth-child(2)');
-		} else {
-			console.log('No unused annotations available for this element');
-			return;
+	// Find the first unused option
+	let unusedOption = null;
+	for (const option of optionElements) {
+		const optionText = await option.textContent();
+		const isUsed = await page.locator(`table tbody tr:first-child .code-tag:has-text("${optionText}")`).count() > 0;
+		if (!isUsed) {
+			unusedOption = option;
+			break;
 		}
+	}
+
+	if (unusedOption) {
+		// Click the first unused option
+		await unusedOption.click();
 	} else {
-		// Click the first filtered option
-		await page.click('.annotation-dropdown ul li button:first-child');
+		console.log('No unused annotations available for this element');
+		return;
 	}
 
 	// Wait for the code tag to be added
