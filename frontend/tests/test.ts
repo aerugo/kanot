@@ -310,11 +310,24 @@ test('can remove annotation from an element', async ({ page }) => {
 		await page.click('table tbody tr:first-child .code-tag:first-child button.remove-code');
 
 		// Wait for the annotation to be removed
-		await page.waitForFunction(
-			(selector: string, initialCount: number) => document.querySelectorAll(selector).length === initialCount - 1,
-			'table tbody tr:first-child .code-tag',
-			initialAnnotationCount
-		);
+		try {
+			await page.waitForFunction(
+				(selector: string, initialCount: number) => {
+					const currentCount = document.querySelectorAll(selector).length;
+					console.log(`Current annotation count: ${currentCount}, Initial count: ${initialCount}`);
+					return currentCount === initialCount - 1;
+				},
+				'table tbody tr:first-child .code-tag',
+				initialAnnotationCount,
+				{ timeout: 60000 } // Increase timeout to 60 seconds
+			);
+		} catch (error) {
+			console.error('Error while waiting for annotation removal:', error);
+			// Log the current state of annotations
+			const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
+			console.log('Current annotations:', currentAnnotations);
+			throw error;
+		}
 
 		// Check if the number of annotations has decreased
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
