@@ -67,6 +67,14 @@ export async function fetchCodeTypes(projectId: number, fetchFunc: FetchFunction
 	return apiRequest(`/code_types/?project_id=${projectId}`, 'GET', null, fetchFunc);
 }
 
+/**
+ * Fetch paginated elements
+ *
+ * @param {number} projectId - The project ID
+ * @param {number} [page=1] - The page number
+ * @param {number} [pageSize=100] - The page size
+ * @returns {Promise<any>}
+ */
 export async function fetchPaginatedElements(
 	projectId: number,
 	page: number = 1,
@@ -75,6 +83,18 @@ export async function fetchPaginatedElements(
 	return apiRequest(`/elements/?project_id=${projectId}&skip=${(page - 1) * pageSize}&limit=${pageSize}`);
 }
 
+/**
+ * Search elements
+ *
+ * @param {number} projectId - The project ID
+ * @param {string} searchTerm - The search term
+ * @param {number[]} [seriesIds=[]] - Array of series IDs
+ * @param {number[]} [segmentIds=[]] - Array of segment IDs
+ * @param {number[]} [codeIds=[]] - Array of code IDs
+ * @param {number} [page=1] - The page number
+ * @param {number} [pageSize=100] - The page size
+ * @returns {Promise<any>}
+ */
 export async function searchElements(
 	projectId: number,
 	searchTerm: string,
@@ -183,51 +203,7 @@ export async function deleteAnnotation(annotationId: number | string): Promise<a
 
 // Elements API
 
-/**
- * Fetch paginated elements
- *
- * @param {number} [page=1] - The page number
- * @param {number} [pageSize=100] - The page size
- * @returns {Promise<any>}
- */
-export async function fetchPaginatedElements(
-	page: number = 1,
-	pageSize: number = 100
-): Promise<any> {
-	return apiRequest(`/elements/?skip=${(page - 1) * pageSize}&limit=${pageSize}`);
-}
-
-/**
- * Search elements
- *
- * @param {string} searchTerm - The search term
- * @param {number[]} [seriesIds=[]] - Array of series IDs
- * @param {number[]} [segmentIds=[]] - Array of segment IDs
- * @param {number[]} [codeIds=[]] - Array of code IDs
- * @param {number} [page=1] - The page number
- * @param {number} [pageSize=100] - The page size
- * @returns {Promise<any>}
- */
-export async function searchElements(
-	searchTerm: string,
-	seriesIds: number[] = [],
-	segmentIds: number[] = [],
-	codeIds: number[] = [],
-	page: number = 1,
-	pageSize: number = 100
-): Promise<any> {
-	const params = new URLSearchParams({
-		search_term: searchTerm,
-		skip: ((page - 1) * pageSize).toString(),
-		limit: pageSize.toString()
-	});
-
-	if (seriesIds.length) params.append('series_ids', seriesIds.join(','));
-	if (segmentIds.length) params.append('segment_ids', segmentIds.join(','));
-	if (codeIds.length) params.append('code_ids', codeIds.join(','));
-
-	return apiRequest(`/search_elements/?${params}`);
-}
+// These functions have been moved up in the file, so we're removing the duplicates here.
 
 // Series API
 
