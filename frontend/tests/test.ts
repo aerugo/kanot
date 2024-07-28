@@ -310,8 +310,8 @@ test('can remove annotation from an element', async ({ page }) => {
 		console.log('Clicking remove button...');
 		await page.click('table tbody tr:first-child .code-tag:first-child button.remove-code');
 
+		console.log('Waiting for annotation to be removed...');
 		try {
-			console.log('Waiting for annotation to be removed...');
 			await page.waitForFunction(
 				(selector: string, initialCount: number) => {
 					const currentCount = document.querySelectorAll(selector).length;
@@ -324,29 +324,30 @@ test('can remove annotation from an element', async ({ page }) => {
 			);
 		} catch (error) {
 			console.error('Error while waiting for annotation removal:', error);
-			try {
-				const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
-				console.log('Current annotations:', currentAnnotations);
-			} catch (e) {
-				console.error('Error getting current annotations:', e);
-			}
-			try {
-				await page.screenshot({ path: 'annotation-removal-failed.png' });
-			} catch (e) {
-				console.error('Error taking screenshot:', e);
-			}
-			try {
-				const pageContent = await page.content();
-				console.log('Page content:', pageContent);
-			} catch (e) {
-				console.error('Error getting page content:', e);
-			}
-			try {
-				const requests = await page.evaluate(() => (window as any).requestLog);
-				console.log('Network requests:', requests);
-			} catch (e) {
-				console.error('Error getting network requests:', e);
-			}
+			
+			// Log current annotations
+			const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
+			console.log('Current annotations:', currentAnnotations);
+			
+			// Take a screenshot
+			await page.screenshot({ path: 'annotation-removal-failed.png' });
+			
+			// Log page content
+			const pageContent = await page.content();
+			console.log('Page content:', pageContent);
+			
+			// Log network requests
+			const requests = await page.evaluate(() => (window as any).requestLog);
+			console.log('Network requests:', requests);
+			
+			// Check if the remove button is still present
+			const removeButtonVisible = await page.isVisible('table tbody tr:first-child .code-tag:first-child button.remove-code');
+			console.log('Remove button still visible:', removeButtonVisible);
+			
+			// Check if any error messages are displayed on the page
+			const errorMessages = await page.locator('.error-message').allTextContents();
+			console.log('Error messages on page:', errorMessages);
+			
 			throw error;
 		}
 
