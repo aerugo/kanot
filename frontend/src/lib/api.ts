@@ -205,6 +205,7 @@ export async function removeBatchAnnotations(
 	codeIds: number[]
 ): Promise<{ success: boolean; message: string; removedCount?: number }> {
 	try {
+		console.log('removeBatchAnnotations called with:', { elementIds, codeIds });
 		const response = await fetch(`${BASE_URL}/batch_annotations/`, {
 			method: 'DELETE',
 			headers: {
@@ -216,17 +217,21 @@ export async function removeBatchAnnotations(
 			})
 		});
 
+		console.log('API response status:', response.status);
+		const responseText = await response.text();
+		console.log('API response text:', responseText);
+
 		if (!response.ok) {
-			const errorData = await response.json();
-			console.error('Error response:', errorData);
-			return { success: false, message: errorData.detail || 'Failed to remove annotations' };
+			console.error('Error response:', responseText);
+			return { success: false, message: responseText || 'Failed to remove annotations' };
 		}
 
-		const result = await response.json();
+		const result = JSON.parse(responseText);
+		console.log('Parsed result:', result);
 		return { success: true, message: 'Annotations removed successfully', removedCount: result.removed_count };
 	} catch (error) {
 		console.error('Error in removeBatchAnnotations:', error);
-		return { success: false, message: 'An error occurred while removing annotations' };
+		return { success: false, message: `An error occurred while removing annotations: ${error.message}` };
 	}
 }
 
