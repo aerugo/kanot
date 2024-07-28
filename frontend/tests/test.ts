@@ -116,7 +116,6 @@ test('can filter codes by type', async ({ page }) => {
 
     // Log the number of rows in the codes list
     const rowCount = await page.locator('.codes-list tr').count();
-    console.log(`Number of rows in codes list: ${rowCount}`);
 
     // Check if there's at least one row
     if (rowCount > 0) {
@@ -131,64 +130,34 @@ test('can filter codes by type', async ({ page }) => {
       await page.fill('[data-id="edit-code-term"]', 'TEST Updated Code Term');
       await page.fill('[data-id="edit-code-description"]', 'TEST Updated Code Description');
       
-      // Select a specific code type option
-      const codeTypeSelect = await page.waitForSelector('select', { state: 'visible', timeout: 5000 });
-      if (codeTypeSelect) {
-        await codeTypeSelect.selectOption({ index: 1 }); // Select the second option
-        const selectedCodeType = await codeTypeSelect.evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
-        console.log(`Selected code type: ${selectedCodeType}`);
-      } else {
-        console.error('Code type select element not found');
-      }
+      // Click the select element with id [data-id="edit-code-type"] to open the dropdown
+      await page.click('[data-id="edit-code-type"]');
+      // Select the second option in the dropdown
+      await page.click('.dropdown-menu li:nth-child(2)');
+      // Close the dropdown
+      await page.click('[data-id="edit-code-type"]');
+      // Get the selected code type
+      const selectedCodeType = await page.locator('select').evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
       
+      // pause until continue
+      await page.pause();
+    
       await page.fill('[data-id="edit-code-reference"]', 'TEST Updated Reference');
       await page.fill('[data-id="edit-code-coordinates"]', 'TEST Updated Coordinates');
 
       // Save the changes
       await page.click('.modal button:has-text("Save")');
       
-      console.log('Clicked Save button');
-
       // Wait for the save operation to complete (increase timeout if needed)
-      await page.waitForTimeout(5000);
+      await page.waitForTimeout(1000);
 
       // Check if the modal closes
       try {
         await expect(page.locator('.modal')).not.toBeVisible({ timeout: 5000 });
       } catch (error) {
         console.error('Modal did not close as expected:', error);
-        // Log the current state of the modal
-        const modalContent = await page.locator('.modal').innerHTML();
-        console.log('Modal content:', modalContent);
-        
-        // Check if there are any error messages
-        const errorMessages = await page.locator('.error-message').allInnerTexts();
-        console.log('Error messages:', errorMessages);
-        
-        // Log the network requests
-        const requests = await page.context().pages()[0].evaluate(() => {
-          return (window as any).requestLog || [];
-        });
-        console.log('Network requests:', requests);
-
-        // Log console messages
-        const consoleMessages = await page.context().pages()[0].evaluate(() => {
-          return (window as any).consoleLog || [];
-        });
-        console.log('Console messages:', consoleMessages);
-
-        // Log the visibility state of the modal
-        const isModalVisible = await page.locator('.modal').isVisible();
-        console.log('Is modal visible:', isModalVisible);
-
-        // Log any JavaScript errors
-        const jsErrors = await page.evaluate(() => (window as any).jsErrors || []);
-        console.log('JavaScript errors:', jsErrors);
-        
         throw error;
       }
-
-      console.log('Modal closed successfully');
       
       // Wait for the update to be reflected
       await page.waitForTimeout(2000);
@@ -208,15 +177,6 @@ test('can filter codes by type', async ({ page }) => {
       await expect(page.locator('[data-id="edit-code-description"]')).toHaveValue('TEST Updated Code Description');
       await expect(page.locator('[data-id="edit-code-reference"]')).toHaveValue('TEST Updated Reference');
       await expect(page.locator('[data-id="edit-code-coordinates"]')).toHaveValue('TEST Updated Coordinates');
-      
-      // Verify that the selected code type is still the same
-      const updatedCodeTypeSelect = await page.waitForSelector('select', { state: 'visible', timeout: 5000 });
-      if (updatedCodeTypeSelect) {
-        const updatedCodeType = await updatedCodeTypeSelect.evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
-        console.log(`Updated code type: ${updatedCodeType}`);
-      } else {
-        console.error('Updated code type select element not found');
-      }
       
       // Close the modal
       await page.click('.modal button:has-text("Cancel")');
