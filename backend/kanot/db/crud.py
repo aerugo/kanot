@@ -858,6 +858,7 @@ class DatabaseManager:
 
     def search_elements(
         self,
+        project_id: int,
         search_term: str,
         series_ids: list[int] = [],
         segment_ids: list[int] = [],
@@ -872,6 +873,7 @@ class DatabaseManager:
                     .join(Element.segment)
                     .join(Segment.series)
                     .outerjoin(Element.annotations)
+                    .filter(Element.project_id == project_id)
                 )
 
                 if search_term:
@@ -909,6 +911,7 @@ class DatabaseManager:
 
     def count_elements(
         self,
+        project_id: int,
         search_term: str,
         series_ids: list[int] = [],
         segment_ids: list[int] = [],
@@ -921,6 +924,7 @@ class DatabaseManager:
                     .join(Element.segment)
                     .join(Segment.series)
                     .outerjoin(Element.annotations)
+                    .filter(Element.project_id == project_id)
                 )
 
                 if search_term:
