@@ -816,6 +816,58 @@ def test_read_annotations_by_project(client: TestClient, create_project: Callabl
     assert annotations[0]["element_id"] == element2_id
     assert annotations[0]["code_id"] == code2_id
 
+def test_search_elements_with_project_filter(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
+    project1 = create_project(title="Project 1")
+    project2 = create_project(title="Project 2")
+    project1_id = project1["project_id"]
+    project2_id = project2["project_id"]
+
+    # Create series, segments, and elements for both projects
+    series1 = client.post("/series/", json={"series_title": "Series 1", "project_id": project1_id})
+    series2 = client.post("/series/", json={"series_title": "Series 2", "project_id": project2_id})
+    assert series1.status_code == 200 and series2.status_code == 200
+    series1_id = series1.json()["series_id"]
+    series2_id = series2.json()["series_id"]
+
+    segment1 = client.post("/segments/", json={"segment_title": "Segment 1", "series_id": series1_id, "project_id": project1_id})
+    segment2 = client.post("/segments/", json={"segment_title": "Segment 2", "series_id": series2_id, "project_id": project2_id})
+    assert segment1.status_code == 200 and segment2.status_code == 200
+    segment1_id = segment1.json()["segment_id"]
+    segment2_id = segment2.json()["segment_id"]
+
+    element1 = client.post("/elements/", json={"element_text": "Test Element 1", "segment_id": segment1_id, "project_id": project1_id})
+    element2 = client.post("/elements/", json={"element_text": "Test Element 2", "segment_id": segment2_id, "project_id": project2_id})
+    assert element1.status_code == 200 and element2.status_code == 200
+
+    # Search for elements in project 1
+    response = client.get(f"/search_elements/?project_id={project1_id}&search_term=Test")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) == 1
+    assert data[0].element_text == "Test Element 1"
+    assert data[0].project_id == project1_id
+
+    # Search for elements in project 2
+    response = client.get(f"/search_elements/?project_id={project2_id}&search_term=Test")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) == 1
+    assert data[0].element_text == "Test Element 2"
+    assert data[0].project_id == project2_id
+
+    # Verify that searching in one project doesn't return elements from the other
+    response = client.get(f"/search_elements/?project_id={project1_id}&search_term=Element")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) == 1
+    assert all(element.project_id == project1_id for element in data)
+
+    response = client.get(f"/search_elements/?project_id={project2_id}&search_term=Element")
+    assert response.status_code == 200
+    data = [ElementResponse(**item) for item in response.json()]
+    assert len(data) == 1
+    assert all(element.project_id == project2_id for element in data)
+
 def test_update_element(client: TestClient, create_project: Callable[..., Dict[str, Any]]) -> None:
     project = create_project()
     
