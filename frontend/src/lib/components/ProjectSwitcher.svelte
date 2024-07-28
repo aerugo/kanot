@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { fetchProjects } from '../api';
-    import type { Project } from '../types';
     import { currentProject } from '../stores/projectStore';
+    import type { Project } from '../types';
 
     let projects: Project[] = [];
 
