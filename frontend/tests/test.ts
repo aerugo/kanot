@@ -207,16 +207,17 @@ test('can edit an existing code', async ({ page }) => {
 test('can delete a code', async ({ page }) => {
 	await page.goto('/codes');
 
+  // Wait for 2 seconds to ensure the page is loaded
+  await page.waitForTimeout(2000);
+
 	// Wait for the codes list to be visible
 	await page.waitForSelector('.codes-list', { state: 'visible' });
 
 	// Store the initial number of codes
 	let initialCodeCount = await page.locator('.codes-list tr').count();
-	console.log(`Initial code count: ${initialCodeCount}`);
 
 	// If there are no codes, create one
 	if (initialCodeCount === 0) {
-		console.log('No codes found. Creating a new code.');
 		await page.click('button:has-text("New Code")');
 		await page.fill('input[placeholder="Term"]', 'Test Code');
 		await page.fill('input[placeholder="Description"]', 'Test Description');
@@ -224,7 +225,6 @@ test('can delete a code', async ({ page }) => {
 		await page.click('button:has-text("Add Code")');
 		await page.waitForTimeout(2000); // Wait for the new code to be added
 		initialCodeCount = await page.locator('.codes-list tr').count();
-		console.log(`New initial code count: ${initialCodeCount}`);
 	}
 
 	// Click the delete button on the first code
@@ -238,7 +238,6 @@ test('can delete a code', async ({ page }) => {
 
 	// Check if the number of codes has decreased
 	const newCodeCount = await page.locator('.codes-list tr').count();
-	console.log(`New code count: ${newCodeCount}`);
 
 	if (newCodeCount >= initialCodeCount) {
 		console.error(`Deletion failed. Initial count: ${initialCodeCount}, New count: ${newCodeCount}`);
