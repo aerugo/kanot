@@ -414,6 +414,14 @@ test('can add annotation to an element', async ({ page }) => {
 		// Check that the annotation count hasn't changed
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
 		expect(newAnnotationCount).toBe(initialAnnotationCount);
+		// Skip the rest of the test
+		return;
+	}
+
+	// Additional check: Verify that the new annotation is visible in the UI
+	if (unusedOption) {
+		const addedAnnotationText = await unusedOption.textContent();
+		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${addedAnnotationText}")`)).toBeVisible();
 	}
 });
 
