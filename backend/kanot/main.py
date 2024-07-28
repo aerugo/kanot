@@ -759,32 +759,17 @@ def remove_batch_annotations(
     element_ids: List[int] = Query(...),
     code_ids: List[int] = Query(...),
     db_manager: DatabaseManager = Depends(get_db)
-) -> List[AnnotationResponse]:
+):
     try:
-        removed_annotations: List[AnnotationResponse] = []
+        removed_count = 0
         for element_id in element_ids:
             for code_id in code_ids:
                 annotations = db_manager.get_annotations_for_element_and_code(element_id, code_id)
                 for annotation in annotations:
                     db_manager.delete_annotation(annotation.annotation_id)
-                    removed_annotations.append(AnnotationResponse(
-                        id=annotation.annotation_id,
-                        element_id=annotation.element_id,
-                        code_id=annotation.code_id,
-                        project_id=annotation.project_id,
-                        code=CodeResponse(
-                            id=annotation.code.code_id,
-                            code_id=annotation.code.code_id,
-                            term=annotation.code.term,
-                            description=annotation.code.description,
-                            type_id=annotation.code.type_id,
-                            reference=annotation.code.reference,
-                            coordinates=annotation.code.coordinates,
-                            project_id=annotation.code.project_id,
-                            code_type=None
-                        ) if annotation.code else None
-                    ))
-        return removed_annotations
+                    removed_count += 1
+        
+        return {"message": f"Successfully removed {removed_count} annotations", "removed_count": removed_count}
     except Exception as e:
         logger.error(f"Error in batch annotation removal: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred during batch annotation removal")

@@ -203,42 +203,32 @@ export async function createBatchAnnotations(
 export async function removeBatchAnnotations(
 	elementIds: number[],
 	codeIds: number[]
-): Promise<{ success: boolean; message: string; removedCount?: number }> {
+): Promise<{ success: boolean; message: string; removedCount: number }> {
 	try {
 		console.log('removeBatchAnnotations called with:', { elementIds, codeIds });
-		const response = await fetch(`${BASE_URL}/batch_annotations/`, {
+		const response = await fetch(`${BASE_URL}/batch_annotations/?${new URLSearchParams({
+			element_ids: elementIds.join(','),
+			code_ids: codeIds.join(',')
+		})}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				element_ids: elementIds,
-				code_ids: codeIds
-			})
+			}
 		});
 
 		console.log('API response status:', response.status);
-		const responseText = await response.text();
-		console.log('API response text:', responseText);
+		const responseData = await response.json();
+		console.log('API response data:', responseData);
 
 		if (!response.ok) {
-			console.error('Error response:', responseText);
-			let errorMessage = 'Failed to remove annotations';
-			try {
-				const errorJson = JSON.parse(responseText);
-				errorMessage = errorJson.detail || errorMessage;
-			} catch (e) {
-				console.error('Error parsing error response:', e);
-			}
-			return { success: false, message: errorMessage };
+			console.error('Error response:', responseData);
+			return { success: false, message: responseData.detail || 'Failed to remove annotations', removedCount: 0 };
 		}
 
-		const result = JSON.parse(responseText);
-		console.log('Parsed result:', result);
-		return { success: true, message: 'Annotations removed successfully', removedCount: result.removed_count };
+		return { success: true, message: responseData.message, removedCount: responseData.removed_count };
 	} catch (error) {
 		console.error('Error in removeBatchAnnotations:', error);
-		return { success: false, message: `An error occurred while removing annotations: ${error.message}` };
+		return { success: false, message: `An error occurred while removing annotations: ${error.message}`, removedCount: 0 };
 	}
 }
 
