@@ -123,14 +123,25 @@ test('can filter codes by type', async ({ page }) => {
 
 	// Check if the code count has returned to the initial count
 	const finalCodeCount = await page.locator('.codes-list tr').count();
-	expect(finalCodeCount).toBe(initialCodeCount);
+	
+	// Log debug information
+	console.log(`Initial count: ${initialCodeCount}, Filtered count: ${filteredCodeCount}, Final count: ${finalCodeCount}`);
+	console.log('Current filter tags:', await page.locator('.selected-filters .filter-tag').count());
+	console.log('Filter dropdown state:', await page.isVisible('button:has-text("Filter by Type")'));
 
-	// If the counts don't match, log some debug information
-	if (finalCodeCount !== initialCodeCount) {
-		console.log(`Initial count: ${initialCodeCount}, Final count: ${finalCodeCount}`);
-		console.log('Current filter tags:', await page.locator('.selected-filters .filter-tag').count());
-		console.log('Filter dropdown state:', await page.isVisible('button:has-text("Filter by Type")'));
+	// Ensure the filter is fully cleared
+	const remainingFilterTags = await page.locator('.selected-filters .filter-tag').count();
+	if (remainingFilterTags > 0) {
+		console.log('Filters still present, attempting to clear...');
+		await page.click('.selected-filters .clear-all-filters');
+		await page.waitForTimeout(2000);
 	}
+
+	// Recheck the final count after ensuring filters are cleared
+	const recheckFinalCount = await page.locator('.codes-list tr').count();
+	console.log(`Rechecked final count: ${recheckFinalCount}`);
+
+	expect(recheckFinalCount).toBe(initialCodeCount);
 });
 
 // Test for editing a code
