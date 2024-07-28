@@ -547,13 +547,14 @@ class DatabaseManager:
             finally:
                 session.close()
 
-    def read_elements_paginated(
-        self, skip: int = 0, limit: int = 100
+    def read_elements_by_project(
+        self, project_id: int, skip: int = 0, limit: int = 100
     ) -> Optional[list[Element]]:
         with self.get_session() as session:
             try:
                 elements = (
                     session.query(Element)
+                    .filter(Element.project_id == project_id)
                     .options(
                         joinedload(Element.segment).joinedload(Segment.series),
                         joinedload(Element.annotations)
@@ -566,7 +567,7 @@ class DatabaseManager:
                 )
                 return elements
             except Exception as e:
-                logger.error(f"Error reading elements with pagination: {str(e)}")
+                logger.error(f"Error reading elements by project: {str(e)}")
                 return None
             finally:
                 session.close()

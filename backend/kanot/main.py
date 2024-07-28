@@ -562,11 +562,12 @@ def create_element(
 
 @router.get("/elements/", response_model=List[ElementResponse])
 def read_elements(
+    project_id: int = Query(..., description="ID of the project"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[ElementResponse]:
-    elements = db_manager.read_elements_paginated(skip=skip, limit=limit)
+    elements = db_manager.read_elements_by_project(project_id=project_id, skip=skip, limit=limit)
     if elements is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve elements")
     return [ElementResponse(
