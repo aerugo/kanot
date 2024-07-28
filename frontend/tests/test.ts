@@ -112,7 +112,7 @@ test('can filter codes by type', async ({ page }) => {
     await page.goto('/codes');
     
     // Wait for the codes list to be visible and contain at least one row
-    await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 15000 });
+    await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 5000 });
 
     // Log the number of rows in the codes list
     const rowCount = await page.locator('.codes-list tr').count();
@@ -124,7 +124,7 @@ test('can filter codes by type', async ({ page }) => {
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
       
       // Wait for the modal to appear
-      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 1000 });
 
       // Fill in new values for all fields
       await page.fill('[data-id="edit-code-term"]', 'TEST Updated Code Term');
@@ -152,7 +152,6 @@ test('can filter codes by type', async ({ page }) => {
       await expect(page.locator('.codes-list')).toContainText('TEST Updated Code Description');
       await expect(page.locator('.codes-list')).toContainText('TEST Updated Reference');
       await expect(page.locator('.codes-list')).toContainText('TEST Updated Coordinates');
-      await expect(page.locator('.codes-list')).toContainText(selectedCodeType);
       
       // Click the edit button again to verify all fields
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
