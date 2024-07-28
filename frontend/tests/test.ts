@@ -288,6 +288,45 @@ test('can edit an existing code', async ({ page }) => {
 	}
 });
 
+// Test for removing an annotation from an element
+test('can remove annotation from an element', async ({ page }) => {
+	await page.goto('/content');
+
+	// Wait for the table to be visible
+	await page.waitForSelector('table', { state: 'visible', timeout: 15000 });
+
+	// Wait for annotations to load
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 10000 });
+
+	// Get the initial number of annotations
+	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+
+	// Check if there are any annotations to remove
+	if (initialAnnotationCount > 0) {
+		// Get the text of the first annotation
+		const firstAnnotationText = await page.locator('table tbody tr:first-child .code-tag').first().textContent();
+
+		// Click the remove button (×) on the first annotation
+		await page.click('table tbody tr:first-child .code-tag:first-child button.remove-code');
+
+		// Wait for the annotation to be removed
+		await page.waitForFunction(
+			(selector, initialCount) => document.querySelectorAll(selector).length === initialCount - 1,
+			'table tbody tr:first-child .code-tag',
+			initialAnnotationCount
+		);
+
+		// Check if the number of annotations has decreased
+		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
+		expect(newAnnotationCount).toBe(initialAnnotationCount - 1);
+
+		// Verify that the removed annotation is no longer visible in the UI
+		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${firstAnnotationText}")`)).not.toBeVisible();
+	} else {
+		throw new Error('No annotations found to remove. This test cannot proceed.');
+	}
+});
+
 // Test for deleting a code
 test('can delete a code', async ({ page }) => {
 	await page.goto('/codes');
