@@ -922,6 +922,7 @@ def get_annotations_for_code(
 @router.get("/search_elements/", response_model=List[ElementResponse])
 def search_elements(
     response: Response,
+    project_id: int = Query(..., description="ID of the project"),
     search_term: str = Query("", min_length=0),
     series_ids: Optional[str] = Query(None),
     segment_ids: Optional[str] = Query(None),
@@ -935,13 +936,13 @@ def search_elements(
     code_id_list = [int(id) for id in code_ids.split(",")] if code_ids else []
 
     elements = db_manager.search_elements(
-        search_term, series_id_list, segment_id_list, code_id_list, skip, limit
+        project_id, search_term, series_id_list, segment_id_list, code_id_list, skip, limit
     )
     if elements is None:
         raise HTTPException(status_code=500, detail="Error searching elements")
         
     # Get total count for pagination
-    total_count = db_manager.count_elements(search_term, series_id_list, segment_id_list, code_id_list)
+    total_count = db_manager.count_elements(project_id, search_term, series_id_list, segment_id_list, code_id_list)
         
     # Add pagination headers
     response.headers["X-Total-Count"] = str(total_count)
