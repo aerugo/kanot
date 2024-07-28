@@ -206,10 +206,11 @@ export async function removeBatchAnnotations(
 ): Promise<{ success: boolean; message: string; removedCount: number }> {
 	try {
 		console.log('removeBatchAnnotations called with:', { elementIds, codeIds });
-		const response = await fetch(`${BASE_URL}/batch_annotations/?${new URLSearchParams({
-			element_ids: elementIds.join(','),
-			code_ids: codeIds.join(',')
-		})}`, {
+		const queryParams = new URLSearchParams();
+		elementIds.forEach(id => queryParams.append('element_ids', id.toString()));
+		codeIds.forEach(id => queryParams.append('code_ids', id.toString()));
+
+		const response = await fetch(`${BASE_URL}/batch_annotations/?${queryParams}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json'
