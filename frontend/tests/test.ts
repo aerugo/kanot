@@ -96,12 +96,9 @@ test('can filter codes by type', async ({ page }) => {
 
 	while (attempts < maxAttempts) {
 		const currentCount = await getCodeCount();
-		console.log(`Attempt ${attempts + 1}: Current code count: ${currentCount}`);
-		
 		if (currentCount > 0 && currentCount === initialCodeCount) {
 			break;
 		}
-		
 		initialCodeCount = currentCount;
 		await page.waitForTimeout(500);
 		attempts++;
@@ -110,8 +107,6 @@ test('can filter codes by type', async ({ page }) => {
 	if (initialCodeCount === 0) {
 		throw new Error('Failed to get initial code count after multiple attempts');
 	}
-
-	console.log(`Initial code count stabilized at: ${initialCodeCount}`);
 
 	// Click the "Filter by Type" dropdown
 	await page.click('button:has-text("Filter by Type")');
@@ -129,18 +124,13 @@ test('can filter codes by type', async ({ page }) => {
 
 	while (filterAttempts < filterMaxAttempts) {
 		filteredCodeCount = await getCodeCount();
-		console.log(`Filter attempt ${filterAttempts + 1}: Filtered code count: ${filteredCodeCount}`);
-		
 		if (filteredCodeCount !== initialCodeCount) {
 			break;
 		}
-		
 		await page.waitForTimeout(500);
 		filterAttempts++;
 	}
 
-	// Check if the filter was applied successfully
-	console.log(`Initial code count: ${initialCodeCount}, Filtered code count: ${filteredCodeCount}`);
 	expect(filteredCodeCount).not.toBe(initialCodeCount);
 
 	// Check for the presence of the filter tag in SelectedFilters component
@@ -164,25 +154,16 @@ test('can filter codes by type', async ({ page }) => {
 
 	while (clearAttempts < clearMaxAttempts) {
 		finalCodeCount = await getCodeCount();
-		console.log(`Clear attempt ${clearAttempts + 1}: Final code count: ${finalCodeCount}`);
-		
 		if (finalCodeCount === initialCodeCount) {
 			break;
 		}
-		
 		await page.waitForTimeout(500);
 		clearAttempts++;
 	}
-	
-	// Log debug information
-	console.log(`Initial count: ${initialCodeCount}, Filtered count: ${filteredCodeCount}, Final count: ${finalCodeCount}`);
-	console.log('Current filter tags:', await page.locator('.selected-filters .filter-tag').count());
-	console.log('Filter dropdown state:', await page.isVisible('button:has-text("Filter by Type")'));
 
 	// Ensure the filter is fully cleared
 	const remainingFilterTags = await page.locator('.selected-filters .filter-tag').count();
 	if (remainingFilterTags > 0) {
-		console.log('Filters still present, attempting to clear...');
 		await page.click('.selected-filters .clear-all-filters');
 		await page.waitForTimeout(2000);
 		
@@ -207,8 +188,6 @@ test('can filter codes by type', async ({ page }) => {
 		
 		finalCodeCount = await getCodeCount();
 	}
-
-	console.log(`Final rechecked count: ${finalCodeCount}`);
 
 	expect(finalCodeCount).toBe(initialCodeCount);
 });
