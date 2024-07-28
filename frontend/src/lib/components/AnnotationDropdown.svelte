@@ -116,10 +116,16 @@
         background: none;
         text-align: left;
         cursor: pointer;
+        display: block;
     }
 
     button:hover,
     button.selected {
         background-color: #f0f0f0;
+    }
+
+    .annotation-dropdown {
+        max-height: 300px;
+        overflow-y: auto;
     }
 </style>

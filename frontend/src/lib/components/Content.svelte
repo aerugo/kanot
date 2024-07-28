@@ -260,6 +260,7 @@
 		event: CustomEvent<{ elementId: number; codeId: number }>
 	): Promise<void> {
 		const { elementId, codeId } = event.detail;
+		console.log(`Adding annotation: elementId=${elementId}, codeId=${codeId}`);
 		try {
 			const newAnnotation = await createAnnotation({
 				element_id: elementId,
@@ -268,9 +269,11 @@
 			});
 
 			if (newAnnotation) {
+				console.log('New annotation created:', newAnnotation);
 				elementsStore.update((elements) =>
 					elements.map((element) => {
 						if (element.element_id === elementId) {
+							console.log(`Updating element ${elementId} with new annotation`);
 							return {
 								...element,
 								annotations: [...element.annotations, newAnnotation]
@@ -314,10 +317,12 @@
 
 	function openAnnotationDropdown(elementId: number): void {
 		annotationDropdownOpen = { ...annotationDropdownOpen, [elementId]: true };
+		console.log(`Opening annotation dropdown for element ${elementId}`);
 	}
 
 	function closeAnnotationDropdown(elementId: number): void {
 		annotationDropdownOpen = { ...annotationDropdownOpen, [elementId]: false };
+		console.log(`Closing annotation dropdown for element ${elementId}`);
 	}
 
 	function handleElementSelection(index: number, elementId: number, event: MouseEvent): void {
