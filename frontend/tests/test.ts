@@ -129,7 +129,12 @@ test('can filter codes by type', async ({ page }) => {
       // Fill in new values for all fields
       await page.fill('[data-id="edit-code-term"]', 'TEST Updated Code Term');
       await page.fill('[data-id="edit-code-description"]', 'TEST Updated Code Description');
-      await page.selectOption('select', { label: 'Select Code Type' }); // Assuming there's at least one option
+      
+      // Select a specific code type option
+      const codeTypeSelect = await page.locator('select[data-id="edit-code-type"]');
+      await codeTypeSelect.selectOption({ index: 1 }); // Select the second option
+      const selectedCodeType = await codeTypeSelect.evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
+      
       await page.fill('[data-id="edit-code-reference"]', 'TEST Updated Reference');
       await page.fill('[data-id="edit-code-coordinates"]', 'TEST Updated Coordinates');
 
@@ -143,20 +148,25 @@ test('can filter codes by type', async ({ page }) => {
       await page.waitForTimeout(2000);
       
       // Check if all updated fields are visible in the list
-      await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
-      await expect(page.locator('.codes-list')).toContainText('Updated Code Description');
-      await expect(page.locator('.codes-list')).toContainText('Updated Reference');
-      await expect(page.locator('.codes-list')).toContainText('Updated Coordinates');
+      await expect(page.locator('.codes-list')).toContainText('TEST Updated Code Term');
+      await expect(page.locator('.codes-list')).toContainText('TEST Updated Code Description');
+      await expect(page.locator('.codes-list')).toContainText('TEST Updated Reference');
+      await expect(page.locator('.codes-list')).toContainText('TEST Updated Coordinates');
+      await expect(page.locator('.codes-list')).toContainText(selectedCodeType);
       
       // Click the edit button again to verify all fields
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
       await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
       
       // Verify all fields contain the updated values
-      await expect(page.locator('[data-id="edit-code-term"]')).toHaveValue('Updated Code Term');
-      await expect(page.locator('[data-id="edit-code-description"]')).toHaveValue('Updated Code Description');
-      await expect(page.locator('[data-id="edit-code-reference"]')).toHaveValue('Updated Reference');
-      await expect(page.locator('[data-id="edit-code-coordinates"]')).toHaveValue('Updated Coordinates');
+      await expect(page.locator('[data-id="edit-code-term"]')).toHaveValue('TEST Updated Code Term');
+      await expect(page.locator('[data-id="edit-code-description"]')).toHaveValue('TEST Updated Code Description');
+      await expect(page.locator('[data-id="edit-code-reference"]')).toHaveValue('TEST Updated Reference');
+      await expect(page.locator('[data-id="edit-code-coordinates"]')).toHaveValue('TEST Updated Coordinates');
+      
+      // Verify that the selected code type is still the same
+      const updatedCodeType = await page.locator('select[data-id="edit-code-type"]').evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
+      expect(updatedCodeType).toBe(selectedCodeType);
       
       // Close the modal
       await page.click('.modal button:has-text("Cancel")');
