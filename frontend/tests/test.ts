@@ -130,17 +130,28 @@ test('can filter codes by type', async ({ page }) => {
       await page.fill('[data-id="edit-code-term"]', 'TEST Updated Code Term');
       await page.fill('[data-id="edit-code-description"]', 'TEST Updated Code Description');
       
-      // Click the select element with id [data-id="edit-code-type"] to open the dropdown
-      await page.click('[data-id="edit-code-type"]');
-      // Select the second option in the dropdown
-      await page.click('.dropdown-menu li:nth-child(2)');
-      // Close the dropdown
-      await page.click('[data-id="edit-code-type"]');
-      // Get the selected code type
-      const selectedCodeType = await page.locator('select').evaluate(el => (el as HTMLSelectElement).selectedOptions[0].textContent);
+      // Open the custom dropdown
+      await page.click('[data-id="edit-code-type"] .selected-option');
       
-      // pause until continue
-      await page.pause();
+      // Wait for the dropdown options to be visible
+      await page.waitForSelector('[data-id="edit-code-type"] .options', { state: 'visible' });
+      
+      // Select the second option in the dropdown
+      const options = await page.$$('[data-id="edit-code-type"] .option');
+      if (options.length > 1) {
+        await options[1].click();
+      } else {
+        throw new Error('Not enough options in the dropdown');
+      }
+      
+      // Get the selected code type
+      const selectedCodeType = await page.locator('[data-id="edit-code-type"] .selected-option').textContent();
+      
+      // Log the selected code type for debugging
+      console.log('Selected Code Type:', selectedCodeType);
+      
+      // Wait for a short time to ensure the dropdown has closed
+      await page.waitForTimeout(500);
     
       await page.fill('[data-id="edit-code-reference"]', 'TEST Updated Reference');
       await page.fill('[data-id="edit-code-coordinates"]', 'TEST Updated Coordinates');
