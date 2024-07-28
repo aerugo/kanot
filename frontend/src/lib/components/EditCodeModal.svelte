@@ -143,6 +143,7 @@
                     class="option"
                     role="option"
                     tabindex="0"
+                    aria-selected={editingCode.type_id === codeType.type_id}
                     on:click={() => {
                       editingCode.type_id = codeType.type_id;
                       isDropdownOpen = false;
