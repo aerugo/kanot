@@ -80,6 +80,10 @@ export async function fetchPaginatedElements(
 	page: number = 1,
 	pageSize: number = 100
 ): Promise<any> {
+	if (projectId === undefined || projectId === null) {
+		console.error('Project ID is undefined or null in fetchPaginatedElements');
+		throw new Error("Project ID is required");
+	}
 	return apiRequest(`/elements/?project_id=${projectId}&skip=${(page - 1) * pageSize}&limit=${pageSize}`);
 }
 
@@ -166,13 +170,15 @@ export async function createAnnotation(annotationData: any): Promise<any> {
  *
  * @param {number[]} elementIds - Array of element IDs
  * @param {number[]} codeIds - Array of code IDs
+ * @param {number} projectId - The project ID
  * @returns {Promise<any>}
  */
 export async function createBatchAnnotations(
 	elementIds: number[],
-	codeIds: number[]
+	codeIds: number[],
+	projectId: number
 ): Promise<any> {
-	return apiRequest('/batch_annotations/', 'POST', { element_ids: elementIds, code_ids: codeIds });
+	return apiRequest('/batch_annotations/', 'POST', { element_ids: elementIds, code_ids: codeIds, project_id: projectId });
 }
 
 /**
