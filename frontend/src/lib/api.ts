@@ -218,6 +218,7 @@ export async function removeBatchAnnotations(
 
 		if (!response.ok) {
 			const errorData = await response.json();
+			console.error('Error response:', errorData);
 			return { success: false, message: errorData.detail || 'Failed to remove annotations' };
 		}
 

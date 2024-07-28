@@ -394,8 +394,13 @@
 
 	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
+		if (selectedElementIds.length === 0 || codeIds.length === 0) {
+			alert('Please select at least one element and one code to remove.');
+			return;
+		}
+
 		const result = await removeBatchAnnotations(selectedElementIds, codeIds);
-	
+
 		if (result.success) {
 			elementsStore.update((elements) => {
 				return elements.map((element) => {
