@@ -517,7 +517,7 @@ def test_search_elements(client: TestClient, create_project: Callable[..., Dict[
     client.post("/elements/", json=element_create_2.model_dump())
     
     # Search for elements
-    response = client.get("/search_elements/?search_term=Test")
+    response = client.get(f"/search_elements/?project_id={project['project_id']}&search_term=Test")
     assert response.status_code == 200
     data = [ElementResponse(**item) for item in response.json()]
     assert len(data) == 1

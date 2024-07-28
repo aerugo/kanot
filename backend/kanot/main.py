@@ -922,7 +922,7 @@ def get_annotations_for_code(
 @router.get("/search_elements/", response_model=List[ElementResponse])
 def search_elements(
     response: Response,
-    project_id: int = Query(..., description="ID of the project"),
+    project_id: Optional[int] = Query(None, description="ID of the project"),
     search_term: str = Query("", min_length=0),
     series_ids: Optional[str] = Query(None),
     segment_ids: Optional[str] = Query(None),
@@ -931,6 +931,8 @@ def search_elements(
     limit: int = Query(100, ge=1, le=1000),
     db_manager: DatabaseManager = Depends(get_db)
 ) -> List[ElementResponse]:
+    if project_id is None:
+        raise HTTPException(status_code=400, detail="project_id is required")
     series_id_list = [int(id) for id in series_ids.split(",")] if series_ids else []
     segment_id_list = [int(id) for id in segment_ids.split(",")] if segment_ids else []
     code_id_list = [int(id) for id in code_ids.split(",")] if code_ids else []
