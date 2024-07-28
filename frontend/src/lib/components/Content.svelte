@@ -416,6 +416,8 @@
 			showBatchRemovalModal = false;
 		} catch (error) {
 			console.error('Error removing batch annotations:', error);
+			// Display an error message to the user
+			alert('Failed to remove annotations. Please try again.');
 		}
 	}
 </script>
