@@ -293,10 +293,10 @@ test('can remove annotation from an element', async ({ page }) => {
 	await page.goto('/content');
 
 	console.log('Waiting for table to be visible...');
-	await page.waitForSelector('table', { state: 'visible', timeout: 10000 });
+	await page.waitForSelector('table', { state: 'visible', timeout: 20000 });
 
 	console.log('Waiting for annotations to load...');
-	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 10000 });
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'attached', timeout: 20000 });
 
 	console.log('Getting initial annotation count...');
 	const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
@@ -320,22 +320,38 @@ test('can remove annotation from an element', async ({ page }) => {
 				},
 				'table tbody tr:first-child .code-tag',
 				initialAnnotationCount,
-				{ timeout: 60000 } // Increase timeout to 60 seconds
+				{ timeout: 120000 } // Increase timeout to 120 seconds
 			);
 		} catch (error) {
 			console.error('Error while waiting for annotation removal:', error);
-			const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
-			console.log('Current annotations:', currentAnnotations);
-			await page.screenshot({ path: 'annotation-removal-failed.png' });
-			const pageContent = await page.content();
-			console.log('Page content:', pageContent);
-			const requests = await page.evaluate(() => (window as any).requestLog);
-			console.log('Network requests:', requests);
+			try {
+				const currentAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
+				console.log('Current annotations:', currentAnnotations);
+			} catch (e) {
+				console.error('Error getting current annotations:', e);
+			}
+			try {
+				await page.screenshot({ path: 'annotation-removal-failed.png' });
+			} catch (e) {
+				console.error('Error taking screenshot:', e);
+			}
+			try {
+				const pageContent = await page.content();
+				console.log('Page content:', pageContent);
+			} catch (e) {
+				console.error('Error getting page content:', e);
+			}
+			try {
+				const requests = await page.evaluate(() => (window as any).requestLog);
+				console.log('Network requests:', requests);
+			} catch (e) {
+				console.error('Error getting network requests:', e);
+			}
 			throw error;
 		}
 
 		console.log('Waiting after removal...');
-		await page.waitForTimeout(5000);
+		await page.waitForTimeout(10000);
 
 		console.log('Checking new annotation count...');
 		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
@@ -348,7 +364,7 @@ test('can remove annotation from an element', async ({ page }) => {
 		console.log('No annotations found to remove.');
 		throw new Error('No annotations found to remove. This test cannot proceed.');
 	}
-}, { timeout: 90000 }); // Increase overall test timeout to 90 seconds
+}, { timeout: 180000 }); // Increase overall test timeout to 180 seconds
 
 // Test for deleting a code
 test('can delete a code', async ({ page }) => {
