@@ -76,7 +76,7 @@ test('can open new code form', async ({ page }) => {
   // Check for form fields
   await expect(page.locator('input[placeholder="Term"]')).toBeVisible();
   await expect(page.locator('input[placeholder="Description"]')).toBeVisible();
-  await expect(page.locator('select')).toBeVisible();
+  await expect(page.locator('form select')).toBeVisible();
 });
 
 // Test for filtering codes by type
@@ -93,7 +93,7 @@ test('can filter codes by type', async ({ page }) => {
   
   await page.click('.filter-option:first-child');
   
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   
   const filteredCodeCount = await page.locator('.codes-list tr').count();
   
@@ -101,7 +101,7 @@ test('can filter codes by type', async ({ page }) => {
   expect(filteredCodeCount).not.toBe(initialCodeCount);
   
   // Check for the presence of the filter tag
-  const filterTag = page.locator('.filter-tag');
+  const filterTag = page.locator('.active-filter');
   await expect(filterTag).toBeVisible();
   
   await expect(page.locator('.codes-list')).toBeVisible();
@@ -111,6 +111,9 @@ test('can filter codes by type', async ({ page }) => {
   test('can edit an existing code', async ({ page }) => {
 	await page.goto('/codes');
 	
+	// Wait for the codes list to be visible
+	await page.waitForSelector('.codes-list', { state: 'visible' });
+	
 	// Click the edit button on the first code (adjust selector as needed)
 	await page.click('.codes-list tr:first-child button:has-text("Edit")');
 	
@@ -118,21 +121,27 @@ test('can filter codes by type', async ({ page }) => {
 	await expect(page.locator('.modal')).toBeVisible();
 	
 	// Fill in a new term
-	await page.fill('input[placeholder="Term"]', 'Updated Code Term');
+	await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
 	
 	// Save the changes
-	await page.click('button:has-text("Save")');
+	await page.click('.modal button:has-text("Save")');
 	
 	// Check if the modal closes
 	await expect(page.locator('.modal')).not.toBeVisible();
 	
-	// Check if the updated term is visible in the list (this might need adjustment)
+	// Wait for the update to be reflected
+	await page.waitForTimeout(1000);
+	
+	// Check if the updated term is visible in the list
 	await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
   });
   
   // Test for deleting a code
   test('can delete a code', async ({ page }) => {
 	await page.goto('/codes');
+	
+	// Wait for the codes list to be visible
+	await page.waitForSelector('.codes-list', { state: 'visible' });
 	
 	// Store the initial number of codes
 	const initialCodeCount = await page.locator('.codes-list tr').count();
@@ -144,11 +153,7 @@ test('can filter codes by type', async ({ page }) => {
 	await page.click('.modal button:has-text("Delete")');
 	
 	// Wait for the deletion to be reflected in the UI
-	await page.waitForFunction(
-	  (expectedCount) => document.querySelectorAll('.codes-list tr').length === expectedCount,
-	  initialCodeCount - 1,
-	  { timeout: 5000 }
-	);
+	await page.waitForTimeout(2000);
 	
 	// Check if the number of codes has decreased
 	const newCodeCount = await page.locator('.codes-list tr').count();
