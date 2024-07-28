@@ -374,7 +374,7 @@ test('can add annotation to an element', async ({ page }) => {
 
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
-	console.log(`All available codes: ${JSON.stringify(allCodes)}`);
+	console.log(`Count of all available codes: ${allCodes.length}`);
 
 	// Get existing annotations for the element
 	const existingAnnotations = await page.locator('table tbody tr:first-child .code-tag').allTextContents();
