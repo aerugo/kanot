@@ -394,12 +394,17 @@
 
 	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
+		console.log('handleBatchRemoval called with codeIds:', codeIds);
+		console.log('selectedElementIds:', selectedElementIds);
+	
 		if (selectedElementIds.length === 0 || codeIds.length === 0) {
 			alert('Please select at least one element and one code to remove.');
 			return;
 		}
 
+		console.log('Calling removeBatchAnnotations with:', { selectedElementIds, codeIds });
 		const result = await removeBatchAnnotations(selectedElementIds, codeIds);
+		console.log('removeBatchAnnotations result:', result);
 
 		if (result.success) {
 			elementsStore.update((elements) => {
