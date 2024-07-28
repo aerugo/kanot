@@ -364,14 +364,20 @@ test('can add annotation to an element', async ({ page }) => {
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
 
+	// Wait for the annotation dropdown to be visible
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 5000 });
+
 	// Check if the annotation dropdown is visible
 	await expect(page.locator('.annotation-dropdown')).toBeVisible();
+
+	// Wait for the filter options to be visible
+	await page.waitForSelector('.annotation-dropdown .filter-option', { state: 'visible', timeout: 5000 });
 
 	// Select the first code from the dropdown
 	await page.click('.annotation-dropdown .filter-option:first-child');
 
 	// Wait for the code tag to be added
-	await page.waitForTimeout(1000);
+	await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible', timeout: 5000 });
 
 	// Check if a new code tag is added to the element
 	await expect(page.locator('table tbody tr:first-child .code-tag')).toBeVisible();
