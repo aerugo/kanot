@@ -69,6 +69,7 @@
 	bind:this={modalElement}
 	on:close={() => (show = false)}
 	on:cancel|preventDefault={closeModal}
+	id="batch-annotation-modal"
 >
 	<form method="dialog">
 		<h2 id="modal-title">

@@ -405,10 +405,12 @@ test('can add annotations in batch', async ({ page }) => {
 
 	try {
 		console.log('Waiting for modal to appear...');
-		await page.waitForSelector('.modal', { state: 'visible', timeout: 2000 });
+		await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 2000 });
 		console.log('Modal appeared successfully');
 	} catch (error) {
 		console.error('Modal did not appear:', error);
+		// Take a screenshot for debugging
+		await page.screenshot({ path: 'modal-not-visible.png' });
 		throw error;
 	}
 
