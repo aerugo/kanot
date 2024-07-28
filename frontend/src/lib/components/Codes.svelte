@@ -119,6 +119,7 @@
 			selectedSeries={[]}
 			selectedSegments={[]}
 			{selectedCodes}
+			{selectedTypes}
 			{seriesOptions}
 			{segmentOptions}
 			onClearFilter={handleClearFilter}

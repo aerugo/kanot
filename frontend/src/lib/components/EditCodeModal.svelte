@@ -134,7 +134,7 @@
           Code Type:
           <div class="custom-select" data-id="edit-code-type" id="code-type-select">
             <div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
-              {$codeTypes.find(ct => ct.type_id === editingCode.type_id)?.type_name || 'Select Code Type'}
+              {$codeTypes.find(ct => editingCode && ct.type_id === editingCode.type_id)?.type_name || 'Select Code Type'}
             </div>
             {#if isDropdownOpen}
               <div class="options" role="listbox">
@@ -145,12 +145,16 @@
                     tabindex="0"
                     aria-selected={editingCode.type_id === codeType.type_id}
                     on:click={() => {
-                      editingCode.type_id = codeType.type_id;
+                      if (editingCode) {
+                        editingCode.type_id = codeType.type_id;
+                      }
                       isDropdownOpen = false;
                     }}
                     on:keydown={(e) => {
                       if (e.key === 'Enter') {
-                        editingCode.type_id = codeType.type_id;
+                        if (editingCode) {
+                         editingCode.type_id = codeType.type_id;
+                        }
                         isDropdownOpen = false;
                       }
                     }}

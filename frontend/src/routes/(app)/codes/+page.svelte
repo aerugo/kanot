@@ -9,11 +9,12 @@
   onMount(() => {
     codes.set(data.codes);
     codeTypes.set(data.codeTypes);
-    $: if ($currentProject) {
-      codes.refresh($currentProject, fetch);
-      codeTypes.refresh(fetch);
-    }
   });
+
+  $: if ($currentProject) {
+    codes.refresh($currentProject, fetch);
+    codeTypes.refresh(fetch);
+  }
 </script>
 
 <Codes currentProjectId={$currentProject} />
