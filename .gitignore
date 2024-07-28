@@ -83,6 +83,10 @@ poetry.lock
 # Pytest
 /.pytest_cache/
 
+# Playwright test runner
+.playwright/
+test-results/
+
 # Jupyter
 .ipynb_checkpoints/
 
