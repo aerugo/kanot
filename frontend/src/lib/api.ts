@@ -203,11 +203,17 @@ export async function createBatchAnnotations(
 export async function removeBatchAnnotations(
 	elementIds: number[],
 	codeIds: number[]
-): Promise<any> {
-	return apiRequest('/batch_annotations/', 'DELETE', {
-		element_ids: elementIds,
-		code_ids: codeIds
-	}, undefined, { 'Content-Type': 'application/json' });
+): Promise<Response> {
+	return fetch(`${BASE_URL}/batch_annotations/`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			element_ids: elementIds,
+			code_ids: codeIds
+		})
+	});
 }
 
 /**

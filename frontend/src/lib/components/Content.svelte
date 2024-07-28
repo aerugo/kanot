@@ -395,25 +395,28 @@
 	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
 		try {
-			await removeBatchAnnotations(selectedElementIds, codeIds);
-
-			elementsStore.update((elements) => {
-				return elements.map((element) => {
-					if (selectedElementIds.includes(element.element_id)) {
-						return {
-							...element,
-							annotations: element.annotations.filter(
-								(annotation) => !codeIds.includes(annotation.code?.code_id ?? -1)
-							)
-						};
-					}
-					return element;
+			const response = await removeBatchAnnotations(selectedElementIds, codeIds);
+			if (response.ok) {
+				elementsStore.update((elements) => {
+					return elements.map((element) => {
+						if (selectedElementIds.includes(element.element_id)) {
+							return {
+								...element,
+								annotations: element.annotations.filter(
+									(annotation) => !codeIds.includes(annotation.code?.code_id ?? -1)
+								)
+							};
+						}
+						return element;
+					});
 				});
-			});
 
-			// Clear selection and close modal
-			clearSelection();
-			showBatchRemovalModal = false;
+				// Clear selection and close modal
+				clearSelection();
+				showBatchRemovalModal = false;
+			} else {
+				throw new Error('Failed to remove annotations');
+			}
 		} catch (error) {
 			console.error('Error removing batch annotations:', error);
 			// Display an error message to the user
