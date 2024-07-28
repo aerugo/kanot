@@ -207,7 +207,7 @@ export async function removeBatchAnnotations(
 	return apiRequest('/batch_annotations/', 'DELETE', {
 		element_ids: elementIds,
 		code_ids: codeIds
-	});
+	}, undefined, { 'Content-Type': 'application/json' });
 }
 
 /**
