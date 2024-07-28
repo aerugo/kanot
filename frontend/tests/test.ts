@@ -212,6 +212,13 @@ test('can delete a code', async ({ page }) => {
 
 	// Store the initial number of codes
 	const initialCodeCount = await page.locator('.codes-list tr').count();
+	console.log(`Initial code count: ${initialCodeCount}`);
+
+	// Check if there are any codes to delete
+	if (initialCodeCount === 0) {
+		console.log('No codes to delete. Test cannot proceed.');
+		return;
+	}
 
 	// Click the delete button on the first code
 	await page.click('.codes-list tr:first-child button:has-text("Delete")');
@@ -224,6 +231,14 @@ test('can delete a code', async ({ page }) => {
 
 	// Check if the number of codes has decreased
 	const newCodeCount = await page.locator('.codes-list tr').count();
+	console.log(`New code count: ${newCodeCount}`);
+
+	if (newCodeCount >= initialCodeCount) {
+		console.error(`Deletion failed. Initial count: ${initialCodeCount}, New count: ${newCodeCount}`);
+		// Take a screenshot for debugging
+		await page.screenshot({ path: 'deletion-failed.png' });
+	}
+
 	expect(newCodeCount).toBe(initialCodeCount - 1);
 });
 
