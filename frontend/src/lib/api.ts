@@ -223,7 +223,14 @@ export async function removeBatchAnnotations(
 
 		if (!response.ok) {
 			console.error('Error response:', responseText);
-			return { success: false, message: responseText || 'Failed to remove annotations' };
+			let errorMessage = 'Failed to remove annotations';
+			try {
+				const errorJson = JSON.parse(responseText);
+				errorMessage = errorJson.detail || errorMessage;
+			} catch (e) {
+				console.error('Error parsing error response:', e);
+			}
+			return { success: false, message: errorMessage };
 		}
 
 		const result = JSON.parse(responseText);
