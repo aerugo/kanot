@@ -386,7 +386,7 @@ test('can add annotation to an element', async ({ page }) => {
 	// Find a code that is not already used for the element
 	let unusedCode;
 	for (const code of allCodes) {
-		if (!existingAnnotations.includes(code)) {
+		if (!existingAnnotations.some(annotation => annotation.startsWith(code))) {
 			unusedCode = code;
 			break;
 		}
@@ -409,11 +409,8 @@ test('can add annotation to an element', async ({ page }) => {
 		// Verify that the new annotation is visible in the UI
 		await expect(page.locator(`table tbody tr:first-child .code-tag:has-text("${unusedCode}")`)).toBeVisible();
 	} else {
-		console.log('All codes are already used for this element');
-		// Check that the annotation count hasn't changed
-		const newAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-		console.log(`Final annotation count: ${newAnnotationCount}`);
-		expect(newAnnotationCount).toBe(initialAnnotationCount);
+		console.error('No unused codes found. This test cannot proceed.');
+		throw new Error('No unused codes available for testing');
 	}
 });
 
