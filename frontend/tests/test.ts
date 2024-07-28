@@ -147,9 +147,6 @@ test('can filter codes by type', async ({ page }) => {
       // Get the selected code type
       const selectedCodeType = await page.locator('[data-id="edit-code-type"] .selected-option').textContent();
       
-      // Log the selected code type for debugging
-      console.log('Selected Code Type:', selectedCodeType);
-      
       // Wait for a short time to ensure the dropdown has closed
       await page.waitForTimeout(500);
     
@@ -181,7 +178,7 @@ test('can filter codes by type', async ({ page }) => {
       
       // Click the edit button again to verify all fields
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
-      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 1000 });
       
       // Verify all fields contain the updated values
       await expect(page.locator('[data-id="edit-code-term"]')).toHaveValue('TEST Updated Code Term');
