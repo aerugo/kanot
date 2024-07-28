@@ -35,7 +35,7 @@
 		name: string;
 	}
 
-	export let currentProjectId: number;
+	export let currentProjectId: number | null = null;
 
 	let elementsStore: Writable<Element[]> = writable([]);
 	let page: number = 1;
@@ -69,22 +69,36 @@
 		await loadMoreData();
 	}
 
-	$: if (currentProjectId) {
-		loadInitialData();
+	$: {
+		console.log('Current Project ID:', currentProjectId);
+		if (currentProjectId !== null) {
+			loadInitialData();
+		}
 	}
 
 	async function loadFilterOptions(): Promise<void> {
-		const [series, segmentsData] = await Promise.all([fetchSeries(currentProjectId), fetchSegments(currentProjectId)]);
+		if (currentProjectId === null) {
+			console.error('Current project ID is null');
+			return;
+		}
+		try {
+			const [series, segmentsData] = await Promise.all([
+				fetchSeries(currentProjectId),
+				fetchSegments(currentProjectId)
+			]);
 
-		seriesOptions = (series as Series[]).map((s: Series) => ({
-			id: s.series_id,
-			name: s.series_title
-		}));
+			seriesOptions = (series as Series[]).map((s: Series) => ({
+				id: s.series_id,
+				name: s.series_title
+			}));
 
-		segmentOptions = (segmentsData as Series[]).map((s: Series) => ({
-			id: s.segment_id,
-			name: s.segment_title
-		}));
+			segmentOptions = (segmentsData as Series[]).map((s: Series) => ({
+				id: s.segment_id,
+				name: s.segment_title
+			}));
+		} catch (error) {
+			console.error('Error loading filter options:', error);
+		}
 	}
 
 	async function loadMoreData(): Promise<void> {
