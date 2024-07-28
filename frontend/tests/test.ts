@@ -164,6 +164,9 @@ test('can filter codes by type', async ({ page }) => {
   test('content pagination loads more items', async ({ page }) => {
 	await page.goto('/content');
 	
+	// Wait for the table to be visible
+	await page.waitForSelector('table', { state: 'visible' });
+	
 	// Get the initial number of rows
 	const initialRowCount = await page.locator('table tbody tr').count();
 	
@@ -171,7 +174,7 @@ test('can filter codes by type', async ({ page }) => {
 	await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 	
 	// Wait for new items to load (adjust timeout as needed)
-	await page.waitForTimeout(1000);
+	await page.waitForTimeout(2000);
 	
 	// Check if the number of rows has increased
 	const newRowCount = await page.locator('table tbody tr').count();
@@ -182,6 +185,9 @@ test('can filter codes by type', async ({ page }) => {
   test('can add annotation to an element', async ({ page }) => {
 	await page.goto('/content');
 	
+	// Wait for the table to be visible
+	await page.waitForSelector('table', { state: 'visible' });
+	
 	// Click the add annotation button on the first element
 	await page.click('table tbody tr:first-child button.add-code');
 	
@@ -191,6 +197,9 @@ test('can filter codes by type', async ({ page }) => {
 	// Select the first code from the dropdown
 	await page.click('.annotation-dropdown .filter-option:first-child');
 	
+	// Wait for the code tag to be added
+	await page.waitForTimeout(1000);
+	
 	// Check if a new code tag is added to the element
 	await expect(page.locator('table tbody tr:first-child .code-tag')).toBeVisible();
   });
@@ -198,45 +207,35 @@ test('can filter codes by type', async ({ page }) => {
   // Test for adding and removing an annotation from an element
   test('can add and remove annotation from an element', async ({ page }) => {
     await page.goto('/content');
-    console.log('Navigated to content page');
+    
+    // Wait for the table to be visible
+    await page.waitForSelector('table', { state: 'visible' });
 
     // Get the initial number of annotations
     const initialAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-    console.log(`Initial annotation count: ${initialAnnotationCount}`);
 
     // Add an annotation
     await page.click('table tbody tr:first-child button.add-code');
-    console.log('Clicked add code button');
 
     await page.waitForSelector('.annotation-dropdown', { state: 'visible' });
-    console.log('Annotation dropdown is visible');
 
     await page.click('.annotation-dropdown .filter-option:first-child');
-    console.log('Selected first code from dropdown');
 
     // Wait for the code tag to appear
     await page.waitForSelector('table tbody tr:first-child .code-tag', { state: 'visible' });
-    console.log('Code tag is visible');
 
     // Check if the number of annotations has increased
     const afterAddAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-    console.log(`After add annotation count: ${afterAddAnnotationCount}`);
     expect(afterAddAnnotationCount).toBe(initialAnnotationCount + 1);
 
     // Remove the first annotation
     const removeButton = await page.locator('table tbody tr:first-child .code-tag button').first();
-    if (await removeButton.isVisible()) {
-      await removeButton.click();
-      console.log('Clicked remove button on first code tag');
-    } else {
-      console.error('Remove button not visible');
-    }
+    await removeButton.click();
 
     // Wait for the annotation to be removed
-    await page.waitForTimeout(2000); // Increased timeout to 2 seconds
+    await page.waitForTimeout(2000);
 
     // Check if the number of annotations has decreased back to the initial count
     const finalAnnotationCount = await page.locator('table tbody tr:first-child .code-tag').count();
-    console.log(`Final annotation count: ${finalAnnotationCount}`);
     expect(finalAnnotationCount).toBe(initialAnnotationCount);
   });
