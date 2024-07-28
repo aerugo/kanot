@@ -358,7 +358,6 @@
 	}
 
 	function openBatchRemovalModal(): void {
-		console.log('Opening batch removal modal');
 		showBatchRemovalModal = true;
 	}
 
@@ -394,17 +393,12 @@
 
 	async function handleBatchRemoval(event: CustomEvent<{ codeIds: number[] }>): Promise<void> {
 		const { codeIds } = event.detail;
-		console.log('handleBatchRemoval called with codeIds:', codeIds);
-		console.log('selectedElementIds:', selectedElementIds);
 	
 		if (selectedElementIds.length === 0 || codeIds.length === 0) {
-			alert('Please select at least one element and one code to remove.');
 			return;
 		}
 
-		console.log('Calling removeBatchAnnotations with:', { selectedElementIds, codeIds });
 		const result = await removeBatchAnnotations(selectedElementIds, codeIds);
-		console.log('removeBatchAnnotations result:', result);
 
 		if (result.success) {
 			elementsStore.update((elements) => {
@@ -422,16 +416,8 @@
 				});
 			});
 
-			// Clear selection and close modal
 			clearSelection();
 			showBatchRemovalModal = false;
-
-			// Display a success message with the number of removed annotations
-			alert(`Successfully removed ${result.removedCount} annotation${result.removedCount !== 1 ? 's' : ''}.`);
-		} else {
-			console.error('Error removing batch annotations:', result.message);
-			// Display an error message to the user
-			alert(`Failed to remove annotations: ${result.message}`);
 		}
 	}
 </script>

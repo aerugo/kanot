@@ -205,7 +205,6 @@ export async function removeBatchAnnotations(
 	codeIds: number[]
 ): Promise<{ success: boolean; message: string; removedCount: number }> {
 	try {
-		console.log('removeBatchAnnotations called with:', { elementIds, codeIds });
 		const queryParams = new URLSearchParams();
 		elementIds.forEach(id => queryParams.append('element_ids', id.toString()));
 		codeIds.forEach(id => queryParams.append('code_ids', id.toString()));
@@ -217,19 +216,15 @@ export async function removeBatchAnnotations(
 			}
 		});
 
-		console.log('API response status:', response.status);
 		const responseData = await response.json();
-		console.log('API response data:', responseData);
 
 		if (!response.ok) {
-			console.error('Error response:', responseData);
 			return { success: false, message: responseData.detail || 'Failed to remove annotations', removedCount: 0 };
 		}
 
 		return { success: true, message: responseData.message, removedCount: responseData.removed_count };
 	} catch (error) {
-		console.error('Error in removeBatchAnnotations:', error);
-		return { success: false, message: `An error occurred while removing annotations: ${error.message}`, removedCount: 0 };
+		return { success: false, message: `An error occurred while removing annotations`, removedCount: 0 };
 	}
 }
 
