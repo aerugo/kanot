@@ -114,15 +114,11 @@ test('can filter codes by type', async ({ page }) => {
     // Wait for the codes list to be visible and contain at least one row
     await page.waitForSelector('.codes-list tr', { state: 'visible' });
     
-    // Log the content of the codes list for debugging
-    console.log('Codes list content:', await page.textContent('.codes-list'));
-    
     // Wait for the codes list to load and contain at least one row
     await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 15000 });
 
     // Log the number of rows in the codes list
     const rowCount = await page.locator('.codes-list tr').count();
-    console.log(`Number of rows in codes list: ${rowCount}`);
 
     // Check if there's at least one row
     if (rowCount > 0) {
@@ -131,14 +127,11 @@ test('can filter codes by type', async ({ page }) => {
       await page.click('.codes-list tr:first-child button:has-text("Edit")');
       
       // Wait for the modal to appear and log its visibility
-      await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 }).catch(() => console.log('Modal not visible after 5 seconds'));
+      await page.waitForSelector('.modal', { state: 'visible', timeout: 1000 }).catch(() => console.log('Modal not visible after 1 seconds'));
       const isModalVisible = await page.isVisible('.modal');
-      console.log('Is modal visible:', isModalVisible);
 
       if (isModalVisible) {
-        // Check if the input field exists and is visible
         const inputExists = await page.isVisible('.modal input[placeholder="Term"]');
-        console.log('Does input field exist:', inputExists);
 
         if (inputExists) {
           // Fill in a new term
@@ -153,6 +146,9 @@ test('can filter codes by type', async ({ page }) => {
       throw new Error('No codes found in the list');
     }
     
+    // Pause exection until continued
+    await page.pause();
+
     // Save the changes
     await page.click('.modal button:has-text("Save")');
     
