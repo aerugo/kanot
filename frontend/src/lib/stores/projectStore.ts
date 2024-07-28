@@ -1,3 +1,3 @@
 import { writable } from 'svelte/store';
 
-export const currentProject = writable<number>(0);
+export const currentProject = writable<number>(1);

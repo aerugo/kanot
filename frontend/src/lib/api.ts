@@ -14,7 +14,12 @@ type FetchFunction = (input: RequestInfo | URL, init?: RequestInit) => Promise<R
  * @returns {number} The current project ID
  */
 function getCurrentProjectId(): number {
-    return get(currentProject);
+    const projectId = get(currentProject);
+    if (projectId === undefined || projectId === null) {
+        console.error('Project ID is undefined or null');
+        return 1; // Return a default project ID
+    }
+    return projectId;
 }
 
 /**
