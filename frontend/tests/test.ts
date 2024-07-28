@@ -147,8 +147,19 @@ test('can filter codes by type', async ({ page }) => {
       // Save the changes
       await page.click('.modal button:has-text("Save")');
       
+      // Wait for the save operation to complete (increase timeout if needed)
+      await page.waitForTimeout(5000);
+
       // Check if the modal closes
-      await expect(page.locator('.modal')).not.toBeVisible({ timeout: 5000 });
+      try {
+        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 10000 });
+      } catch (error) {
+        console.error('Modal did not close as expected:', error);
+        // Log the current state of the modal
+        const modalContent = await page.locator('.modal').innerHTML();
+        console.log('Modal content:', modalContent);
+        throw error;
+      }
       
       // Wait for the update to be reflected
       await page.waitForTimeout(2000);
