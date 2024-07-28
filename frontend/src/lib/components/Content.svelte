@@ -87,8 +87,8 @@
 		}
 		try {
 			const [series, segmentsData] = await Promise.all([
-				fetchSeries($currentProject),
-				fetchSegments($currentProject)
+				fetchSeries(),
+				fetchSegments()
 			]);
 
 			seriesOptions = (series as Series[]).map((s: Series) => ({

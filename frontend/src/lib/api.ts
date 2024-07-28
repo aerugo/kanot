@@ -1,5 +1,6 @@
 import { currentProject } from '$lib/stores/projectStore';
 import { get } from 'svelte/store';
+import type { Code, CodeType, Project } from './types';
 
 const BASE_URL = 'http://localhost:8000';
 
@@ -16,8 +17,7 @@ type FetchFunction = (input: RequestInfo | URL, init?: RequestInit) => Promise<R
 function getCurrentProjectId(): number {
     const projectId = get(currentProject);
     if (projectId === undefined || projectId === null) {
-        console.error('Project ID is undefined or null');
-        return 1; // Return a default project ID
+        return 0; // Return a default project ID
     }
     return projectId;
 }
