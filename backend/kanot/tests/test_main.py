@@ -791,22 +791,21 @@ def test_read_annotations_by_project(client: TestClient, create_project: Callabl
 
     # Create annotations for both projects
     annotation1 = client.post("/annotations/", json={"element_id": element1_id, "code_id": code1_id, "project_id": project1_id})
-    # We'll skip creating annotation2 as it's a duplicate of annotation1
     annotation3 = client.post("/annotations/", json={"element_id": element2_id, "code_id": code2_id, "project_id": project2_id})
-
+    
     assert annotation1.status_code == 200
     assert annotation3.status_code == 200
-
+    
     # Read annotations for project 1
     response = client.get(f"/annotations/?project_id={project1_id}")
     assert response.status_code == 200
     annotations: list[Any] = response.json()
     assert isinstance(annotations, list)
-    assert len(annotations) == 2
-    assert all(annotation["project_id"] == project1_id for annotation in annotations)
-    assert all(annotation["element_id"] == element1_id for annotation in annotations)
-    assert all(annotation["code_id"] == code1_id for annotation in annotations)
-
+    assert len(annotations) == 1
+    assert annotations[0]["project_id"] == project1_id
+    assert annotations[0]["element_id"] == element1_id
+    assert annotations[0]["code_id"] == code1_id
+    
     # Read annotations for project 2
     response = client.get(f"/annotations/?project_id={project2_id}")
     assert response.status_code == 200
