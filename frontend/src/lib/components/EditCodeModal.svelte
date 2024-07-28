@@ -105,11 +105,11 @@
       <form on:submit|preventDefault={saveEdit}>
         <label>
           Term:
-          <input bind:value={editingCode.term} required />
+          <input bind:value={editingCode.term} data-id="edit-code-term" required />
         </label>
         <label>
           Description:
-          <input bind:value={editingCode.description} />
+          <input bind:value={editingCode.description} data-id="edit-code-description" />
         </label>
         <label>
           Code Type:
@@ -122,11 +122,11 @@
         </label>
         <label>
           Reference:
-          <input bind:value={editingCode.reference} />
+          <input bind:value={editingCode.reference} data-id="edit-code-reference" />
         </label>
         <label>
           Coordinates:
-          <input bind:value={editingCode.coordinates} />
+          <input bind:value={editingCode.coordinates} data-id="edit-code-coordinates" />
         </label>
         <div class="button-group">
           <button type="submit">Save</button>
