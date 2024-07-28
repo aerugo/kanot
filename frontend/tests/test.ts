@@ -396,8 +396,8 @@ test('can add annotations in batch', async ({ page }) => {
 	await page.screenshot({ path: 'before-annotate-click.png' });
 
 	// Click the batch annotation button
-	await page.click('button:has-text("Annotate Selected")');
-	console.log('Clicked "Annotate Selected" button');
+	await page.click('button:has-text("Add Annotations")');
+	console.log('Clicked "Add Annotations" button');
 
 	// Wait a bit and take another screenshot
 	await page.waitForTimeout(2000);

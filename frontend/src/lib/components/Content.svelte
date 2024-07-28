@@ -535,7 +535,7 @@
 				{selectedElementIds.length} element{selectedElementIds.length !== 1 ? 's' : ''} selected
 			</span>
 			<button class="annotate-button" on:click={openBatchAnnotationModal}>
-				Annotate Selected
+				Add Annotations
 			</button>
 			<button class="remove-annotations-button" on:click={() => (showBatchRemovalModal = true)}>
 				Remove Annotations
