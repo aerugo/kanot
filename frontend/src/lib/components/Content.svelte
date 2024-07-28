@@ -3,6 +3,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { fade, slide } from 'svelte/transition';
+	import { get } from 'svelte/store';
 	import {
 		createAnnotation,
 		createBatchAnnotations,
@@ -75,7 +76,7 @@
 		await resetSearch();
 	}
 
-	$: if ($currentProject !== null) {
+	$: if ($currentProject !== null && $currentProject !== 0) {
 		console.log('Current Project ID:', $currentProject);
 		loadInitialData();
 	}
@@ -176,9 +177,6 @@
 	}
 
 	onMount(async () => {
-		if ($currentProject !== null) {
-			await loadInitialData();
-		}
 		if (browser) {
 			window.addEventListener('scroll', handleScroll);
 		}
