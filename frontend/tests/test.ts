@@ -127,11 +127,11 @@ test('can filter codes by type', async ({ page }) => {
       await page.waitForSelector('.modal', { state: 'visible', timeout: 5000 });
 
       // Fill in new values for all fields
-      await page.fill('[data-id="edit-code-term"]', 'Updated Code Term');
-      await page.fill('[data-id="edit-code-description"]', 'Updated Code Description');
+      await page.fill('[data-id="edit-code-term"]', 'TEST Updated Code Term');
+      await page.fill('[data-id="edit-code-description"]', 'TEST Updated Code Description');
       await page.selectOption('select', { label: 'Select Code Type' }); // Assuming there's at least one option
-      await page.fill('[data-id="edit-code-reference"]', 'Updated Reference');
-      await page.fill('[data-id="edit-code-coordinates"]', 'Updated Coordinates');
+      await page.fill('[data-id="edit-code-reference"]', 'TEST Updated Reference');
+      await page.fill('[data-id="edit-code-coordinates"]', 'TEST Updated Coordinates');
 
       // Save the changes
       await page.click('.modal button:has-text("Save")');
