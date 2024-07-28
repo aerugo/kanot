@@ -109,31 +109,35 @@ test('can filter codes by type', async ({ page }) => {
   
   // Test for editing a code
   test('can edit an existing code', async ({ page }) => {
-	await page.goto('/codes');
-	
-	// Wait for the codes list to be visible
-	await page.waitForSelector('.codes-list', { state: 'visible' });
-	
-	// Click the edit button on the first code (adjust selector as needed)
-	await page.click('.codes-list tr:first-child button:has-text("Edit")');
-	
-	// Check if the edit modal is visible
-	await expect(page.locator('.modal')).toBeVisible();
-	
-	// Fill in a new term
-	await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
-	
-	// Save the changes
-	await page.click('.modal button:has-text("Save")');
-	
-	// Check if the modal closes
-	await expect(page.locator('.modal')).not.toBeVisible();
-	
-	// Wait for the update to be reflected
-	await page.waitForTimeout(1000);
-	
-	// Check if the updated term is visible in the list
-	await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
+    await page.goto('/codes');
+    
+    // Wait for the codes list to be visible and contain at least one row
+    await page.waitForSelector('.codes-list tr', { state: 'visible' });
+    
+    // Log the content of the codes list for debugging
+    console.log('Codes list content:', await page.textContent('.codes-list'));
+    
+    // Wait for and click the edit button on the first code
+    await page.waitForSelector('.codes-list tr:first-child button:has-text("Edit")', { state: 'visible', timeout: 10000 });
+    await page.click('.codes-list tr:first-child button:has-text("Edit")');
+    
+    // Check if the edit modal is visible
+    await expect(page.locator('.modal')).toBeVisible();
+    
+    // Fill in a new term
+    await page.fill('.modal input[placeholder="Term"]', 'Updated Code Term');
+    
+    // Save the changes
+    await page.click('.modal button:has-text("Save")');
+    
+    // Check if the modal closes
+    await expect(page.locator('.modal')).not.toBeVisible();
+    
+    // Wait for the update to be reflected
+    await page.waitForTimeout(2000);
+    
+    // Check if the updated term is visible in the list
+    await expect(page.locator('.codes-list')).toContainText('Updated Code Term');
   });
   
   // Test for deleting a code
