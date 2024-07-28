@@ -65,7 +65,9 @@
         const updatedCode = await updateCode(editingCode.code_id, editingCode);
         console.log('Code updated successfully:', updatedCode);
         dispatch("codeUpdated", updatedCode);
+        console.log('Dispatched codeUpdated event');
         closeModal();
+        console.log('Called closeModal function');
       } catch (error) {
         console.error("Error updating code:", error);
         errorMessage = `Error updating code: ${error.message}`;
@@ -76,6 +78,9 @@
   function closeModal() {
     console.log('Closing modal');
     dispatch("close");
+    console.log('Dispatched close event');
+    modalEl.style.display = 'none';
+    console.log('Set modal display to none');
   }
 
   $: if (code && !editingCode) {

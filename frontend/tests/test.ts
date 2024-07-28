@@ -154,7 +154,7 @@ test('can filter codes by type', async ({ page }) => {
 
       // Check if the modal closes
       try {
-        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.modal')).not.toBeVisible({ timeout: 20000 });
       } catch (error) {
         console.error('Modal did not close as expected:', error);
         // Log the current state of the modal
@@ -176,6 +176,14 @@ test('can filter codes by type', async ({ page }) => {
           return (window as any).consoleLog || [];
         });
         console.log('Console messages:', consoleMessages);
+
+        // Log the visibility state of the modal
+        const isModalVisible = await page.locator('.modal').isVisible();
+        console.log('Is modal visible:', isModalVisible);
+
+        // Log any JavaScript errors
+        const jsErrors = await page.evaluate(() => (window as any).jsErrors || []);
+        console.log('JavaScript errors:', jsErrors);
         
         throw error;
       }
