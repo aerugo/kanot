@@ -1,6 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import path from 'path';
 
 const execAsync = promisify(exec);
 
@@ -11,20 +12,8 @@ const config: PlaywrightTestConfig = {
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
-	globalSetup: async () => {
-		// Start the test API
-		exec('TEST_MODE=1 uvicorn backend.kanot.main:app --host localhost --port 8888 &');
-		
-		// Wait for the API to start
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		
-		// Reset the test database
-		await execAsync('python ./scripts/populate_test_db.py');
-	},
-	globalTeardown: async () => {
-		// Stop the test API
-		await execAsync('pkill -f "uvicorn backend.kanot.main:app"');
-	},
+	globalSetup: path.join(__dirname, 'global-setup.ts'),
+	globalTeardown: path.join(__dirname, 'global-teardown.ts'),
 	use: {
 		baseURL: 'http://localhost:4173',
 	},
