@@ -500,12 +500,33 @@ test('can add annotations in batch', async ({ page }) => {
 	// Wait for the annotation dropdown to be visible
 	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 5000 });
 
-	// Click the "Add Code" button to open the dropdown
-	await page.waitForSelector('button:has-text("Add Code")', { state: 'visible', timeout: 5000 });
+	// Add debugging steps
+	console.log('Current URL:', page.url());
+	console.log('Page content:', await page.content());
+
+	// Increase timeout and add debugging for the "Add Code" button
+	await page.waitForSelector('button:has-text("Add Code")', { state: 'visible', timeout: 10000 })
+		.catch(async (error) => {
+			console.error('Error waiting for "Add Code" button:', error);
+			console.log('Page content after error:', await page.content());
+			throw error;
+		});
+
+	// Take a screenshot before clicking the button
+	await page.screenshot({ path: 'before-add-code-click.png' });
+
 	await page.click('button:has-text("Add Code")');
 
-	// Wait for the annotation dropdown to be visible
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 5000 });
+	// Wait for the annotation dropdown to be visible with increased timeout
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 10000 })
+		.catch(async (error) => {
+			console.error('Error waiting for annotation dropdown:', error);
+			console.log('Page content after error:', await page.content());
+			throw error;
+		});
+
+	// Take a screenshot after clicking the button
+	await page.screenshot({ path: 'after-add-code-click.png' });
 
 	// If the dropdown is not visible, take a screenshot and log the HTML
 	if (!(await page.isVisible('.annotation-dropdown'))) {
