@@ -384,7 +384,7 @@ test('can create a new code', async ({ page }) => {
 	await page.goto('/codes');
 
 	// Wait for the page to load and codes to be visible
-	await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 10000 });
+	await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 3000 });
 
 	// Wait for the codes to stabilize
 	await page.waitForFunction(() => {
@@ -400,7 +400,7 @@ test('can create a new code', async ({ page }) => {
 	await page.click('button:has-text("New Code")');
 
 	// Wait for the form to appear
-	await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
+	await page.waitForSelector('form', { state: 'visible', timeout: 2000 });
 
 	// Generate a unique term
 	const uniqueTerm = `TEST-${Math.random().toString(36).substring(2, 10)}`;
@@ -435,7 +435,7 @@ test('can create a new code', async ({ page }) => {
 	console.log('Form submitted');
 
 	// Wait for the success message to appear
-	await page.waitForSelector('.status-message.success', { state: 'visible', timeout: 10000 });
+	await page.waitForSelector('.status-message.success', { state: 'visible', timeout: 2000 });
 	console.log('Success message appeared');
 
 	// Check the content of the success message
@@ -443,17 +443,8 @@ test('can create a new code', async ({ page }) => {
 	expect(successMessage).toBe('Code added successfully!');
 	console.log('Success message content verified');
 
-	// Wait for the new code to be added and the list to update
-	await page.waitForFunction((expectedCount, uniqueTerm) => {
-		const rows = document.querySelectorAll('.codes-list tr');
-		console.log(`Current row count: ${rows.length}, Expected count: ${expectedCount}`);
-		const newCodeVisible = Array.from(rows).some(row => row.textContent.includes(uniqueTerm));
-		console.log(`Is new code "${uniqueTerm}" visible: ${newCodeVisible}`);
-		return rows.length === expectedCount && newCodeVisible;
-	}, initialCodeCount + 1, uniqueTerm, { timeout: 60000 });
-
 	// Additional wait to ensure all updates are complete
-	await page.waitForTimeout(5000);
+	await page.waitForTimeout(2000);
 
 	// Log the current state of the codes list
 	const currentCodes = await page.evaluate(() => {
@@ -464,7 +455,6 @@ test('can create a new code', async ({ page }) => {
 			type: row.querySelector('td:nth-child(3)')?.textContent
 		}));
 	});
-	console.log('Current codes:', JSON.stringify(currentCodes, null, 2));
 
 	// Check if the new code is visible in the list
 	const isNewCodeVisible = await page.isVisible(`.codes-list tr:has-text("${uniqueTerm}")`);
@@ -472,7 +462,7 @@ test('can create a new code', async ({ page }) => {
 
 	// Additional check to ensure the new code is visible
 	try {
-		await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 10000 });
+		await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 3000 });
 		console.log('New code found in the list');
 	} catch (error) {
 		console.error('New code not found in the list:', error);
@@ -487,7 +477,6 @@ test('can create a new code', async ({ page }) => {
 
 	// Check if the new code is visible in the list
 	const newCodeText = await page.textContent('.codes-list');
-	console.log('Codes list text content:', newCodeText);
 
 	expect(newCodeCount).toBe(initialCodeCount + 1);
 	expect(newCodeText).toContain(uniqueTerm);
