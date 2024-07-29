@@ -401,10 +401,10 @@ test('can create a new code', async ({ page }) => {
 	await page.waitForFunction((expectedCount) => {
 		const rows = document.querySelectorAll('.codes-list tr');
 		return rows.length === expectedCount && !rows[rows.length - 1].classList.contains('loading');
-	}, initialCodeCount + 1, { timeout: 30000 });
+	}, initialCodeCount + 1, { timeout: 2000 });
 
 	// Additional check to ensure the new code is visible
-	await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 30000 });
+	await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 2000 });
 
 	// Check if the number of codes has increased
 	const newCodeCount = await page.locator('.codes-list tr').count();
