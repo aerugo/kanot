@@ -20,14 +20,7 @@ async function isServerRunning(port: number): Promise<boolean> {
 const config: PlaywrightTestConfig = {
     webServer: [
         {
-            command: async () => {
-                const serverRunning = await isServerRunning(8888);
-                if (!serverRunning) {
-                    return 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
-                }
-                console.log('Test API server is already running on port 8888');
-                return 'echo "Server already running"';
-            },
+            command: 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888',
             port: 8888,
             reuseExistingServer: true,
         },
