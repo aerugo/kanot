@@ -36,10 +36,10 @@ async function globalSetup() {
 
         if (!serverRunning) {
             console.log('Starting test API server...');
-            const command = 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
+            const command = 'TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
             console.log('Executing command:', command);
             
-            const { stdout, stderr } = await execAsync(command);
+            const { stdout, stderr } = await execAsync(command, { cwd: '../backend' });
             console.log('Test API server start command executed');
             console.log('stdout:', stdout);
             console.log('stderr:', stderr);
