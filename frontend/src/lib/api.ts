@@ -141,7 +141,7 @@ export async function searchElements(
  * @param {Object} newCode - The new code data
  * @returns {Promise<any>}
  */
-export async function addCode(newCode: any): Promise<any> {
+export async function addCode(newCode: any & { project_id: number }): Promise<any> {
 	return apiRequest('/codes/', 'POST', newCode);
 }
 
