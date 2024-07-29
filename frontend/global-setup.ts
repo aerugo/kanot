@@ -22,18 +22,26 @@ async function waitForServer(url: string, maxRetries = 10, delay = 1000): Promis
 
 async function globalSetup() {
     try {
-        // Start the test API
-        await execAsync('TEST_MODE=1 uvicorn backend.kanot.main:app --host localhost --port 8888 &');
+        console.log('Starting test API server...');
+        const command = 'TEST_MODE=1 uvicorn backend.kanot.main:app --host localhost --port 8888';
+        console.log('Executing command:', command);
         
-        console.log('Test API server started');
+        const { stdout, stderr } = await execAsync(command);
+        console.log('Test API server start command executed');
+        console.log('stdout:', stdout);
+        console.log('stderr:', stderr);
 
-        // Wait for the API to be ready
+        console.log('Checking if the server process is running...');
+        const { stdout: psOutput } = await execAsync('ps aux | grep "uvicorn backend.kanot.main:app"');
+        console.log('Process check output:', psOutput);
+
+        console.log('Waiting for server to be ready...');
         const serverReady = await waitForServer('http://localhost:8888');
         if (!serverReady) {
             throw new Error('Failed to start the API server');
         }
         
-        // Reset the test database
+        console.log('Resetting the test database...');
         await execAsync('cd ../backend && poetry run python ../scripts/populate_test_db.py');
         
         console.log('Test database populated');
