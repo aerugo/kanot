@@ -11,7 +11,7 @@ async function globalSetup() {
     await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Reset the test database
-    await execAsync('python ../scripts/populate_test_db.py');
+    await execAsync('cd ../backend && poetry run python ../scripts/populate_test_db.py');
 }
 
 export default globalSetup;
