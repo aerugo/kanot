@@ -472,7 +472,7 @@ test('can remove annotations in batch', async ({ page }) => {
 	await page.click('button:has-text("Add Code")');
 
 	// Wait for the annotation dropdown to be visible
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 2000 });
 
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
