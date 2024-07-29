@@ -23,7 +23,7 @@ async function waitForServer(url: string, maxRetries = 10, delay = 1000): Promis
 async function globalSetup() {
     try {
         console.log('Starting test API server...');
-        const command = 'TEST_MODE=1 uvicorn backend.kanot.main:app --host localhost --port 8888';
+        const command = 'TEST_MODE=1 poetry run uvicorn backend.kanot.main:app --host localhost --port 8888';
         console.log('Executing command:', command);
         
         const { stdout, stderr } = await execAsync(command);
