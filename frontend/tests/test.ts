@@ -493,14 +493,6 @@ test('can add annotations in batch', async ({ page }) => {
 		throw error;
 	}
 
-	// Check if the modal is open
-	const isModalOpen = await page.isVisible('dialog[open]');
-	if (isModalOpen) {
-		// If the modal is open, close it
-		await page.click('dialog[open] button:has-text("Cancel")');
-		await page.waitForSelector('dialog[open]', { state: 'hidden', timeout: 5000 });
-	}
-
 	// Now click the "Add Code" button to open the dropdown
 	await page.waitForSelector('button:has-text("Add Code")', { state: 'visible', timeout: 5000 });
 	await page.click('button:has-text("Add Code")');
