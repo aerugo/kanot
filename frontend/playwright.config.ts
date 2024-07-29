@@ -10,8 +10,11 @@ const __dirname = path.dirname(__filename);
 
 const config: PlaywrightTestConfig = {
 	webServer: {
-		command: 'npm run build && npm run preview',
-		port: 4173
+		command: 'TEST_MODE=1 npm run build && TEST_MODE=1 npm run preview',
+		port: 4173,
+		env: {
+			TEST_MODE: '1'
+		}
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,

@@ -9,7 +9,7 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/api': {
-				target: process.env.TEST_MODE === '1' ? 'http://localhost:8888' : 'http://localhost:8000',
+				target: 'http://localhost:8888',
 				changeOrigin: true,
 				rewrite: (path) => path.replace(/^\/api/, '')
 			}
