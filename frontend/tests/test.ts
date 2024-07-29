@@ -391,10 +391,13 @@ test('can create a new code', async ({ page }) => {
 	await page.fill('input[placeholder="Description"]', 'This is a test description');
 	
 	// Select the first code type option
-	await page.selectOption('select', { index: 0 });
+	await page.selectOption('select', { index: 2 });
 
 	await page.fill('input[placeholder="Read more"]', 'https://example.com');
 	await page.fill('input[placeholder="Coordinates"]', '1,2,3');
+
+	// Pause until resume
+	await page.pause();
 
 	// Submit the form
 	await page.click('button:has-text("Add Code")');
