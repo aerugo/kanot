@@ -64,8 +64,8 @@ def populate_test_db():
     code_type_df['type_id'] = range(1, len(code_type_df) + 1)
 
     codes_df = codes_df.merge(code_type_df, left_on='type', right_on='type_name', how='left')
-    codes_df = codes_df.rename(columns={'type_name': 'type_id'})
-    codes_df = codes_df[['code_id', 'term', 'description', 'type_id', 'reference', 'coordinates']]
+    codes_df = codes_df.rename(columns={'type': 'type_name'})
+    codes_df = codes_df[['code_id', 'term', 'description', 'type_name', 'reference', 'coordinates']]
 
     project_df = pd.DataFrame({'project_id': [1], 'project_title': ['Conflicted Glossary'], 'project_description': ['Glossary for the Conflicted Podcast']})
 
@@ -94,6 +94,7 @@ def populate_test_db():
     # Insert data into tables
     project_df.to_sql('projects', engine, if_exists='replace', index=False)
     code_type_df.to_sql('code_types', engine, if_exists='replace', index=False)
+    codes_df['project_id'] = 1  # Add project_id column
     codes_df.to_sql('codes', engine, if_exists='replace', index=False)
     series_df.to_sql('series', engine, if_exists='replace', index=False)
     segment_df.to_sql('segments', engine, if_exists='replace', index=False)
