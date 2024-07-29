@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -10,21 +9,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.kanot.db.schema import (
-    Annotation,
-    Code,
-    CodeType,
-    Element,
-    Project,
-    Segment,
-    Series,
-    create_database,
-)
+from backend.kanot.db.schema import create_database
 
 
 def populate_test_db():
     # Create a connection to the SQLite database
-    db_path = project_root / 'backend' / 'test_database.db'
+    db_path = project_root / 'backend' / 'local_database.db'
     engine = create_engine(f'sqlite:///{db_path}', echo=True)
     create_database(engine)
     Session = sessionmaker(bind=engine)
