@@ -68,9 +68,14 @@
         console.log("Server response:", response);
         codes.update(currentCodes => {
           console.log("Current codes before update:", currentCodes);
-          const updatedCodes = [...currentCodes, response];
-          console.log("Updated codes:", updatedCodes);
-          return updatedCodes;
+          // Check if the code already exists in the list
+          const codeExists = currentCodes.some(code => code.code_id === response.code_id);
+          if (!codeExists) {
+            const updatedCodes = [...currentCodes, response];
+            console.log("Updated codes:", updatedCodes);
+            return updatedCodes;
+          }
+          return currentCodes;
         });
         resetForm();
         isFormVisible = false;
