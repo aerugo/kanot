@@ -332,7 +332,27 @@ test('can delete a code', async ({ page }) => {
 		await page.click('button:has-text("New Code")');
 		await page.fill('input[placeholder="Term"]', 'Test Code');
 		await page.fill('input[placeholder="Description"]', 'Test Description');
-		await page.selectOption('select', { index: 0 }); // Select the first code type
+		// Open the custom dropdown
+		await page.click('[data-id="edit-code-type"] .selected-option');
+
+		// Wait for the dropdown options to be visible
+		await page.waitForSelector('[data-id="edit-code-type"] .options', { state: 'visible' });
+
+		// Select the second option in the dropdown
+		const options = await page.$$('[data-id="edit-code-type"] .option');
+		if (options.length > 1) {
+			await options[1].click();
+		} else {
+			throw new Error('Not enough options in the dropdown');
+		}
+
+		// Get the selected code type
+		const selectedCodeType = await page
+			.locator('[data-id="edit-code-type"] .selected-option')
+			.textContent();
+
+		// Wait for a short time to ensure the dropdown has closed
+		await page.waitForTimeout(500);
 		await page.click('button:has-text("Add Code")');
 		await page.waitForTimeout(2000); // Wait for the new code to be added
 		initialCodeCount = await page.locator('.codes-list tr').count();
