@@ -95,5 +95,5 @@ test-results/
 */_temp/
 /_archive/
 */_archive/
-local_database.db
+*.db
 .aider*
