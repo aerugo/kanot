@@ -374,6 +374,7 @@ test('can create a new code', async ({ page }) => {
 
 	// Get the initial number of codes
 	const initialCodeCount = await page.locator('.codes-list tr').count();
+	console.log('Initial code count:', initialCodeCount);
 
 	// Click the "New Code" button
 	await page.click('button:has-text("New Code")');
@@ -383,6 +384,7 @@ test('can create a new code', async ({ page }) => {
 
 	// Generate a unique term
 	const uniqueTerm = `TEST-${Math.random().toString(36).substring(2, 10)}`;
+	console.log('Generated unique term:', uniqueTerm);
 
 	// Fill in the form
 	await page.fill('input[placeholder="Term"]', uniqueTerm);
@@ -396,6 +398,7 @@ test('can create a new code', async ({ page }) => {
 
 	// Submit the form
 	await page.click('button:has-text("Add Code")');
+	console.log('Form submitted');
 
 	// Wait for the new code to be added and the list to update
 	await page.waitForFunction((expectedCount) => {
@@ -423,18 +426,27 @@ test('can create a new code', async ({ page }) => {
 	console.log(`Is new code "${uniqueTerm}" visible:`, isNewCodeVisible);
 
 	// Additional check to ensure the new code is visible
-	await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 10000 });
+	try {
+		await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 10000 });
+		console.log('New code found in the list');
+	} catch (error) {
+		console.error('New code not found in the list:', error);
+	}
 
 	// Wait for a short time to ensure all updates are complete
 	await page.waitForTimeout(1000);
 
 	// Check if the number of codes has increased
 	const newCodeCount = await page.locator('.codes-list tr').count();
-	expect(newCodeCount).toBe(initialCodeCount + 1);
+	console.log('New code count:', newCodeCount);
 
 	// Check if the new code is visible in the list
-	await expect(page.locator('.codes-list')).toContainText(uniqueTerm);
-	await expect(page.locator('.codes-list')).toContainText('This is a test description');
+	const newCodeText = await page.textContent('.codes-list');
+	console.log('Codes list text content:', newCodeText);
+
+	expect(newCodeCount).toBe(initialCodeCount + 1);
+	expect(newCodeText).toContain(uniqueTerm);
+	expect(newCodeText).toContain('This is a test description');
 });
 
 // Test for batch annotation
