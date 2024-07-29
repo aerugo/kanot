@@ -60,7 +60,9 @@ def populate_test_db():
 
     codes_df = codes_df.merge(code_type_df, left_on='type', right_on='type_name', how='left')
     codes_df = codes_df.rename(columns={'type': 'type_name'})
-    codes_df = codes_df.merge(code_type_df[['type_name', 'type_id']], on='type_name', how='left')
+    # Ensure type_name is unique in code_type_df before merging
+    code_type_df_unique = code_type_df.drop_duplicates(subset=['type_name'])
+    codes_df = codes_df.merge(code_type_df_unique[['type_name', 'type_id']], on='type_name', how='left')
     codes_df = codes_df[['code_id', 'term', 'description', 'type_id', 'reference', 'coordinates']]
 
     project_df = pd.DataFrame({'project_id': [1], 'project_title': ['Conflicted Glossary'], 'project_description': ['Glossary for the Conflicted Podcast']})
