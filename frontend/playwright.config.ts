@@ -14,7 +14,8 @@ const config: PlaywrightTestConfig = {
 		port: 4173,
 		env: {
 			TEST_MODE: '1',
-			VITE_TEST_MODE: '1'
+			VITE_TEST_MODE: '1',
+			VITE_API_URL: 'http://localhost:8888'
 		}
 	},
 	testDir: 'tests',
