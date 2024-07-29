@@ -375,8 +375,11 @@ test('can create a new code', async ({ page }) => {
 	// Wait for the form to appear
 	await page.waitForSelector('form', { state: 'visible', timeout: 2000 });
 
+	// Generate a unique term
+	const uniqueTerm = `TEST-${Math.random().toString(36).substring(2, 10)}`;
+
 	// Fill in the form
-	await page.fill('input[placeholder="Term"]', 'Test New Code');
+	await page.fill('input[placeholder="Term"]', uniqueTerm);
 	await page.fill('input[placeholder="Description"]', 'This is a test description');
 	
 	// Select the first code type option
@@ -396,7 +399,7 @@ test('can create a new code', async ({ page }) => {
 	expect(newCodeCount).toBe(initialCodeCount + 1);
 
 	// Check if the new code is visible in the list
-	await expect(page.locator('.codes-list')).toContainText('Test New Code');
+	await expect(page.locator('.codes-list')).toContainText(uniqueTerm);
 	await expect(page.locator('.codes-list')).toContainText('This is a test description');
 });
 
