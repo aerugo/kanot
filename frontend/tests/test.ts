@@ -407,14 +407,25 @@ test('can create a new code', async ({ page }) => {
 	console.log('Generated unique term:', uniqueTerm);
 
 	// Fill in the form
-	await page.fill('input[placeholder="Term"]', uniqueTerm);
-	await page.fill('input[placeholder="Description"]', 'This is a test description');
+	await page.fill('[data-id="add-code-term"]', uniqueTerm);
+	await page.fill('[data-id="add-code-description"]', 'This is a test description');
 	
-	// Select the first code type option
-	await page.selectOption('select', { index: 2 });
+	// Open the custom dropdown
+	await page.click('[data-id="add-code-type"] .selected-option');
 
-	await page.fill('input[placeholder="Read more"]', 'https://example.com');
-	await page.fill('input[placeholder="Coordinates"]', '1,2,3');
+	// Wait for the dropdown options to be visible
+	await page.waitForSelector('[data-id="add-code-type"] .options', { state: 'visible' });
+
+	// Select the second option in the dropdown
+	const options = await page.$$('[data-id="add-code-type"] .option');
+	if (options.length > 1) {
+		await options[1].click();
+	} else {
+		throw new Error('Not enough options in the dropdown');
+	}
+
+	await page.fill('[data-id="add-code-reference"]', 'https://example.com');
+	await page.fill('[data-id="add-code-coordinates"]', '1,2,3');
 
 	// Pause until resume
 	await page.pause();
