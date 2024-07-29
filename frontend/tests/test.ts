@@ -391,11 +391,26 @@ test('can add annotations in batch', async ({ page }) => {
 		throw error;
 	}
 
+	// Wait for the "Remove Annotations" button to be visible and click it
+	await page.waitForSelector('button:has-text("Remove Annotations")', { state: 'visible', timeout: 5000 });
+	await page.click('button:has-text("Remove Annotations")');
+
+	// Wait for the modal to appear
+	await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 5000 });
+
 	// Click the "Add Code" button to open the dropdown
+	await page.waitForSelector('button:has-text("Add Code")', { state: 'visible', timeout: 5000 });
 	await page.click('button:has-text("Add Code")');
 
 	// Wait for the annotation dropdown to be visible
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 20000 });
+	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 5000 });
+
+	// If the dropdown is not visible, take a screenshot and log the HTML
+	if (!(await page.isVisible('.annotation-dropdown'))) {
+		await page.screenshot({ path: 'debug-dropdown-not-visible.png' });
+		console.log('Current HTML:', await page.content());
+		throw new Error('Annotation dropdown is not visible');
+	}
 
 	// Get all available codes from the dropdown
 	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
