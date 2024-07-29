@@ -3,6 +3,7 @@
   import { slide } from "svelte/transition";
   import { addCode } from "../api";
   import { codeTypes, codes } from "../stores/codeStore";
+  import { currentProject } from "../stores/projectStore";
   import type { Code } from "../types";
 
   interface NewCode {
@@ -53,7 +54,12 @@
 
   async function handleSubmit(): Promise<void> {
     try {
-      const response: Code = await addCode(newCode);
+      const projectId = $currentProject;
+      if (!projectId) {
+        throw new Error("No project selected");
+      }
+      const codeWithProject = { ...newCode, project_id: projectId };
+      const response: Code = await addCode(codeWithProject);
       if (response && response.code_id) {
         codes.add(response);
         resetForm();
