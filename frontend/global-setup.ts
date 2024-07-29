@@ -35,24 +35,7 @@ async function globalSetup() {
         const serverRunning = await isServerRunning();
 
         if (!serverRunning) {
-            console.log('Starting test API server...');
-            const command = 'TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
-            console.log('Executing command:', command);
-            
-            const { stdout, stderr } = await execAsync(command, { cwd: '../backend' });
-            console.log('Test API server start command executed');
-            console.log('stdout:', stdout);
-            console.log('stderr:', stderr);
-
-            console.log('Checking if the server process is running...');
-            const { stdout: psOutput } = await execAsync('ps aux | grep "uvicorn backend.kanot.main:app"');
-            console.log('Process check output:', psOutput);
-
-            console.log('Waiting for server to be ready...');
-            const serverReady = await waitForServer('http://localhost:8888');
-            if (!serverReady) {
-                throw new Error('Failed to start the API server');
-            }
+            console.log('Test API server is not running. It will be started by Playwright.');
         } else {
             console.log('Test API server is already running');
         }

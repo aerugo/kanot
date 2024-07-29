@@ -13,7 +13,7 @@ const config: PlaywrightTestConfig = {
 		{
 			command: 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888',
 			port: 8888,
-			reuseExistingServer: false,
+			reuseExistingServer: true,
 		},
 		{
 			command: 'npm run build && npm run preview',
