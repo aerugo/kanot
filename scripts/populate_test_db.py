@@ -92,13 +92,13 @@ def populate_test_db():
     annotations_df['project_id'] = 1
 
     # Insert data into tables
-    project_df.to_sql('projects', engine, if_exists='append', index=False)
-    code_type_df.to_sql('code_types', engine, if_exists='append', index=False)
-    codes_df.to_sql('codes', engine, if_exists='append', index=False)
-    series_df.to_sql('series', engine, if_exists='append', index=False)
-    segment_df.to_sql('segments', engine, if_exists='append', index=False)
-    elements_df.to_sql('elements', engine, if_exists='append', index=False)
-    annotations_df.to_sql('annotations', engine, if_exists='append', index=False)
+    project_df.to_sql('projects', engine, if_exists='replace', index=False)
+    code_type_df.to_sql('code_types', engine, if_exists='replace', index=False)
+    codes_df.to_sql('codes', engine, if_exists='replace', index=False)
+    series_df.to_sql('series', engine, if_exists='replace', index=False)
+    segment_df.to_sql('segments', engine, if_exists='replace', index=False)
+    elements_df.to_sql('elements', engine, if_exists='replace', index=False)
+    annotations_df.to_sql('annotations', engine, if_exists='replace', index=False)
 
     session.close()
 
