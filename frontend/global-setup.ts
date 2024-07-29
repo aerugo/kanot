@@ -20,25 +20,41 @@ async function waitForServer(url: string, maxRetries = 10, delay = 1000): Promis
     return false;
 }
 
+async function isServerRunning(): Promise<boolean> {
+    try {
+        const response = await fetch('http://localhost:8888');
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
+}
+
 async function globalSetup() {
     try {
-        console.log('Starting test API server...');
-        const command = 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
-        console.log('Executing command:', command);
-        
-        const { stdout, stderr } = await execAsync(command);
-        console.log('Test API server start command executed');
-        console.log('stdout:', stdout);
-        console.log('stderr:', stderr);
+        console.log('Checking if test API server is already running...');
+        const serverRunning = await isServerRunning();
 
-        console.log('Checking if the server process is running...');
-        const { stdout: psOutput } = await execAsync('ps aux | grep "uvicorn backend.kanot.main:app"');
-        console.log('Process check output:', psOutput);
+        if (!serverRunning) {
+            console.log('Starting test API server...');
+            const command = 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888';
+            console.log('Executing command:', command);
+            
+            const { stdout, stderr } = await execAsync(command);
+            console.log('Test API server start command executed');
+            console.log('stdout:', stdout);
+            console.log('stderr:', stderr);
 
-        console.log('Waiting for server to be ready...');
-        const serverReady = await waitForServer('http://localhost:8888');
-        if (!serverReady) {
-            throw new Error('Failed to start the API server');
+            console.log('Checking if the server process is running...');
+            const { stdout: psOutput } = await execAsync('ps aux | grep "uvicorn backend.kanot.main:app"');
+            console.log('Process check output:', psOutput);
+
+            console.log('Waiting for server to be ready...');
+            const serverReady = await waitForServer('http://localhost:8888');
+            if (!serverReady) {
+                throw new Error('Failed to start the API server');
+            }
+        } else {
+            console.log('Test API server is already running');
         }
         
         console.log('Resetting the test database...');
