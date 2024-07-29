@@ -1,8 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+// Add a helper function to log API requests
+async function logApiRequest(page, url) {
+  await page.route('**', route => {
+    console.log(`API Request: ${route.request().method()} ${route.request().url()}`);
+    route.continue();
+  });
+  await page.goto(url);
+}
+
 // Test for the home page
 test('home page has expected title and navigation', async ({ page }) => {
-	await page.goto('/');
+	await logApiRequest(page, '/');
 
 	// Check the page title
 	await expect(page).toHaveTitle('Welcome to Kanot Code Management');
@@ -19,7 +28,7 @@ test('home page has expected title and navigation', async ({ page }) => {
 
 // Test for the Codes page
 test('codes page displays codes list', async ({ page }) => {
-	await page.goto('/codes');
+	await logApiRequest(page, '/codes');
 
 	// Check the page heading
 	const heading = page.locator('h1');
