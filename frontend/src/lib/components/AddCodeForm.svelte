@@ -65,7 +65,13 @@
       const response: Code = await addCode(codeWithProject);
       console.log("Server response:", response);
       if (response && response.code_id) {
-        codes.update(currentCodes => [...currentCodes, response]);
+        console.log("Server response:", response);
+        codes.update(currentCodes => {
+          console.log("Current codes before update:", currentCodes);
+          const updatedCodes = [...currentCodes, response];
+          console.log("Updated codes:", updatedCodes);
+          return updatedCodes;
+        });
         resetForm();
         isFormVisible = false;
         statusMessage = "Code added successfully!";
@@ -73,6 +79,7 @@
         dispatch("codeAdded", response);
         console.log("New code added:", response);
       } else {
+        console.error("Invalid response from server:", response);
         throw new Error("Invalid response from server");
       }
     } catch (error: unknown) {

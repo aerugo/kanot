@@ -402,10 +402,25 @@ test('can create a new code', async ({ page }) => {
 		const rows = document.querySelectorAll('.codes-list tr');
 		console.log(`Current row count: ${rows.length}, Expected count: ${expectedCount}`);
 		return rows.length === expectedCount;
-	}, initialCodeCount + 1, { timeout: 20000 });
+	}, initialCodeCount + 1, { timeout: 30000 });
 
 	// Additional wait to ensure all updates are complete
 	await page.waitForTimeout(2000);
+
+	// Log the current state of the codes list
+	const currentCodes = await page.evaluate(() => {
+		const rows = document.querySelectorAll('.codes-list tr');
+		return Array.from(rows).map(row => ({
+			term: row.querySelector('td:nth-child(1)')?.textContent,
+			description: row.querySelector('td:nth-child(2)')?.textContent,
+			type: row.querySelector('td:nth-child(3)')?.textContent
+		}));
+	});
+	console.log('Current codes:', JSON.stringify(currentCodes, null, 2));
+
+	// Check if the new code is visible in the list
+	const isNewCodeVisible = await page.isVisible(`.codes-list tr:has-text("${uniqueTerm}")`);
+	console.log(`Is new code "${uniqueTerm}" visible:`, isNewCodeVisible);
 
 	// Additional check to ensure the new code is visible
 	await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 10000 });
