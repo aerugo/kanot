@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const config: PlaywrightTestConfig = {
 	webServer: [
 		{
-			command: 'cd ../backend && poetry run start_test_server',
+			command: 'cd ../backend && TEST_MODE=1 poetry run uvicorn kanot.main:app --host localhost --port 8888',
 			port: 8888,
 			reuseExistingServer: false,
 		},
