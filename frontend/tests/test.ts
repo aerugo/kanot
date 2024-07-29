@@ -363,8 +363,14 @@ test('can delete a code', async ({ page }) => {
 test('can create a new code', async ({ page }) => {
 	await page.goto('/codes');
 
-	// Wait for the page to load
-	await page.waitForSelector('.codes-list', { state: 'visible', timeout: 5000 });
+	// Wait for the page to load and codes to be visible
+	await page.waitForSelector('.codes-list tr', { state: 'visible', timeout: 10000 });
+
+	// Wait for the codes to stabilize
+	await page.waitForFunction(() => {
+		const rows = document.querySelectorAll('.codes-list tr');
+		return rows.length > 0 && !rows[rows.length - 1].classList.contains('loading');
+	}, { timeout: 10000 });
 
 	// Get the initial number of codes
 	const initialCodeCount = await page.locator('.codes-list tr').count();
@@ -373,7 +379,7 @@ test('can create a new code', async ({ page }) => {
 	await page.click('button:has-text("New Code")');
 
 	// Wait for the form to appear
-	await page.waitForSelector('form', { state: 'visible', timeout: 2000 });
+	await page.waitForSelector('form', { state: 'visible', timeout: 5000 });
 
 	// Generate a unique term
 	const uniqueTerm = `TEST-${Math.random().toString(36).substring(2, 10)}`;
@@ -391,8 +397,11 @@ test('can create a new code', async ({ page }) => {
 	// Submit the form
 	await page.click('button:has-text("Add Code")');
 
-	// Wait for the new code to be added
-	await page.waitForTimeout(2000);
+	// Wait for the new code to be added and the list to update
+	await page.waitForFunction((expectedCount) => {
+		const rows = document.querySelectorAll('.codes-list tr');
+		return rows.length === expectedCount && !rows[rows.length - 1].classList.contains('loading');
+	}, initialCodeCount + 1, { timeout: 10000 });
 
 	// Check if the number of codes has increased
 	const newCodeCount = await page.locator('.codes-list tr').count();
