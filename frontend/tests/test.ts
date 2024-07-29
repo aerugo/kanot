@@ -63,22 +63,6 @@ test('content search updates results', async ({ page }) => {
 	await expect(page.locator('table')).toBeVisible();
 });
 
-// Test adding a new code
-test('can open new code form', async ({ page }) => {
-	await page.goto('/codes');
-
-	// Click the "New Code" button
-	await page.click('button:has-text("New Code")');
-
-	// Check if the form is visible
-	await expect(page.locator('form')).toBeVisible();
-
-	// Check for form fields
-	await expect(page.locator('input[placeholder="Term"]')).toBeVisible();
-	await expect(page.locator('input[placeholder="Description"]')).toBeVisible();
-	await expect(page.locator('form select')).toBeVisible();
-});
-
 // Test for filtering codes by type
 test('can filter codes by type', async ({ page }) => {
 	await page.goto('/codes');
@@ -394,7 +378,6 @@ test('can create a new code', async ({ page }) => {
 
 	// Get the initial number of codes
 	const initialCodeCount = await page.locator('.codes-list tr').count();
-	console.log('Initial code count:', initialCodeCount);
 
 	// Click the "New Code" button
 	await page.click('button:has-text("New Code")');
@@ -404,7 +387,6 @@ test('can create a new code', async ({ page }) => {
 
 	// Generate a unique term
 	const uniqueTerm = `TEST-${Math.random().toString(36).substring(2, 10)}`;
-	console.log('Generated unique term:', uniqueTerm);
 
 	// Fill in the form
 	await page.fill('[data-id="add-code-term"]', uniqueTerm);
@@ -432,16 +414,13 @@ test('can create a new code', async ({ page }) => {
 
 	// Submit the form
 	await page.click('button:has-text("Add Code")');
-	console.log('Form submitted');
 
 	// Wait for the success message to appear
 	await page.waitForSelector('.status-message.success', { state: 'visible', timeout: 2000 });
-	console.log('Success message appeared');
 
 	// Check the content of the success message
 	const successMessage = await page.textContent('.status-message.success');
 	expect(successMessage).toBe('Code added successfully!');
-	console.log('Success message content verified');
 
 	// Additional wait to ensure all updates are complete
 	await page.waitForTimeout(2000);
@@ -458,12 +437,10 @@ test('can create a new code', async ({ page }) => {
 
 	// Check if the new code is visible in the list
 	const isNewCodeVisible = await page.isVisible(`.codes-list tr:has-text("${uniqueTerm}")`);
-	console.log(`Is new code "${uniqueTerm}" visible:`, isNewCodeVisible);
 
 	// Additional check to ensure the new code is visible
 	try {
 		await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 3000 });
-		console.log('New code found in the list');
 	} catch (error) {
 		console.error('New code not found in the list:', error);
 	}
@@ -473,7 +450,6 @@ test('can create a new code', async ({ page }) => {
 
 	// Check if the number of codes has increased
 	const newCodeCount = await page.locator('.codes-list tr').count();
-	console.log('New code count:', newCodeCount);
 
 	// Check if the new code is visible in the list
 	const newCodeText = await page.textContent('.codes-list');
