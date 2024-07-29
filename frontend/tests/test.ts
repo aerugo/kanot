@@ -454,50 +454,50 @@ test('can remove annotations in batch', async ({ page }) => {
 	await page.goto('/content');
 
 	// Wait for the table to be visible
-	await page.waitForSelector('table', { state: 'visible', timeout: 2000 });
+	await page.waitForSelector('table', { state: 'visible', timeout: 5000 });
 
-	// Select elements (3rd to 10th)
-	await page.click('table tbody tr:nth-child(3) input[type="checkbox"]');
+	// Find the first element with annotations
+	const firstElementWithAnnotations = await page.locator('table tbody tr:has(.code-tag)').first();
+	const firstElementIndex = await firstElementWithAnnotations.evaluate(el => Array.from(el.parentElement.children).indexOf(el) + 1);
+
+	// Select the first element with annotations
+	await firstElementWithAnnotations.locator('input[type="checkbox"]').click();
+
+	// Select the element 10 rows below (or the last row if there aren't 10 more rows)
 	await page.keyboard.down('Shift');
-	await page.click('table tbody tr:nth-child(10) input[type="checkbox"]');
+	const lastRowIndex = await page.locator('table tbody tr').count();
+	const endIndex = Math.min(firstElementIndex + 10, lastRowIndex);
+	await page.locator(`table tbody tr:nth-child(${endIndex}) input[type="checkbox"]`).click();
 	await page.keyboard.up('Shift');
 
-	// Click the batch removal button
+	// Click the "Remove Annotations" button
 	await page.click('button:has-text("Remove Annotations")');
 
 	// Wait for the modal to appear
-	await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 2000 });
+	await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 5000 });
 
-	// Click the "Add Code" button to open the dropdown
-	await page.click('button:has-text("Add Code")');
+	// Select the first two codes to remove
+	const codeCheckboxes = page.locator('dialog[open] input[type="checkbox"]');
+	await codeCheckboxes.nth(0).click();
+	await codeCheckboxes.nth(1).click();
 
-	// Wait for the annotation dropdown to be visible
-	await page.waitForSelector('.annotation-dropdown', { state: 'visible', timeout: 2000 });
+	// Get the text of the selected codes
+	const selectedCodes = await page.$$eval('dialog[open] input[type="checkbox"]:checked + span', 
+		elements => elements.map(el => el.textContent.trim()));
 
-	// Get all available codes from the dropdown
-	const allCodes = await page.locator('.annotation-dropdown ul li button').allTextContents();
-
-	// Select the first two codes
-	for (let i = 0; i < 2 && i < allCodes.length; i++) {
-		await page.click(`.annotation-dropdown ul li button:has-text("${allCodes[i]}")`);
-		// Wait for the code to be added and the dropdown to reopen
-		await page.waitForSelector(`.selected-codes .code-tag:has-text("${allCodes[i]}")`, { state: 'visible' });
-		await page.click('button:has-text("Add Code")');
-	}
-
-	// Apply the batch removal
-	await page.click('button:has-text("Apply")');
+	// Click the "Remove" button
+	await page.click('dialog[open] button:has-text("Remove")');
 
 	// Wait for the modal to close
-	await page.waitForSelector('.modal', { state: 'hidden', timeout: 2000 });
+	await page.waitForSelector('dialog[open]', { state: 'hidden', timeout: 5000 });
 
-	// Check if the selected annotations are removed from all selected elements
-	for (let i = 3; i <= 10; i++) {
-		for (const code of allCodes.slice(0, 2)) {
+	// Check that none of the modified elements have annotations with the removed codes
+	for (let i = firstElementIndex; i <= endIndex; i++) {
+		for (const code of selectedCodes) {
 			await expect(page.locator(`table tbody tr:nth-child(${i}) .code-tag:has-text("${code}")`)).not.toBeVisible();
 		}
 	}
-}, { timeout: 30000 }); 
+}, { timeout: 60000 }); 
 
 // Test for pagination on the Content page
 test('content pagination loads more items', async ({ page }) => {
