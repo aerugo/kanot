@@ -434,6 +434,15 @@ test('can create a new code', async ({ page }) => {
 	await page.click('button:has-text("Add Code")');
 	console.log('Form submitted');
 
+	// Wait for the success message to appear
+	await page.waitForSelector('.status-message.success', { state: 'visible', timeout: 10000 });
+	console.log('Success message appeared');
+
+	// Check the content of the success message
+	const successMessage = await page.textContent('.status-message.success');
+	expect(successMessage).toBe('Code added successfully!');
+	console.log('Success message content verified');
+
 	// Wait for the new code to be added and the list to update
 	await page.waitForFunction((expectedCount, uniqueTerm) => {
 		const rows = document.querySelectorAll('.codes-list tr');
