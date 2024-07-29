@@ -59,8 +59,9 @@ def populate_test_db():
     code_type_df['type_id'] = range(1, len(code_type_df) + 1)
 
     codes_df = codes_df.merge(code_type_df, left_on='type', right_on='type_name', how='left')
-    codes_df = codes_df.rename(columns={'type': 'type_name', 'type_id': 'code_type_id'})
-    codes_df = codes_df[['code_id', 'term', 'description', 'code_type_id', 'reference', 'coordinates']]
+    codes_df = codes_df.rename(columns={'type': 'type_name'})
+    codes_df = codes_df.merge(code_type_df[['type_name', 'type_id']], on='type_name', how='left')
+    codes_df = codes_df[['code_id', 'term', 'description', 'type_id', 'reference', 'coordinates']]
 
     project_df = pd.DataFrame({'project_id': [1], 'project_title': ['Conflicted Glossary'], 'project_description': ['Glossary for the Conflicted Podcast']})
 
@@ -89,12 +90,17 @@ def populate_test_db():
     # Define a function to insert data from a DataFrame
     def insert_data(df, model):
         data = df.to_dict(orient='records')
-        try:
-            session.bulk_insert_mappings(model, data)
-            session.commit()
-        except IntegrityError as e:
-            print(f"Unique constraint violation: {e}")
-            session.rollback()
+        for record in data:
+            try:
+                instance = model(**record)
+                session.add(instance)
+                session.commit()
+            except IntegrityError as e:
+                print(f"Unique constraint violation: {e}")
+                session.rollback()
+            except Exception as e:
+                print(f"Error inserting record: {e}")
+                session.rollback()
 
     # Insert data into tables
     insert_data(project_df, Project)
@@ -108,4 +114,15 @@ def populate_test_db():
     session.close()
 
 if __name__ == "__main__":
+    print("Starting database population...")
     populate_test_db()
+    print("Database population completed.")
+
+    # Debug: Print the number of records in each table
+    print(f"Number of projects: {session.query(Project).count()}")
+    print(f"Number of code types: {session.query(CodeType).count()}")
+    print(f"Number of codes: {session.query(Code).count()}")
+    print(f"Number of series: {session.query(Series).count()}")
+    print(f"Number of segments: {session.query(Segment).count()}")
+    print(f"Number of elements: {session.query(Element).count()}")
+    print(f"Number of annotations: {session.query(Annotation).count()}")
