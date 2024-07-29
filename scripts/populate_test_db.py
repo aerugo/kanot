@@ -103,20 +103,13 @@ def populate_test_db():
                 session.rollback()
 
     # Insert data into tables
-    insert_data(project_df, Project)
-    insert_data(code_type_df, CodeType)
-    insert_data(codes_df, Code)
-    insert_data(series_df, Series)
-    insert_data(segment_df, Segment)
-    insert_data(elements_df, Element)
-    insert_data(annotations_df, Annotation)
-
-    session.close()
-
-if __name__ == "__main__":
-    print("Starting database population...")
-    populate_test_db()
-    print("Database population completed.")
+    insert_data(project_df, Project, session)
+    insert_data(code_type_df, CodeType, session)
+    insert_data(codes_df, Code, session)
+    insert_data(series_df, Series, session)
+    insert_data(segment_df, Segment, session)
+    insert_data(elements_df, Element, session)
+    insert_data(annotations_df, Annotation, session)
 
     # Debug: Print the number of records in each table
     print(f"Number of projects: {session.query(Project).count()}")
@@ -126,3 +119,10 @@ if __name__ == "__main__":
     print(f"Number of segments: {session.query(Segment).count()}")
     print(f"Number of elements: {session.query(Element).count()}")
     print(f"Number of annotations: {session.query(Annotation).count()}")
+
+    session.close()
+
+if __name__ == "__main__":
+    print("Starting database population...")
+    populate_test_db()
+    print("Database population completed.")
