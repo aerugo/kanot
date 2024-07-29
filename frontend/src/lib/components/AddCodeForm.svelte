@@ -9,7 +9,7 @@
   interface NewCode {
     term: string;
     description: string;
-    type_id: string;
+    type_id: number;
     reference: string;
     coordinates: string;
   }
@@ -25,13 +25,14 @@
   let newCode: NewCode = {
     term: "",
     description: "",
-    type_id: "",
+    type_id: 0,
     reference: "",
     coordinates: "",
   };
   let isFormVisible: boolean = false;
   let statusMessage: string = "";
   let statusType: "success" | "error" | "" = "";
+  let isDropdownOpen: boolean = false;
 
   function toggleForm(): void {
     isFormVisible = !isFormVisible;
@@ -44,7 +45,7 @@
     newCode = {
       term: "",
       description: "",
-      type_id: "",
+      type_id: 0,
       reference: "",
       coordinates: "",
     };
@@ -59,7 +60,9 @@
         throw new Error("No project selected");
       }
       const codeWithProject = { ...newCode, project_id: projectId };
+      console.log("Submitting new code:", codeWithProject);
       const response: Code = await addCode(codeWithProject);
+      console.log("Server response:", response);
       if (response && response.code_id) {
         codes.add(response);
         resetForm();
@@ -103,12 +106,35 @@
 		<form on:submit|preventDefault={handleSubmit}>
 			<input bind:value={newCode.term} placeholder="Term" required />
 			<input bind:value={newCode.description} placeholder="Description" />
-			<select bind:value={newCode.type_id} required>
-				<option value="">Select Code Type</option>
-				{#each $codeTypes as codeType}
-					<option value={codeType.type_id}>{codeType.type_name}</option>
-				{/each}
-			</select>
+			<div class="custom-select" data-id="add-code-type">
+				<div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
+					{$codeTypes.find(ct => ct.type_id === newCode.type_id)?.type_name || 'Select Code Type'}
+				</div>
+				{#if isDropdownOpen}
+					<div class="options" role="listbox">
+						{#each $codeTypes as codeType}
+							<div 
+								class="option"
+								role="option"
+								tabindex="0"
+								aria-selected={newCode.type_id === codeType.type_id}
+								on:click={() => {
+									newCode.type_id = codeType.type_id;
+									isDropdownOpen = false;
+								}}
+								on:keydown={(e) => {
+									if (e.key === 'Enter') {
+										newCode.type_id = codeType.type_id;
+										isDropdownOpen = false;
+									}
+								}}
+							>
+								{codeType.type_name}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
 			<input bind:value={newCode.reference} placeholder="Read more" />
 			<input bind:value={newCode.coordinates} placeholder="Coordinates" />
 			<div class="form-buttons">
@@ -172,21 +198,49 @@
 	}
 
 	input,
-	select {
+	.custom-select {
 		padding: 0.5rem;
 		border: 1px solid #ddd;
 		border-radius: 4px;
 		font-size: 1rem;
 	}
 
-	select {
+	.custom-select {
+		position: relative;
+		width: 100%;
 		background-color: white;
 		cursor: pointer;
 	}
 
-	select:focus {
-		outline: none;
-		border-color: #3498db;
+	.selected-option {
+		padding: 0.5rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		cursor: pointer;
+		background-color: white;
+	}
+
+	.options {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		background-color: white;
+		border: 1px solid #ccc;
+		border-top: none;
+		border-radius: 0 0 4px 4px;
+		max-height: 200px;
+		overflow-y: auto;
+		z-index: 1000;
+	}
+
+	.option {
+		padding: 0.5rem;
+		cursor: pointer;
+	}
+
+	.option:hover {
+		background-color: #f0f0f0;
 	}
 
 	.form-buttons {
