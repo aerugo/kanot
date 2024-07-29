@@ -113,8 +113,8 @@
 	<section class="add-code" transition:slide={{ duration: 300 }}>
 		<h2>Add New Code</h2>
 		<form on:submit|preventDefault={handleSubmit}>
-			<input bind:value={newCode.term} placeholder="Term" required />
-			<input bind:value={newCode.description} placeholder="Description" />
+			<input bind:value={newCode.term} placeholder="Term" required data-id="add-code-term" />
+			<input bind:value={newCode.description} placeholder="Description" data-id="add-code-description" />
 			<div class="custom-select" data-id="add-code-type" use:clickOutside={() => isDropdownOpen = false}>
 				<div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
 					{$codeTypes.find(ct => ct.type_id === newCode.type_id)?.type_name || 'Select Code Type'}
@@ -144,8 +144,8 @@
 					</div>
 				{/if}
 			</div>
-			<input bind:value={newCode.reference} placeholder="Read more" />
-			<input bind:value={newCode.coordinates} placeholder="Coordinates" />
+			<input bind:value={newCode.reference} placeholder="Read more" data-id="add-code-reference" />
+			<input bind:value={newCode.coordinates} placeholder="Coordinates" data-id="add-code-coordinates" />
 			<div class="form-buttons">
 				<button type="submit">Add Code</button>
 				<button type="button" class="cancel-btn" on:click={toggleForm}>Cancel</button>
