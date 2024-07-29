@@ -97,3 +97,4 @@ test-results/
 */_archive/
 *.db
 .aider*
+/frontend/*.png
