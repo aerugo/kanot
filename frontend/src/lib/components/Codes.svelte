@@ -56,8 +56,9 @@
 		selectedTypes = event.detail;
 	}
 
-	function handleCodeAdded(event: Event): void {
-		codes.refresh($currentProject);
+	function handleCodeAdded(event: CustomEvent<Code>): void {
+		codes.update(currentCodes => [...currentCodes, event.detail]);
+		console.log("Code added event received:", event.detail);
 	}
 
 	function handleEditCode(event: CustomEvent<Code>): void {

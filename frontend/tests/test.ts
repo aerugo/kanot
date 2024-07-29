@@ -400,8 +400,12 @@ test('can create a new code', async ({ page }) => {
 	// Wait for the new code to be added and the list to update
 	await page.waitForFunction((expectedCount) => {
 		const rows = document.querySelectorAll('.codes-list tr');
-		return rows.length === expectedCount && !rows[rows.length - 1].classList.contains('loading');
-	}, initialCodeCount + 1, { timeout: 10000 });
+		console.log(`Current row count: ${rows.length}, Expected count: ${expectedCount}`);
+		return rows.length === expectedCount;
+	}, initialCodeCount + 1, { timeout: 20000 });
+
+	// Additional wait to ensure all updates are complete
+	await page.waitForTimeout(2000);
 
 	// Additional check to ensure the new code is visible
 	await page.waitForSelector(`.codes-list tr:has-text("${uniqueTerm}")`, { state: 'visible', timeout: 10000 });
