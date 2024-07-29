@@ -1,3 +1,11 @@
+import sys
+import os
+from pathlib import Path
+
+# Add the project root directory to the Python path
+project_root = Path(__file__).resolve().parent.parent
+sys.path.append(str(project_root))
+
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -5,7 +13,8 @@ from kanot.db.schema import create_database, Project, CodeType, Code, Series, Se
 
 def populate_test_db():
     # Create a connection to the SQLite database
-    engine = create_engine('sqlite:///backend/test_database.db', echo=True)
+    db_path = project_root / 'backend' / 'test_database.db'
+    engine = create_engine(f'sqlite:///{db_path}', echo=True)
     create_database(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
