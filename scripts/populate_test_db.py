@@ -215,4 +215,4 @@ if __name__ == '__main__':
         load_data(sys.argv[1])
 
     else:
-        load_data('sqlite:///./backend/test_database.db')
+        load_data('sqlite:///../backend/local_database.db')
