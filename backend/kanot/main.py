@@ -73,7 +73,11 @@ logger = logging.getLogger("kanot")
 
 def configure_database(database_url: str | None = None):
     if database_url is None:
-        database_url = os.getenv("DATABASE_URL", "sqlite:///local_database.db")
+        if os.getenv("TEST_MODE") == "1":
+            from ..test_config import TEST_DB_URL
+            database_url = TEST_DB_URL
+        else:
+            database_url = os.getenv("DATABASE_URL", "sqlite:///local_database.db")
     
     logger.info(f"Using database URL: {database_url}")
     engine = create_engine(database_url)
