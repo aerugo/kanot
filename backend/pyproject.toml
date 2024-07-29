@@ -62,3 +62,4 @@ addopts = "-v"
 
 [tool.poetry.scripts]
 start = "start:main"
+start_test_server = "uvicorn kanot.main:app --host localhost --port 8888"
