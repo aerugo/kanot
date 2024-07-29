@@ -4,8 +4,12 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 async function globalTeardown() {
-    // Stop the test API
-    await execAsync('pkill -f "uvicorn backend.kanot.main:app"');
+    try {
+        // Stop the test API
+        await execAsync('pkill -f "uvicorn backend.kanot.main:app"');
+    } catch (error) {
+        console.log('No uvicorn process found to kill. This is not necessarily an error.');
+    }
 }
 
 export default globalTeardown;
