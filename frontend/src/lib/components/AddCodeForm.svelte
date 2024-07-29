@@ -5,6 +5,7 @@
   import { codeTypes, codes } from "../stores/codeStore";
   import { currentProject } from "../stores/projectStore";
   import type { Code } from "../types";
+  import { clickOutside } from "../utils/helpers";
 
   interface NewCode {
     term: string;
@@ -106,7 +107,7 @@
 		<form on:submit|preventDefault={handleSubmit}>
 			<input bind:value={newCode.term} placeholder="Term" required />
 			<input bind:value={newCode.description} placeholder="Description" />
-			<div class="custom-select" data-id="add-code-type">
+			<div class="custom-select" data-id="add-code-type" use:clickOutside={() => isDropdownOpen = false}>
 				<div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
 					{$codeTypes.find(ct => ct.type_id === newCode.type_id)?.type_name || 'Select Code Type'}
 				</div>

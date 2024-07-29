@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { updateCode } from "../api.ts";
   import { codeTypes } from "../stores/codeStore.ts";
+  import { clickOutside } from "../utils/helpers";
 
   interface Code {
     code_id: number;
@@ -132,7 +133,7 @@
         </label>
         <label for="code-type-select">
           Code Type:
-          <div class="custom-select" data-id="edit-code-type" id="code-type-select">
+          <div class="custom-select" data-id="edit-code-type" id="code-type-select" use:clickOutside={() => isDropdownOpen = false}>
             <div class="selected-option" role="button" tabindex="0" on:click={() => isDropdownOpen = !isDropdownOpen} on:keydown={(e) => e.key === 'Enter' && (isDropdownOpen = !isDropdownOpen)}>
               {$codeTypes.find(ct => editingCode && ct.type_id === editingCode.type_id)?.type_name || 'Select Code Type'}
             </div>
