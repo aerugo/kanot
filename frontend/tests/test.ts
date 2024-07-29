@@ -359,6 +359,47 @@ test('can delete a code', async ({ page }) => {
 	expect(newCodeCount).toBe(initialCodeCount - 1);
 });
 
+// Test for creating a new code
+test('can create a new code', async ({ page }) => {
+	await page.goto('/codes');
+
+	// Wait for the page to load
+	await page.waitForSelector('.codes-list', { state: 'visible', timeout: 5000 });
+
+	// Get the initial number of codes
+	const initialCodeCount = await page.locator('.codes-list tr').count();
+
+	// Click the "New Code" button
+	await page.click('button:has-text("New Code")');
+
+	// Wait for the form to appear
+	await page.waitForSelector('form', { state: 'visible', timeout: 2000 });
+
+	// Fill in the form
+	await page.fill('input[placeholder="Term"]', 'Test New Code');
+	await page.fill('input[placeholder="Description"]', 'This is a test description');
+	
+	// Select the first code type option
+	await page.selectOption('select', { index: 0 });
+
+	await page.fill('input[placeholder="Read more"]', 'https://example.com');
+	await page.fill('input[placeholder="Coordinates"]', '1,2,3');
+
+	// Submit the form
+	await page.click('button:has-text("Add Code")');
+
+	// Wait for the new code to be added
+	await page.waitForTimeout(2000);
+
+	// Check if the number of codes has increased
+	const newCodeCount = await page.locator('.codes-list tr').count();
+	expect(newCodeCount).toBe(initialCodeCount + 1);
+
+	// Check if the new code is visible in the list
+	await expect(page.locator('.codes-list')).toContainText('Test New Code');
+	await expect(page.locator('.codes-list')).toContainText('This is a test description');
+});
+
 // Test for batch annotation
 test('can add annotations in batch', async ({ page }) => {
 	await page.goto('/content');
