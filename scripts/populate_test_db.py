@@ -88,7 +88,7 @@ def populate_test_db():
     annotations_df['project_id'] = 1
 
     # Define a function to insert data from a DataFrame
-    def insert_data(df, model):
+    def insert_data(df, model, session):
         data = df.to_dict(orient='records')
         for record in data:
             try:
