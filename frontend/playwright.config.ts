@@ -9,15 +9,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const config: PlaywrightTestConfig = {
-	webServer: {
-		command: 'npm run build && npm run preview',
-		port: 4173,
-		env: {
-			TEST_MODE: '1',
-			VITE_TEST_MODE: '1',
-			VITE_API_URL: 'http://localhost:8888'
+	webServer: [
+		{
+			command: 'cd ../backend && poetry run start_test_server',
+			port: 8888,
+			reuseExistingServer: false,
+		},
+		{
+			command: 'npm run build && npm run preview',
+			port: 4173,
+			env: {
+				TEST_MODE: '1',
+				VITE_TEST_MODE: '1',
+				VITE_API_URL: 'http://localhost:8888'
+			}
 		}
-	},
+	],
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	globalSetup: path.join(__dirname, 'global-setup.ts'),
