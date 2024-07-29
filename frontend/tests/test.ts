@@ -435,14 +435,16 @@ test('can create a new code', async ({ page }) => {
 	console.log('Form submitted');
 
 	// Wait for the new code to be added and the list to update
-	await page.waitForFunction((expectedCount) => {
+	await page.waitForFunction((expectedCount, uniqueTerm) => {
 		const rows = document.querySelectorAll('.codes-list tr');
 		console.log(`Current row count: ${rows.length}, Expected count: ${expectedCount}`);
-		return rows.length === expectedCount;
-	}, initialCodeCount + 1, { timeout: 30000 });
+		const newCodeVisible = Array.from(rows).some(row => row.textContent.includes(uniqueTerm));
+		console.log(`Is new code "${uniqueTerm}" visible: ${newCodeVisible}`);
+		return rows.length === expectedCount && newCodeVisible;
+	}, initialCodeCount + 1, uniqueTerm, { timeout: 60000 });
 
 	// Additional wait to ensure all updates are complete
-	await page.waitForTimeout(2000);
+	await page.waitForTimeout(5000);
 
 	// Log the current state of the codes list
 	const currentCodes = await page.evaluate(() => {
