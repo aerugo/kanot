@@ -8,15 +8,20 @@ sys.path.append(str(project_root))
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 
-from backend.kanot.db.schema import create_database
+from backend.kanot.db.schema import create_database, drop_database, Project, CodeType, Code, Series, Segment, Element, Annotation
 
 
 def populate_test_db():
     # Create a connection to the SQLite database
     db_path = project_root / 'backend' / 'local_database.db'
     engine = create_engine(f'sqlite:///{db_path}', echo=True)
+    
+    # Drop existing database and create a new one
+    drop_database(engine)
     create_database(engine)
+    
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -81,16 +86,24 @@ def populate_test_db():
     annotations_df['annotation_id'] = annotations_df.index
     annotations_df['project_id'] = 1
 
+    # Define a function to insert data from a DataFrame
+    def insert_data(df, model):
+        data = df.to_dict(orient='records')
+        try:
+            session.bulk_insert_mappings(model, data)
+            session.commit()
+        except IntegrityError as e:
+            print(f"Unique constraint violation: {e}")
+            session.rollback()
+
     # Insert data into tables
-    project_df.to_sql('projects', engine, if_exists='replace', index=False)
-    code_type_df.to_sql('code_types', engine, if_exists='replace', index=False)
-    codes_df['project_id'] = 1  # Add project_id column
-    codes_df['project_id'] = 1  # Add project_id column
-    codes_df.to_sql('codes', engine, if_exists='replace', index=False)
-    series_df.to_sql('series', engine, if_exists='replace', index=False)
-    segment_df.to_sql('segments', engine, if_exists='replace', index=False)
-    elements_df.to_sql('elements', engine, if_exists='replace', index=False)
-    annotations_df.to_sql('annotations', engine, if_exists='replace', index=False)
+    insert_data(project_df, Project)
+    insert_data(code_type_df, CodeType)
+    insert_data(codes_df, Code)
+    insert_data(series_df, Series)
+    insert_data(segment_df, Segment)
+    insert_data(elements_df, Element)
+    insert_data(annotations_df, Annotation)
 
     session.close()
 
